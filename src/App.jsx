@@ -176,7 +176,7 @@ async function storeDelete(key) {
 async function callClaude({ system, messages, maxTokens = 1000 }) {
   // Nunca llamamos a api.anthropic.com directo desde el navegador (expondría la API key).
   // Este endpoint es una Netlify Function que guarda la key del lado del servidor.
-  const res = await fetch("/.netlify/functions/claude", {
+  const res = await fetch("/.netlify/functions/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ model: "claude-sonnet-5", max_tokens: maxTokens, system, messages }),
