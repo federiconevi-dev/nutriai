@@ -1696,7 +1696,7 @@ export default function App() {
   useEffect(() => { if (ready) storeSet("shoppingList", shoppingList); }, [shoppingList, ready]);
   useEffect(() => { if (ready) storeSet("checkins", checkins); }, [checkins, ready]);
 
-  const targets = calcTargets(profile);
+  const targets = useMemo(() => calcTargets(profile), [profile]);
 
   const activeDates = useMemo(() => {
     const s = new Set();
