@@ -289,12 +289,33 @@ function estimateRoutineBurn(ex, weightKg) {
   return { minutes: Math.round(minutes * 10) / 10, kcal: calcBurn(met, weightKg, minutes) };
 }
 
-function fileToBase64(file) {
+function compressImage(file, maxDim = 1024, quality = 0.75) {
   return new Promise((resolve, reject) => {
-    const r = new FileReader();
-    r.onload = () => resolve(r.result.split(",")[1]);
-    r.onerror = () => reject(new Error("No se pudo leer la imagen"));
-    r.readAsDataURL(file);
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      let { width, height } = img;
+      if (width > height && width > maxDim) { height = Math.round(height * (maxDim / width)); width = maxDim; }
+      else if (height > maxDim) { width = Math.round(width * (maxDim / height)); height = maxDim; }
+      const canvas = document.createElement("canvas");
+      canvas.width = width; canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, width, height);
+      URL.revokeObjectURL(url);
+      canvas.toBlob((blob) => {
+        if (!blob) { reject(new Error("No se pudo procesar la imagen")); return; }
+        const reader = new FileReader();
+        reader.onload = () => resolve({
+          base64: reader.result.split(",")[1],
+          mediaType: "image/jpeg",
+          previewUrl: canvas.toDataURL("image/jpeg", quality),
+        });
+        reader.onerror = () => reject(new Error("No se pudo leer la imagen comprimida"));
+        reader.readAsDataURL(blob);
+      }, "image/jpeg", quality);
+    };
+    img.onerror = () => reject(new Error("No se pudo cargar la imagen. Probá con otra foto."));
+    img.src = url;
   });
 }
 
@@ -366,6 +387,7 @@ function Field({ label, children }) {
 const inputStyle = {
   background: T.surface2, border: `1px solid ${T.border}`, borderRadius: 10,
   padding: "12px 12px", color: T.text, fontSize: 15, outline: "none", minHeight: 44,
+  width: "100%", maxWidth: "100%", boxSizing: "border-box",
 };
 
 function Chip({ active, onClick, children }) {
@@ -504,7 +526,7 @@ function Onboarding({ onDone }) {
 
   return (
     <div style={{ minHeight: "100vh", background: "#EAE3E7", display: "flex", justifyContent: "center" }}>
-      <div style={{ width: "100%", maxWidth: 430, minHeight: "100vh", background: T.bg, color: T.text, display: "flex", alignItems: "center", justifyContent: "center", padding: 20, boxShadow: "0 0 40px rgba(0,0,0,0.08)" }}>
+      <div style={{ width: "100%", maxWidth: 430, minHeight: "100vh", background: T.bg, color: T.text, display: "flex", alignItems: "center", justifyContent: "center", padding: 20, boxShadow: "0 0 40px rgba(0,0,0,0.08)", overflowX: "hidden", boxSizing: "border-box" }}>
         <div style={{ width: "100%" }}>
           <div style={{ display: "flex", gap: 6, marginBottom: 24 }}>
             {steps.map((_, i) => <div key={i} style={{ flex: 1, height: 4, borderRadius: 99, background: i <= step ? T.amber : T.surface2 }} />)}
@@ -913,43 +935,55 @@ function FoodTracker({ profile, targets, foodLog, addFood, removeFood }) {
   const [desc, setDesc] = useState("");
   const [estimate, setEstimate] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [justAdded, setJustAdded] = useState(false);
   const [photoPreview, setPhotoPreview] = useState(null);
   const [photoBase64, setPhotoBase64] = useState(null);
   const [photoMediaType, setPhotoMediaType] = useState(null);
+  const [photoLoading, setPhotoLoading] = useState(false);
   const fileInputRef = useRef(null);
   const today = todayStr();
   const todayItems = foodLog.filter((f) => f.date === today);
 
   const estimateWithAI = async () => {
     if (!desc.trim()) return;
-    setLoading(true);
+    setLoading(true); setError(null); setJustAdded(false);
     try {
       const text = await callClaude({
-        system: "Sos un nutricionista. Estimá los valores nutricionales de una comida descrita por el usuario, en base a porciones habituales. Respondé SOLO JSON: {\"name\":\"\",\"kcal\":0,\"protein\":0,\"carbs\":0,\"fat\":0}",
+        system: "Sos un nutricionista. Estimá los valores nutricionales de una comida descrita por el usuario, en base a porciones habituales. Respondé SOLO JSON, sin texto extra: {\"name\":\"\",\"kcal\":0,\"protein\":0,\"carbs\":0,\"fat\":0}",
         messages: [{ role: "user", content: desc }],
         maxTokens: 200,
       });
       const parsed = parseJSON(text);
-      if (parsed) setEstimate(parsed);
-    } catch { /* noop */ }
+      if (parsed && typeof parsed.kcal === "number") setEstimate(parsed);
+      else setError("No pude estimar esa comida. Probá describirla de otra forma (ej: '200g de pollo con arroz').");
+    } catch (e) {
+      setError(e.message || "Hubo un problema al conectar con la IA. Probá de nuevo.");
+    }
     setLoading(false);
   };
 
   const onPhotoSelected = async (file) => {
     if (!file) return;
-    setPhotoPreview(URL.createObjectURL(file));
-    setPhotoMediaType(file.type || "image/jpeg");
-    const b64 = await fileToBase64(file);
-    setPhotoBase64(b64);
-    setEstimate(null);
+    setError(null); setJustAdded(false); setPhotoLoading(true);
+    try {
+      const { base64, mediaType, previewUrl } = await compressImage(file);
+      setPhotoPreview(previewUrl);
+      setPhotoMediaType(mediaType);
+      setPhotoBase64(base64);
+      setEstimate(null);
+    } catch (e) {
+      setError(e.message || "No se pudo procesar la foto. Probá con otra imagen.");
+    }
+    setPhotoLoading(false);
   };
 
   const estimateFromPhoto = async () => {
     if (!photoBase64) return;
-    setLoading(true);
+    setLoading(true); setError(null); setJustAdded(false);
     try {
       const text = await callClaude({
-        system: "Sos un nutricionista analizando una foto de un plato de comida. Identificá los alimentos y estimá una porción aproximada. IMPORTANTE: esto es una estimación visual, nunca una medición exacta — respondé con valores razonables aunque no puedas ver cantidades exactas. Respondé SOLO JSON: {\"name\":\"\",\"kcal\":0,\"protein\":0,\"carbs\":0,\"fat\":0}",
+        system: "Sos un nutricionista analizando una foto de un plato de comida. Identificá los alimentos y estimá una porción aproximada. IMPORTANTE: esto es una estimación visual, nunca una medición exacta — respondé con valores razonables aunque no puedas ver cantidades exactas. Respondé SOLO JSON, sin texto extra: {\"name\":\"\",\"kcal\":0,\"protein\":0,\"carbs\":0,\"fat\":0}",
         messages: [{
           role: "user",
           content: [
@@ -960,20 +994,25 @@ function FoodTracker({ profile, targets, foodLog, addFood, removeFood }) {
         maxTokens: 250,
       });
       const parsed = parseJSON(text);
-      if (parsed) setEstimate(parsed);
-    } catch { /* noop */ }
+      if (parsed && typeof parsed.kcal === "number") setEstimate(parsed);
+      else setError("No pude identificar la comida en la foto. Probá con otra imagen, con mejor luz o más de cerca.");
+    } catch (e) {
+      setError(e.message || "Hubo un problema al analizar la foto. Probá de nuevo.");
+    }
     setLoading(false);
   };
 
   const confirmAdd = () => {
     if (!estimate) return;
     addFood({ id: Date.now(), date: today, slot, ...estimate });
-    setDesc(""); setEstimate(null); setPhotoPreview(null); setPhotoBase64(null);
+    setDesc(""); setEstimate(null); setPhotoPreview(null); setPhotoBase64(null); setError(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
+    setJustAdded(true);
+    setTimeout(() => setJustAdded(false), 3000);
   };
 
   const discardEstimate = () => {
-    setEstimate(null); setPhotoPreview(null); setPhotoBase64(null);
+    setEstimate(null); setPhotoPreview(null); setPhotoBase64(null); setError(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -984,6 +1023,17 @@ function FoodTracker({ profile, targets, foodLog, addFood, removeFood }) {
       <h1 style={{ fontSize: 20, fontWeight: 700, margin: "0 0 4px" }}>Registrar comida</h1>
       <p style={{ color: T.dim, fontSize: 13, marginBottom: 16 }}>Describí lo que comiste o subí una foto — la IA estima kcal y macros, vos confirmás.</p>
 
+      {justAdded && (
+        <div style={{ background: "rgba(111,198,182,0.15)", border: `1px solid ${T.teal}`, color: T.teal, borderRadius: 12, padding: "10px 14px", fontSize: 13, fontWeight: 600, marginBottom: 12, display: "flex", alignItems: "center", gap: 6 }}>
+          <Check size={15} /> Comida registrada — ya suma a tu total de hoy
+        </div>
+      )}
+      {error && (
+        <div style={{ background: "rgba(243,169,138,0.15)", border: `1px solid ${T.coral}`, color: "#B5502F", borderRadius: 12, padding: "10px 14px", fontSize: 13, marginBottom: 12 }}>
+          {error}
+        </div>
+      )}
+
       <Card style={{ marginBottom: 16 }}>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
           {["Desayuno", "Almuerzo", "Merienda", "Cena", "Snack"].map((s) => (
@@ -992,21 +1042,22 @@ function FoodTracker({ profile, targets, foodLog, addFood, removeFood }) {
         </div>
 
         <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-          <Chip active={mode === "texto"} onClick={() => setMode("texto")}>✏️ Describir</Chip>
-          <Chip active={mode === "foto"} onClick={() => setMode("foto")}>📷 Foto</Chip>
+          <Chip active={mode === "texto"} onClick={() => { setMode("texto"); setError(null); }}>✏️ Describir</Chip>
+          <Chip active={mode === "foto"} onClick={() => { setMode("foto"); setError(null); }}>📷 Foto</Chip>
         </div>
 
         {mode === "texto" ? (
           <div style={{ display: "flex", gap: 8 }}>
             <input style={{ ...inputStyle, flex: 1 }} placeholder="Ej: 200g de pollo a la plancha con arroz y ensalada"
               value={desc} onChange={(e) => setDesc(e.target.value)} onKeyDown={(e) => e.key === "Enter" && estimateWithAI()} />
-            <Button onClick={estimateWithAI} disabled={loading}>{loading ? "..." : "Estimar"} <Sparkles size={15} /></Button>
+            <Button onClick={estimateWithAI} disabled={loading || !desc.trim()}>{loading ? "..." : "Estimar"} <Sparkles size={15} /></Button>
           </div>
         ) : (
           <div>
             <input ref={fileInputRef} type="file" accept="image/*" capture="environment"
               onChange={(e) => onPhotoSelected(e.target.files?.[0])}
               style={{ fontSize: 13, color: T.dim, marginBottom: 10 }} />
+            {photoLoading && <div style={{ fontSize: 12, color: T.dim, marginBottom: 8 }}>Procesando imagen...</div>}
             {photoPreview && (
               <div style={{ marginBottom: 10 }}>
                 <img src={photoPreview} alt="Foto de la comida" style={{ width: "100%", maxHeight: 220, objectFit: "cover", borderRadius: 12, marginBottom: 10 }} />
@@ -1641,7 +1692,7 @@ export default function App() {
       <div style={{
         width: "100%", maxWidth: 430, minHeight: "100vh", background: T.bg, color: T.text,
         fontFamily: "ui-sans-serif, system-ui, sans-serif", position: "relative",
-        boxShadow: "0 0 40px rgba(0,0,0,0.08)",
+        boxShadow: "0 0 40px rgba(0,0,0,0.08)", overflowX: "hidden",
       }}>
         <div style={{ padding: "20px 16px 90px", width: "100%" }}>
           {view === "dashboard" && (
@@ -1683,34 +1734,53 @@ export default function App() {
         </div>
 
         <div style={{
-          position: "sticky", bottom: 0, left: 0, right: 0, background: T.surface,
-          borderTop: `1px solid ${T.border}`, display: "flex", justifyContent: "space-around",
-          padding: "6px 4px calc(env(safe-area-inset-bottom, 6px))", zIndex: 10,
+          position: "sticky", bottom: 0, left: 0, right: 0, zIndex: 10,
+          padding: "0 10px calc(env(safe-area-inset-bottom, 10px) + 10px)",
+          background: `linear-gradient(to top, ${T.bg} 60%, transparent)`,
+          pointerEvents: "none",
         }}>
-          {NAV.map((n) => {
-            const Icon = n.icon;
-            const active = view === n.id;
-            return (
-              <button key={n.id} onClick={() => setView(n.id)} style={{
-                background: "none", border: "none", cursor: "pointer",
-                display: "flex", flexDirection: "column", alignItems: "center", gap: 3,
-                color: active ? T.amber : T.dim, fontSize: 10, fontWeight: 600,
-                padding: "8px 10px", minWidth: 52, minHeight: 48, borderRadius: 12,
-                background: active ? "rgba(234,110,156,0.10)" : "transparent",
-              }}>
-                <Icon size={21} />{n.label}
-              </button>
-            );
-          })}
-          <button onClick={() => setView("settings")} style={{
-            background: view === "settings" ? "rgba(234,110,156,0.10)" : "transparent", border: "none", cursor: "pointer",
-            display: "flex", flexDirection: "column", alignItems: "center", gap: 3,
-            color: view === "settings" ? T.amber : T.dim, fontSize: 10, fontWeight: 600,
-            padding: "8px 10px", minWidth: 52, minHeight: 48, borderRadius: 12,
+          <div style={{
+            display: "flex", justifyContent: "space-around", alignItems: "center",
+            background: T.surface, borderRadius: 22, padding: "8px 6px",
+            boxShadow: "0 8px 24px rgba(63,42,53,0.14)", border: `1px solid ${T.border}`,
+            pointerEvents: "auto",
           }}>
-            <Settings size={21} />Ajustes
-          </button>
-        </div>
+            {NAV.map((n) => {
+              const Icon = n.icon;
+              const active = view === n.id;
+              return (
+                <button key={n.id} onClick={() => setView(n.id)} style={{
+                  background: "none", border: "none", cursor: "pointer",
+                  display: "flex", flexDirection: "column", alignItems: "center", gap: 3,
+                  fontSize: 10, fontWeight: 700, padding: "6px 4px", flex: 1,
+                }}>
+                  <span style={{
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    width: 38, height: 30, borderRadius: 14,
+                    background: active ? T.amber : "transparent", transition: "background .2s",
+                  }}>
+                    <Icon size={19} color={active ? T.amberText : T.dim} />
+                  </span>
+                  <span style={{ color: active ? T.amber : T.dim }}>{n.label}</span>
+                </button>
+              );
+            })}
+            <button onClick={() => setView("settings")} style={{
+              background: "none", border: "none", cursor: "pointer",
+              display: "flex", flexDirection: "column", alignItems: "center", gap: 3,
+              fontSize: 10, fontWeight: 700, padding: "6px 4px", flex: 1,
+            }}>
+              <span style={{
+                display: "flex", alignItems: "center", justifyContent: "center",
+                width: 38, height: 30, borderRadius: 14,
+                background: view === "settings" ? T.amber : "transparent", transition: "background .2s",
+              }}>
+                <Settings size={19} color={view === "settings" ? T.amberText : T.dim} />
+              </span>
+              <span style={{ color: view === "settings" ? T.amber : T.dim }}>Ajustes</span>
+            </button>
+          </div>
+      </div>
       </div>
 
       <style>{`
