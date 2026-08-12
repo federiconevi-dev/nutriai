@@ -202,6 +202,18 @@ function parseJSON(text) {
   }
 }
 
+function normalizeFoodEstimate(obj) {
+  if (!obj || typeof obj !== "object") return null;
+  const num = (v) => { const n = Number(v); return Number.isFinite(n) ? Math.round(n) : 0; };
+  return {
+    name: obj.name || "Comida",
+    kcal: num(obj.kcal),
+    protein: num(obj.protein),
+    carbs: num(obj.carbs),
+    fat: num(obj.fat),
+  };
+}
+
 function profileContext(profile, targets) {
   if (!profile) return "El usuario todavía no completó su perfil.";
   return `Perfil del usuario:
@@ -955,9 +967,9 @@ function FoodTracker({ profile, targets, foodLog, addFood, removeFood }) {
         messages: [{ role: "user", content: desc }],
         maxTokens: 200,
       });
-      const parsed = parseJSON(text);
-      if (parsed && typeof parsed.kcal === "number") setEstimate(parsed);
-      else setError("No pude estimar esa comida. Probá describirla de otra forma (ej: '200g de pollo con arroz').");
+      const parsed = normalizeFoodEstimate(parseJSON(text));
+      if (parsed) setEstimate(parsed);
+      else setError(`No pude interpretar la respuesta de la IA. Lo que devolvió: "${(text || "(vacío)").slice(0, 250)}"`);
     } catch (e) {
       setError(e.message || "Hubo un problema al conectar con la IA. Probá de nuevo.");
     }
@@ -994,9 +1006,9 @@ function FoodTracker({ profile, targets, foodLog, addFood, removeFood }) {
         }],
         maxTokens: 250,
       });
-      const parsed = parseJSON(text);
-      if (parsed && typeof parsed.kcal === "number") setEstimate(parsed);
-      else setError("No pude identificar la comida en la foto. Probá con otra imagen, con mejor luz o más de cerca.");
+      const parsed = normalizeFoodEstimate(parseJSON(text));
+      if (parsed) setEstimate(parsed);
+      else setError(`No pude interpretar la respuesta de la IA sobre la foto. Lo que devolvió: "${(text || "(vacío)").slice(0, 250)}"`);
     } catch (e) {
       setError(e.message || "Hubo un problema al analizar la foto. Probá de nuevo.");
     }
