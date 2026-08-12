@@ -55,7 +55,7 @@ export default async (req) => {
     });
   }
 
-  const maxTokens = Math.min(Number(body.max_tokens) || 1000, 2000);
+  const maxTokens = Math.min(Number(body.max_tokens) || 1000, 2000) + 400; // margen extra por si acaso
 
   try {
     const geminiRes = await fetch(
@@ -66,7 +66,10 @@ export default async (req) => {
         body: JSON.stringify({
           system_instruction: body.system ? { parts: [{ text: body.system }] } : undefined,
           contents: toGeminiContents(body.messages),
-          generationConfig: { maxOutputTokens: maxTokens },
+          generationConfig: {
+            maxOutputTokens: maxTokens,
+            thinkingConfig: { thinkingLevel: "minimal" },
+          },
         }),
       }
     );
