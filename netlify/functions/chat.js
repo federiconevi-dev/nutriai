@@ -6,7 +6,7 @@
 //
 // La API key de Gemini vive ACÁ, en el servidor — el navegador nunca la ve.
 
-const GEMINI_MODEL = "gemini-2.0-flash";
+const GEMINI_MODEL = "gemini-3.6-flash";
 
 function toGeminiContents(messages) {
   return (messages || []).map((m) => {
@@ -66,7 +66,7 @@ export default async (req) => {
         body: JSON.stringify({
           system_instruction: body.system ? { parts: [{ text: body.system }] } : undefined,
           contents: toGeminiContents(body.messages),
-          generationConfig: { maxOutputTokens: maxTokens, temperature: 0.7 },
+          generationConfig: { maxOutputTokens: maxTokens },
         }),
       }
     );
