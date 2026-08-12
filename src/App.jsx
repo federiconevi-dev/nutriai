@@ -573,20 +573,26 @@ function Dashboard({ profile, targets, weightLogs, streak, foodLog, exerciseLog,
   const todayWaterMl = useMemo(() => waterLog.filter((w) => w.date === today).reduce((s, w) => s + w.ml, 0), [waterLog, today]);
   const todayBurn = useMemo(() => exerciseLog.filter((e) => e.date === today).reduce((s, e) => s + (e.kcal || 0), 0), [exerciseLog, today]);
 
-  const loadTip = useCallback(async () => {
-    const cached = await storeGet(`tip:${today}`, null);
-    if (cached) { setTip(cached); return; }
+  const loadTip = useCallback(async (force = false) => {
+    if (!force) {
+      const cached = await storeGet(`tip:${today}`, null);
+      if (cached && cached.length > 15) { setTip(cached); return; }
+    }
     setLoadingTip(true);
     try {
       const text = await callClaude({
         system: profileContext(profile, targets) + "\nDame UN consejo corto (máximo 2 frases) y accionable para hoy, en español rioplatense, cercano pero profesional. Sin emojis excesivos, sin listas.",
         messages: [{ role: "user", content: "Dame el consejo del día." }],
-        maxTokens: 150,
+        maxTokens: 200,
       });
-      setTip(text);
-      await storeSet(`tip:${today}`, text);
+      if (text && text.trim().length > 15) {
+        setTip(text.trim());
+        await storeSet(`tip:${today}`, text.trim());
+      } else {
+        setTip("No pude generar tu consejo de hoy — tocá el ícono para reintentar.");
+      }
     } catch {
-      setTip("No pude generar tu consejo de hoy — probá de nuevo en un rato.");
+      setTip("No pude generar tu consejo de hoy — tocá el ícono para reintentar.");
     }
     setLoadingTip(false);
   }, [profile, targets, today]);
@@ -632,10 +638,37 @@ function Dashboard({ profile, targets, weightLogs, streak, foodLog, exerciseLog,
         </Card>
       </div>
 
+      {kcalConsumed > 0 && kcalConsumed >= targets.kcal && (
+        <div style={{
+          background: "rgba(243,169,138,0.18)", border: `1px solid ${T.coral}`, color: "#A6472A",
+          borderRadius: 14, padding: "12px 14px", fontSize: 13, fontWeight: 600,
+          display: "flex", alignItems: "center", gap: 8,
+        }}>
+          <Flame size={16} /> Ya superaste tu objetivo de hoy por {kcalConsumed - targets.kcal} kcal.
+        </div>
+      )}
+      {kcalConsumed > 0 && kcalConsumed < targets.kcal && kcalConsumed >= targets.kcal * 0.85 && (
+        <div style={{
+          background: "rgba(243,169,138,0.14)", border: `1px solid ${T.coral}`, color: "#A6472A",
+          borderRadius: 14, padding: "12px 14px", fontSize: 13, fontWeight: 600,
+          display: "flex", alignItems: "center", gap: 8,
+        }}>
+          <Flame size={16} /> Te quedan solo {targets.kcal - kcalConsumed} kcal hoy — pensalo antes de la próxima comida.
+        </div>
+      )}
+
       <Card>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-          <Sparkles size={16} color={T.amber} />
-          <span style={{ fontWeight: 600, fontSize: 14 }}>Consejo de tu IA</span>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <Sparkles size={16} color={T.amber} />
+            <span style={{ fontWeight: 600, fontSize: 14 }}>Consejo de tu IA</span>
+          </div>
+          <button onClick={() => loadTip(true)} disabled={loadingTip} style={{
+            background: "none", border: "none", cursor: loadingTip ? "default" : "pointer",
+            color: T.dim, padding: 4, display: "flex",
+          }}>
+            <RefreshCw size={15} style={{ opacity: loadingTip ? 0.4 : 1 }} />
+          </button>
         </div>
         <p style={{ margin: 0, color: T.text, fontSize: 14, lineHeight: 1.5, opacity: loadingTip ? 0.5 : 1 }}>
           {loadingTip ? "Pensando..." : tip}
@@ -1105,8 +1138,18 @@ function FoodTracker({ profile, targets, foodLog, addFood, removeFood }) {
       <Card>
         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
           <span style={{ fontWeight: 600, fontSize: 14 }}>Hoy registraste</span>
-          <span style={{ fontFamily: "ui-monospace,monospace", fontSize: 13, color: T.amber }}>{totalToday} / {targets.kcal} kcal</span>
+          <span style={{ fontFamily: "ui-monospace,monospace", fontSize: 13, color: totalToday >= targets.kcal ? T.coral : T.amber }}>{totalToday} / {targets.kcal} kcal</span>
         </div>
+        {totalToday >= targets.kcal && (
+          <div style={{ background: "rgba(243,169,138,0.18)", color: "#A6472A", borderRadius: 10, padding: "8px 12px", fontSize: 12, fontWeight: 600, marginBottom: 10 }}>
+            🔥 Ya superaste tu objetivo de hoy por {totalToday - targets.kcal} kcal.
+          </div>
+        )}
+        {totalToday < targets.kcal && totalToday >= targets.kcal * 0.85 && (
+          <div style={{ background: "rgba(243,169,138,0.14)", color: "#A6472A", borderRadius: 10, padding: "8px 12px", fontSize: 12, fontWeight: 600, marginBottom: 10 }}>
+            Te quedan solo {targets.kcal - totalToday} kcal hoy.
+          </div>
+        )}
         {["Desayuno", "Almuerzo", "Merienda", "Cena", "Snack"].map((s) => {
           const items = todayItems.filter((f) => f.slot === s);
           if (!items.length) return null;
