@@ -179,11 +179,12 @@ async function callClaude({ system, messages, maxTokens = 1000 }) {
   const res = await fetch("/.netlify/functions/claude", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ model: "claude-sonnet-4-6", max_tokens: maxTokens, system, messages }),
+    body: JSON.stringify({ model: "claude-sonnet-5", max_tokens: maxTokens, system, messages }),
   });
   if (!res.ok) {
     const errBody = await res.json().catch(() => ({}));
-    throw new Error(errBody.error || `Error del servidor (${res.status})`);
+    const msg = errBody?.error?.message || errBody?.error?.type || errBody?.error || errBody?.message || `Error del servidor (${res.status})`;
+    throw new Error(typeof msg === "string" ? msg : JSON.stringify(msg));
   }
   const data = await res.json();
   const text = (data.content || []).filter((b) => b.type === "text").map((b) => b.text).join("\n");
