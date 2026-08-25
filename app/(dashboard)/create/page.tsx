@@ -42,6 +42,7 @@ function CreateFlow() {
   const searchParams = useSearchParams();
 
   const [step, setStep] = useState(1);
+  const [scriptMode, setScriptMode] = useState<"ai" | "manual">("ai");
   const [prompt, setPrompt] = useState("");
   const [videoType, setVideoType] = useState<string>(typeParamToVideoType(searchParams.get("type")));
   const [duration, setDuration] = useState<number>(20);
@@ -81,6 +82,17 @@ function CreateFlow() {
         toast.error(data.error ?? "Something went wrong creating your project.");
         return;
       }
+
+      if (scriptMode === "manual") {
+        const manualRes = await fetch(`/api/projects/${data.project.id}/script/manual`, { method: "POST" });
+        if (!manualRes.ok) {
+          toast.error("Could not set up your storyboard. Please try again.");
+          return;
+        }
+        router.push(`/projects/${data.project.id}/storyboard`);
+        return;
+      }
+
       router.push(`/projects/${data.project.id}/script`);
     } finally {
       setSubmitting(false);
@@ -99,13 +111,47 @@ function CreateFlow() {
       {step === 1 && (
         <Card className="space-y-6 p-6">
           <div className="space-y-2">
-            <Label htmlFor="prompt" className="text-base">Describe your video</Label>
+            <Label className="text-base">Who writes the script?</Label>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <button
+                type="button"
+                onClick={() => setScriptMode("ai")}
+                className={cn(
+                  "rounded-xl border px-4 py-3 text-left transition-colors",
+                  scriptMode === "ai" ? "border-brand-500 bg-brand-500/15" : "border-border hover:bg-white/[0.02]"
+                )}
+              >
+                <p className="text-sm font-medium">AI writes it for me</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">Describe your idea, the AI writes the scene-by-scene script.</p>
+              </button>
+              <button
+                type="button"
+                onClick={() => setScriptMode("manual")}
+                className={cn(
+                  "rounded-xl border px-4 py-3 text-left transition-colors",
+                  scriptMode === "manual" ? "border-brand-500 bg-brand-500/15" : "border-border hover:bg-white/[0.02]"
+                )}
+              >
+                <p className="text-sm font-medium">I'll write it myself</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">Type exactly what happens and what's said in each scene.</p>
+              </button>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="prompt" className="text-base">
+              {scriptMode === "ai" ? "Describe your video" : "What's this video about?"}
+            </Label>
             <Textarea
               id="prompt"
               rows={5}
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
-              placeholder='Create a premium advertisement for a hydroponic gardening kit.'
+              placeholder={
+                scriptMode === "ai"
+                  ? "Create a premium advertisement for a hydroponic gardening kit."
+                  : "A short summary — used as the project title. You'll write the exact scenes and dialogue next."
+              }
               className="text-base"
             />
             <p className="text-xs text-muted-foreground">{prompt.length}/20000</p>
@@ -223,9 +269,12 @@ function CreateFlow() {
         <Card className="space-y-5 p-6">
           <div className="flex items-center gap-2 text-brand-300">
             <Sparkles className="h-4 w-4" />
-            <p className="text-sm font-medium">Ready to generate your script</p>
+            <p className="text-sm font-medium">
+              {scriptMode === "ai" ? "Ready to generate your script" : "Ready to write your own script"}
+            </p>
           </div>
           <dl className="grid grid-cols-2 gap-4 text-sm sm:grid-cols-3">
+            <Info label="Script" value={scriptMode === "ai" ? "Written by AI" : "Written by you"} />
             <Info label="Video type" value={VIDEO_TYPES.find((t) => t.value === videoType)?.label} />
             <Info label="Style" value={STYLES.find((s) => s.value === style)?.label} />
             <Info label="Duration" value={`${duration}s`} />
@@ -237,7 +286,13 @@ function CreateFlow() {
             <p className="text-xs font-medium text-muted-foreground">Your idea</p>
             <p className="mt-1 text-sm">{prompt}</p>
           </div>
-          <p className="text-xs text-muted-foreground">This will use 5 credits to generate your script.</p>
+          {scriptMode === "ai" ? (
+            <p className="text-xs text-muted-foreground">This will use 5 credits to generate your script.</p>
+          ) : (
+            <p className="text-xs text-muted-foreground">
+              You'll write each scene's visual and voice line directly in the storyboard next.
+            </p>
+          )}
         </Card>
       )}
 
@@ -252,7 +307,11 @@ function CreateFlow() {
         ) : (
           <Button variant="gradient" onClick={handleSubmit} disabled={submitting}>
             {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
-            Generate script <Sparkles className="h-4 w-4" />
+            {scriptMode === "ai" ? (
+              <>Generate script <Sparkles className="h-4 w-4" /></>
+            ) : (
+              <>Start writing <ArrowRight className="h-4 w-4" /></>
+            )}
           </Button>
         )}
       </div>
