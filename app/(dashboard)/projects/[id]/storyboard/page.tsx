@@ -69,6 +69,10 @@ export default function StoryboardPage({ params }: { params: { id: string } }) {
         return;
       }
       setScenes(data.project.scenes);
+      const isBlankSlate = data.project.scenes.every((s: Scene) => !s.visualText && !s.voiceText);
+      if (isBlankSlate && data.project.scenes[0]) {
+        setEditingId(data.project.scenes[0].id);
+      }
     } finally {
       setLoading(false);
     }
@@ -229,7 +233,10 @@ export default function StoryboardPage({ params }: { params: { id: string } }) {
                           <RefreshCw className={`h-3.5 w-3.5 ${isRegenerating ? "animate-spin" : ""}`} />
                         </IconButton>
                         <IconButton
-                          onClick={() => setEditingId(isEditing ? null : scene.id)}
+                          onClick={async () => {
+                            if (isEditing) await saveScene(scene);
+                            setEditingId(isEditing ? null : scene.id);
+                          }}
                           label={isEditing ? "Done" : "Edit"}
                         >
                           {isEditing ? <Check className="h-3.5 w-3.5" /> : <Pencil className="h-3.5 w-3.5" />}
@@ -261,9 +268,17 @@ export default function StoryboardPage({ params }: { params: { id: string } }) {
                       </div>
                     ) : (
                       <div className="space-y-1.5 text-sm">
-                        <p><span className="text-muted-foreground">Visual: </span>{scene.visualText}</p>
-                        <p className="italic text-muted-foreground">"{scene.voiceText}"</p>
-                        <p className="truncate text-xs text-muted-foreground/70">Prompt: {scene.prompt}</p>
+                        {scene.visualText || scene.voiceText ? (
+                          <>
+                            <p><span className="text-muted-foreground">Visual: </span>{scene.visualText}</p>
+                            <p className="italic text-muted-foreground">"{scene.voiceText}"</p>
+                            <p className="truncate text-xs text-muted-foreground/70">Prompt: {scene.prompt}</p>
+                          </>
+                        ) : (
+                          <p className="italic text-muted-foreground">
+                            Empty scene — tap <Pencil className="inline h-3 w-3" /> Edit to write what happens and what's said.
+                          </p>
+                        )}
                       </div>
                     )}
 
