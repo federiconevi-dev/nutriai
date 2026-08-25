@@ -26,7 +26,7 @@ export default function RegisterPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, password }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         toast.error(data.error ?? "Something went wrong. Please try again.");
         return;
@@ -41,6 +41,8 @@ export default function RegisterPage() {
       toast.success("Welcome to Videora AI! You have 100 free credits.");
       router.push("/dashboard");
       router.refresh();
+    } catch (err) {
+      toast.error("Something went wrong. Please check your connection and try again.");
     } finally {
       setLoading(false);
     }

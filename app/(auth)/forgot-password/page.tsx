@@ -23,13 +23,15 @@ export default function ForgotPasswordPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         toast.error(data.error ?? "Something went wrong.");
         return;
       }
       setSent(true);
       if (data.demoResetUrl) setDemoUrl(data.demoResetUrl);
+    } catch (err) {
+      toast.error("Something went wrong. Please check your connection and try again.");
     } finally {
       setLoading(false);
     }
