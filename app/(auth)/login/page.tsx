@@ -29,20 +29,25 @@ function LoginForm() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    const res = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-    });
-    setLoading(false);
+    try {
+      const res = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
 
-    if (res?.error) {
-      toast.error("Invalid email or password.");
-      return;
+      if (res?.error) {
+        toast.error("Invalid email or password.");
+        return;
+      }
+      toast.success("Welcome back!");
+      router.push(callbackUrl);
+      router.refresh();
+    } catch (err) {
+      toast.error("Something went wrong. Please check your connection and try again.");
+    } finally {
+      setLoading(false);
     }
-    toast.success("Welcome back!");
-    router.push(callbackUrl);
-    router.refresh();
   }
 
   return (

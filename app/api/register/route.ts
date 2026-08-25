@@ -26,25 +26,33 @@ export async function POST(req: Request) {
   const { name, email, password } = parsed.data;
   const normalizedEmail = email.toLowerCase().trim();
 
-  const existing = await db.user.findUnique({ where: { email: normalizedEmail } });
-  if (existing) {
-    return NextResponse.json({ error: "An account with this email already exists." }, { status: 409 });
+  try {
+    const existing = await db.user.findUnique({ where: { email: normalizedEmail } });
+    if (existing) {
+      return NextResponse.json({ error: "An account with this email already exists." }, { status: 409 });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 12);
+
+    const user = await db.user.create({
+      data: {
+        name,
+        email: normalizedEmail,
+        passwordHash,
+        creditBalance: { create: { balance: 100 } },
+      },
+    });
+
+    await db.creditTransaction.create({
+      data: { userId: user.id, amount: 100, reason: "SIGNUP_BONUS", note: "Welcome to Videora AI" },
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    console.error("[register] failed:", err);
+    return NextResponse.json(
+      { error: "Something went wrong creating your account. Please try again." },
+      { status: 500 }
+    );
   }
-
-  const passwordHash = await bcrypt.hash(password, 12);
-
-  const user = await db.user.create({
-    data: {
-      name,
-      email: normalizedEmail,
-      passwordHash,
-      creditBalance: { create: { balance: 100 } },
-    },
-  });
-
-  await db.creditTransaction.create({
-    data: { userId: user.id, amount: 100, reason: "SIGNUP_BONUS", note: "Welcome to Videora AI" },
-  });
-
-  return NextResponse.json({ success: true });
 }
