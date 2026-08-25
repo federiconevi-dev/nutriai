@@ -1,0 +1,311 @@
+// Videora AI - Database schema
+// Default datasource is SQLite for zero-infra local development.
+// For production, switch provider to "postgresql" and set DATABASE_URL
+// to a Postgres connection string (see README.md "Deploy to production").
+//
+// NOTE: enum-typed columns are modeled as `String` rather than Prisma
+// `enum` because SQLite (the dev datasource) doesn't support native enums.
+// The allowed values for each field are documented above it and enforced
+// in application code via zod (see lib/validations.ts, lib/video-options.ts,
+// lib/types.ts). If you switch to `postgresql`, you can optionally convert
+// these back to native Prisma enums.
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Auth (NextAuth.js Prisma adapter shape)
+// ---------------------------------------------------------------------------
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  passwordHash  String?
+  /// USER | ADMIN
+  role          String    @default("USER")
+  /// FREE | CREATOR | PRO
+  plan          String    @default("FREE")
+  disabled      Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts      Account[]
+  sessions      Session[]
+  projects      Project[]
+  assets        Asset[]
+  brandKits     BrandKit[]
+  videos        Video[]
+  creditBalance CreditBalance?
+  transactions  CreditTransaction[]
+  subscription  Subscription?
+  resetTokens   PasswordResetToken[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ---------------------------------------------------------------------------
+// Projects / Videos
+// ---------------------------------------------------------------------------
+
+model Project {
+  id          String   @id @default(cuid())
+  userId      String
+  title       String
+  prompt      String
+  /// PRODUCT_AD | TIKTOK | INSTAGRAM_REEL | YOUTUBE_SHORT | YOUTUBE | UGC | CINEMATIC | EDUCATIONAL
+  videoType   String   @default("PRODUCT_AD")
+  /// CINEMATIC | REALISTIC | UGC | LUXURY | MINIMAL | FAST_PACED | DOCUMENTARY | SOCIAL_MEDIA | CORPORATE
+  style       String   @default("CINEMATIC")
+  /// RATIO_9_16 | RATIO_16_9 | RATIO_1_1
+  aspectRatio String   @default("RATIO_9_16")
+  duration    Int      @default(20)
+  language    String   @default("es")
+  /// DRAFT | GENERATING | COMPLETED | FAILED
+  status      String   @default("DRAFT")
+  script      String? // JSON-encoded script (scenes with visual/voice text)
+  thumbnail   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scenes      VideoScene[]
+  generations Generation[]
+  videos      Video[]
+  assets      ProjectAsset[]
+
+  @@index([userId])
+}
+
+model VideoScene {
+  id         String   @id @default(cuid())
+  projectId  String
+  order      Int
+  startSec   Int
+  endSec     Int
+  visualText String
+  voiceText  String
+  prompt     String
+  imageUrl   String?
+  videoUrl   String?
+  audioUrl   String?
+  musicId    String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+}
+
+model Generation {
+  id           String   @id @default(cuid())
+  projectId    String
+  /// QUEUED | ANALYZING_PROMPT | CREATING_SCRIPT | CREATING_STORYBOARD | GENERATING_SCENES
+  /// | CREATING_VOICE | ADDING_SUBTITLES | RENDERING_VIDEO | FINALIZING | COMPLETED | FAILED | CANCELLED
+  stage        String   @default("QUEUED")
+  progress     Int      @default(0)
+  provider     String   @default("mock")
+  errorMessage String?
+  logs         String? // JSON array of {step, message, timestamp}
+  resultUrl    String?
+  creditsCost  Int      @default(0)
+  startedAt    DateTime @default(now())
+  finishedAt   DateTime?
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+}
+
+model Video {
+  id            String    @id @default(cuid())
+  projectId     String
+  userId        String
+  title         String
+  description   String?
+  /// DRAFT | GENERATING | COMPLETED | FAILED
+  status        String    @default("DRAFT")
+  duration      Int       @default(0)
+  /// RATIO_9_16 | RATIO_16_9 | RATIO_1_1
+  aspectRatio   String    @default("RATIO_9_16")
+  thumbnail     String?
+  videoUrl      String?
+  captionsStyle String    @default("classic")
+  musicId       String?
+  voiceGender   String    @default("female")
+  voiceStyle    String    @default("professional")
+  voiceSpeed    Float     @default(1.0)
+  exportedAt    DateTime?
+  exportQuality String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([projectId])
+}
+
+model Asset {
+  id        String   @id @default(cuid())
+  userId    String
+  /// PRODUCT_IMAGE | LOGO | LIFESTYLE_IMAGE | OTHER
+  type      String   @default("PRODUCT_IMAGE")
+  url       String
+  filename  String
+  mimeType  String
+  size      Int
+  createdAt DateTime @default(now())
+
+  user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projects ProjectAsset[]
+}
+
+model ProjectAsset {
+  id        String @id @default(cuid())
+  projectId String
+  assetId   String
+  role      String @default("product") // product | background | lifestyle
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  asset   Asset   @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, assetId])
+}
+
+model Template {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  category    String
+  previewUrl  String
+  /// PRODUCT_AD | TIKTOK | INSTAGRAM_REEL | YOUTUBE_SHORT | YOUTUBE | UGC | CINEMATIC | EDUCATIONAL
+  videoType   String   @default("PRODUCT_AD")
+  /// CINEMATIC | REALISTIC | UGC | LUXURY | MINIMAL | FAST_PACED | DOCUMENTARY | SOCIAL_MEDIA | CORPORATE
+  style       String   @default("CINEMATIC")
+  /// RATIO_9_16 | RATIO_16_9 | RATIO_1_1
+  aspectRatio String   @default("RATIO_9_16")
+  duration    Int      @default(20)
+  promptSeed  String
+  featured    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+model BrandKit {
+  id             String   @id @default(cuid())
+  userId         String
+  name           String   @default("My Brand")
+  logoUrl        String?
+  primaryColor   String   @default("#7C4DFF")
+  secondaryColor String   @default("#101014")
+  fontFamily     String   @default("Inter")
+  companyName    String?
+  website        String?
+  instagram      String?
+  tiktok         String?
+  youtube        String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// ---------------------------------------------------------------------------
+// Credits & billing
+// ---------------------------------------------------------------------------
+
+model CreditBalance {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  balance   Int      @default(100)
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model CreditTransaction {
+  id     String @id @default(cuid())
+  userId String
+  amount Int // positive = added, negative = used
+  /// SIGNUP_BONUS | PLAN_RENEWAL | ADMIN_GRANT | VIDEO_GENERATION | SCRIPT_GENERATION | REFUND
+  reason String
+  note      String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Subscription {
+  id                   String    @id @default(cuid())
+  userId               String    @unique
+  /// FREE | CREATOR | PRO
+  plan                 String    @default("FREE")
+  /// ACTIVE | CANCELED | PAST_DUE | INCOMPLETE | TRIALING
+  status               String    @default("ACTIVE")
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  stripePriceId        String?
+  currentPeriodEnd     DateTime?
+  cancelAtPeriodEnd    Boolean   @default(false)
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
