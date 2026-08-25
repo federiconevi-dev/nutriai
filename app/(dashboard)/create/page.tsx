@@ -108,7 +108,7 @@ function CreateFlow() {
               placeholder='Create a premium advertisement for a hydroponic gardening kit.'
               className="text-base"
             />
-            <p className="text-xs text-muted-foreground">{prompt.length}/1000</p>
+            <p className="text-xs text-muted-foreground">{prompt.length}/2000</p>
           </div>
 
           <div className="grid gap-5 sm:grid-cols-2">
