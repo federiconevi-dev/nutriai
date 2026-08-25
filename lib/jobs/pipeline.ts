@@ -10,28 +10,24 @@ import type { GenerationStage } from "@/lib/types";
 type LogEntry = { step: string; message: string; at: string };
 
 /**
- * In-process background job runner.
+ * Serverless-safe generation pipeline.
  *
- * IMPORTANT (production note): this simulates a job queue using an
- * in-memory async function kicked off with a fire-and-forget promise. It
- * works well for `next start`/`next dev` (a long-running Node process), but
- * a serverless deployment (Vercel functions) can freeze/terminate the
- * process once the HTTP response is sent. For production at scale, swap
- * this module for a real queue (BullMQ + Redis, Inngest, Trigger.dev, etc.)
- * - every call site here goes through `startGeneration`, so only this file
- * needs to change.
+ * Serverless hosts (Vercel functions) freeze/terminate the process once an
+ * HTTP response is sent, so a long-running "fire and forget" background job
+ * never gets to finish there. Instead, this pipeline advances by exactly one
+ * small unit of work (one stage transition, or one scene) each time
+ * `advanceGeneration()` is called - and the client already polls
+ * GET /api/generations/[id] every ~1.5s, so that poll is what drives the
+ * pipeline forward. Every unit of work completes well within a single
+ * request, and all state lives in the database, so it survives across
+ * separate function invocations with no in-memory state required.
+ *
+ * For a queue with true fan-out/retries at scale, swap this for BullMQ +
+ * Redis, Inngest, Trigger.dev, etc. - `advanceGeneration` is the only entry
+ * point that would need to change.
  */
 
-const STAGE_SEQUENCE: { stage: GenerationStage; progress: number; message: string }[] = [
-  { stage: "ANALYZING_PROMPT", progress: 8, message: "Analyzing your prompt…" },
-  { stage: "CREATING_SCRIPT", progress: 22, message: "Writing the script…" },
-  { stage: "CREATING_STORYBOARD", progress: 34, message: "Building the storyboard…" },
-  { stage: "GENERATING_SCENES", progress: 60, message: "Generating video scenes…" },
-  { stage: "CREATING_VOICE", progress: 74, message: "Generating voiceover…" },
-  { stage: "ADDING_SUBTITLES", progress: 84, message: "Adding subtitles…" },
-  { stage: "RENDERING_VIDEO", progress: 94, message: "Rendering final video…" },
-  { stage: "FINALIZING", progress: 99, message: "Finalizing…" },
-];
+const TERMINAL_STAGES: GenerationStage[] = ["COMPLETED", "FAILED", "CANCELLED"];
 
 export async function startGeneration(projectId: string, userId: string) {
   const project = await db.project.findFirstOrThrow({ where: { id: projectId, userId } });
@@ -51,12 +47,6 @@ export async function startGeneration(projectId: string, userId: string) {
 
   await db.project.update({ where: { id: projectId }, data: { status: "GENERATING" } });
 
-  // Fire-and-forget: the pipeline runs in the background and the caller
-  // gets an immediate response with the generation id to poll.
-  runPipeline(generation.id).catch((err) => {
-    console.error(`[pipeline] Unhandled error for generation ${generation.id}:`, err);
-  });
-
   return generation;
 }
 
@@ -67,164 +57,151 @@ async function appendLog(generationId: string, step: string, message: string) {
   await db.generation.update({ where: { id: generationId }, data: { logs: JSON.stringify(logs) } });
 }
 
-async function isCancelled(generationId: string) {
-  const g = await db.generation.findUnique({ where: { id: generationId }, select: { stage: true } });
-  return g?.stage === "CANCELLED";
-}
-
-async function runPipeline(generationId: string) {
-  const generation = await db.generation.findUniqueOrThrow({
+/**
+ * Advances a generation by one unit of work. Safe to call repeatedly (e.g.
+ * on every status poll) - it's a no-op once the generation is terminal.
+ */
+export async function advanceGeneration(generationId: string) {
+  const generation = await db.generation.findUnique({
     where: { id: generationId },
-    include: { project: { include: { scenes: true, user: true } } },
+    include: { project: { include: { scenes: { orderBy: { order: "asc" } } } } },
   });
+  if (!generation) return null;
+  if (TERMINAL_STAGES.includes(generation.stage as GenerationStage)) return generation;
+
   const project = generation.project;
-  const ai = getAIProvider();
-  const video = getVideoProvider();
-  const voice = getVoiceProvider();
 
   try {
-    for (const step of STAGE_SEQUENCE) {
-      if (await isCancelled(generationId)) return;
+    switch (generation.stage as GenerationStage) {
+      case "QUEUED":
+        await setStage(generationId, "ANALYZING_PROMPT", 8, "Analyzing your prompt…");
+        break;
 
-      await db.generation.update({
-        where: { id: generationId },
-        data: { stage: step.stage, progress: step.progress },
-      });
-      await appendLog(generationId, step.stage, step.message);
+      case "ANALYZING_PROMPT":
+        await setStage(generationId, "CREATING_SCRIPT", 22, "Writing the script…");
+        break;
 
-      switch (step.stage) {
-        case "ANALYZING_PROMPT":
-          await sleep(500);
-          break;
-
-        case "CREATING_SCRIPT": {
-          if (project.scenes.length === 0) {
-            const script = await ai.generateScript({
-              prompt: project.prompt,
-              videoType: project.videoType,
-              style: project.style,
-              duration: project.duration,
-              language: project.language,
-            });
-            await db.project.update({
-              where: { id: project.id },
-              data: {
-                title: script.title || project.title,
-                script: JSON.stringify(script),
-              },
-            });
-            await db.videoScene.createMany({
-              data: script.scenes.map((s) => ({
-                projectId: project.id,
-                order: s.order,
-                startSec: s.startSec,
-                endSec: s.endSec,
-                visualText: s.visual,
-                voiceText: s.voice,
-                prompt: s.prompt,
-              })),
-            });
-          }
-          break;
-        }
-
-        case "CREATING_STORYBOARD":
-          await sleep(400);
-          break;
-
-        case "GENERATING_SCENES": {
-          const scenes = await db.videoScene.findMany({
-            where: { projectId: project.id },
-            orderBy: { order: "asc" },
+      case "CREATING_SCRIPT": {
+        if (project.scenes.length === 0) {
+          const ai = getAIProvider();
+          const script = await ai.generateScript({
+            prompt: project.prompt,
+            videoType: project.videoType,
+            style: project.style,
+            duration: project.duration,
+            language: project.language,
           });
-          for (const scene of scenes) {
-            const handle = await video.generateVideo({
-              jobId: scene.id,
-              prompt: scene.prompt,
-              style: project.style,
-              aspectRatio: project.aspectRatio,
-              durationSeconds: scene.endSec - scene.startSec,
-            });
-            const result = await pollUntilDone(() => video.getGenerationStatus(handle));
-            await db.videoScene.update({
-              where: { id: scene.id },
-              data: {
-                videoUrl: result.videoUrl ?? pickDemoClip(scene.id),
-                imageUrl: pickDemoThumbnail(scene.id),
-              },
-            });
-          }
-          break;
-        }
-
-        case "CREATING_VOICE": {
-          const scenes = await db.videoScene.findMany({
-            where: { projectId: project.id },
-            orderBy: { order: "asc" },
-          });
-          for (const scene of scenes) {
-            const handle = await voice.generateVoice({
-              jobId: scene.id,
-              text: scene.voiceText,
-              gender: "female",
-              tone: "professional",
-              speed: 1,
-              language: project.language,
-            });
-            const result = await pollUntilDone(() => voice.getVoiceStatus(handle));
-            await db.videoScene.update({ where: { id: scene.id }, data: { audioUrl: result.audioUrl } });
-          }
-          break;
-        }
-
-        case "ADDING_SUBTITLES":
-          await sleep(500);
-          break;
-
-        case "RENDERING_VIDEO":
-          await sleep(700);
-          break;
-
-        case "FINALIZING": {
-          const firstScene = await db.videoScene.findFirst({
-            where: { projectId: project.id },
-            orderBy: { order: "asc" },
-          });
-          const resultUrl = firstScene?.videoUrl ?? pickDemoClip(project.id);
-          const thumbnail = firstScene?.imageUrl ?? pickDemoThumbnail(project.id);
-
-          await db.video.create({
-            data: {
-              projectId: project.id,
-              userId: project.userId,
-              title: project.title,
-              status: "COMPLETED",
-              duration: project.duration,
-              aspectRatio: project.aspectRatio,
-              thumbnail,
-              videoUrl: resultUrl,
-            },
-          });
-
           await db.project.update({
             where: { id: project.id },
-            data: { status: "COMPLETED", thumbnail },
+            data: { title: script.title || project.title, script: JSON.stringify(script) },
           });
-
-          await db.generation.update({
-            where: { id: generationId },
-            data: { resultUrl },
+          await db.videoScene.createMany({
+            data: script.scenes.map((s) => ({
+              projectId: project.id,
+              order: s.order,
+              startSec: s.startSec,
+              endSec: s.endSec,
+              visualText: s.visual,
+              voiceText: s.voice,
+              prompt: s.prompt,
+            })),
           });
-          break;
         }
+        await setStage(generationId, "CREATING_STORYBOARD", 34, "Building the storyboard…");
+        break;
+      }
+
+      case "CREATING_STORYBOARD":
+        await setStage(generationId, "GENERATING_SCENES", 40, "Generating video scenes…");
+        break;
+
+      case "GENERATING_SCENES": {
+        const scenes = await db.videoScene.findMany({ where: { projectId: project.id }, orderBy: { order: "asc" } });
+        const pending = scenes.find((s) => !s.videoUrl);
+        if (pending) {
+          const video = getVideoProvider();
+          const handle = await video.generateVideo({
+            jobId: pending.id,
+            prompt: pending.prompt,
+            style: project.style,
+            aspectRatio: project.aspectRatio,
+            durationSeconds: pending.endSec - pending.startSec,
+          });
+          const result = await pollUntilDone(() => video.getGenerationStatus(handle));
+          await db.videoScene.update({
+            where: { id: pending.id },
+            data: {
+              videoUrl: result.videoUrl ?? pickDemoClip(pending.id),
+              imageUrl: pickDemoThumbnail(pending.id),
+            },
+          });
+          const doneCount = scenes.length - scenes.filter((s) => !s.videoUrl).length + 1;
+          const progress = 40 + Math.round((doneCount / scenes.length) * 20);
+          await db.generation.update({ where: { id: generationId }, data: { progress } });
+        } else {
+          await setStage(generationId, "CREATING_VOICE", 60, "Creating voiceover…");
+        }
+        break;
+      }
+
+      case "CREATING_VOICE": {
+        const scenes = await db.videoScene.findMany({ where: { projectId: project.id }, orderBy: { order: "asc" } });
+        const pending = scenes.find((s) => !s.audioUrl);
+        if (pending) {
+          const voice = getVoiceProvider();
+          const handle = await voice.generateVoice({
+            jobId: pending.id,
+            text: pending.voiceText,
+            gender: "female",
+            tone: "professional",
+            speed: 1,
+            language: project.language,
+          });
+          const result = await pollUntilDone(() => voice.getVoiceStatus(handle));
+          await db.videoScene.update({ where: { id: pending.id }, data: { audioUrl: result.audioUrl } });
+          const doneCount = scenes.length - scenes.filter((s) => !s.audioUrl).length + 1;
+          const progress = 60 + Math.round((doneCount / scenes.length) * 14);
+          await db.generation.update({ where: { id: generationId }, data: { progress } });
+        } else {
+          await setStage(generationId, "ADDING_SUBTITLES", 84, "Adding subtitles…");
+        }
+        break;
+      }
+
+      case "ADDING_SUBTITLES":
+        await setStage(generationId, "RENDERING_VIDEO", 90, "Rendering final video…");
+        break;
+
+      case "RENDERING_VIDEO":
+        await setStage(generationId, "FINALIZING", 97, "Finalizing…");
+        break;
+
+      case "FINALIZING": {
+        const firstScene = await db.videoScene.findFirst({ where: { projectId: project.id }, orderBy: { order: "asc" } });
+        const resultUrl = firstScene?.videoUrl ?? pickDemoClip(project.id);
+        const thumbnail = firstScene?.imageUrl ?? pickDemoThumbnail(project.id);
+
+        await db.video.create({
+          data: {
+            projectId: project.id,
+            userId: project.userId,
+            title: project.title,
+            status: "COMPLETED",
+            duration: project.duration,
+            aspectRatio: project.aspectRatio,
+            thumbnail,
+            videoUrl: resultUrl,
+          },
+        });
+        await db.project.update({ where: { id: project.id }, data: { status: "COMPLETED", thumbnail } });
+        await db.generation.update({
+          where: { id: generationId },
+          data: { resultUrl, stage: "COMPLETED", progress: 100, finishedAt: new Date() },
+        });
+        await appendLog(generationId, "COMPLETED", "Your video is ready!");
+        break;
       }
     }
-
-    await db.generation.update({
-      where: { id: generationId },
-      data: { stage: "COMPLETED", progress: 100, finishedAt: new Date() },
-    });
-    await appendLog(generationId, "COMPLETED", "Your video is ready!");
   } catch (err) {
     console.error(`[pipeline] Generation ${generationId} failed:`, err);
     const message =
@@ -238,10 +215,15 @@ async function runPipeline(generationId: string) {
     });
     await db.project.update({ where: { id: project.id }, data: { status: "FAILED" } });
     await appendLog(generationId, "FAILED", message);
-
-    // Refund credits since the generation didn't complete.
     await refundCredits(project.userId, generation.creditsCost, `Refund for failed generation ${generationId}`).catch(() => {});
   }
+
+  return db.generation.findUnique({ where: { id: generationId } });
+}
+
+async function setStage(generationId: string, stage: GenerationStage, progress: number, message: string) {
+  await db.generation.update({ where: { id: generationId }, data: { stage, progress } });
+  await appendLog(generationId, stage, message);
 }
 
 export async function cancelGenerationJob(generationId: string, userId: string) {
@@ -265,7 +247,7 @@ export async function cancelGenerationJob(generationId: string, userId: string) 
 
 async function pollUntilDone<T extends { status: string; progress: number }>(
   check: () => Promise<T>,
-  timeoutMs = 20000
+  timeoutMs = 15000
 ): Promise<T> {
   const start = Date.now();
   // eslint-disable-next-line no-constant-condition
@@ -275,7 +257,7 @@ async function pollUntilDone<T extends { status: string; progress: number }>(
       return result;
     }
     if (Date.now() - start > timeoutMs) return result;
-    await sleep(350);
+    await sleep(300);
   }
 }
 
