@@ -1,20 +1,20 @@
 // Videora AI - Database schema
-// Default datasource is SQLite for zero-infra local development.
-// For production, switch provider to "postgresql" and set DATABASE_URL
-// to a Postgres connection string (see README.md "Deploy to production").
+// Datasource is PostgreSQL. Set DATABASE_URL to a Postgres connection string
+// (Vercel Postgres, Neon, Supabase, RDS, local Postgres, etc). For zero-infra
+// local development without installing Postgres, you can switch `provider`
+// below to "sqlite" and use DATABASE_URL="file:./dev.db" instead.
 //
 // NOTE: enum-typed columns are modeled as `String` rather than Prisma
-// `enum` because SQLite (the dev datasource) doesn't support native enums.
-// The allowed values for each field are documented above it and enforced
-// in application code via zod (see lib/validations.ts, lib/video-options.ts,
-// lib/types.ts). If you switch to `postgresql`, you can optionally convert
-// these back to native Prisma enums.
+// `enum` so the schema stays compatible with both Postgres and SQLite. The
+// allowed values for each field are documented above it and enforced in
+// application code via zod (see lib/validations.ts, lib/video-options.ts,
+// lib/types.ts).
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 

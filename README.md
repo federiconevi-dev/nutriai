@@ -57,8 +57,9 @@ before connecting any paid API.
 - **Frontend:** Next.js 14 (App Router), React 18, TypeScript, Tailwind CSS,
   a small hand-built shadcn/ui-style component kit (Radix primitives + CVA).
 - **Backend:** Next.js Route Handlers (API routes), TypeScript.
-- **Database:** Prisma ORM. SQLite by default for zero-setup local dev;
-  switch to PostgreSQL for production (one line — see below).
+- **Database:** Prisma ORM with PostgreSQL (Vercel Postgres, Neon, Supabase,
+  RDS, or local Postgres all work). Swappable to SQLite for zero-infra local
+  dev with a one-line change (see below).
 - **Auth:** NextAuth.js (credentials + optional Google), JWT sessions.
 - **Storage:** local disk in dev, pluggable S3/Supabase-compatible adapter.
 - **Jobs:** in-process async pipeline (see production note below).
@@ -69,11 +70,19 @@ before connecting any paid API.
 
 ```bash
 npm install
-cp .env.example .env        # defaults already work out of the box
-npx prisma db push          # creates prisma/dev.db (SQLite)
+cp .env.example .env
+# Edit .env and set DATABASE_URL to a Postgres connection string
+# (e.g. a free instance from neon.tech or Vercel Postgres)
+npx prisma db push          # creates the schema in your database
 npm run db:seed             # demo users, projects, templates
 npm run dev
 ```
+
+Prefer not to set up Postgres for local dev? Change `provider = "postgresql"`
+to `provider = "sqlite"` in `prisma/schema.prisma`, set
+`DATABASE_URL="file:./dev.db"` in `.env`, then run the same commands above —
+zero external services needed. Just remember to switch it back to
+`"postgresql"` before deploying.
 
 Open http://localhost:3000. Log in with:
 
@@ -179,17 +188,12 @@ square — swap for your own mark or an `<img>`).
 
 ## 9. Deploying to production
 
-1. **Database:** provision a Postgres instance (Supabase, Neon, RDS, etc).
-   In `prisma/schema.prisma`, change:
-   ```prisma
-   datasource db {
-     provider = "postgresql"   // was "sqlite"
-     url      = env("DATABASE_URL")
-   }
-   ```
-   Then `npx prisma migrate dev` locally to create a migration, commit it,
-   and run `npx prisma migrate deploy` on the server as part of your build/
-   release step.
+1. **Database:** provision a Postgres instance (Vercel Postgres, Neon,
+   Supabase, RDS, etc) and set `DATABASE_URL`. The schema already targets
+   `provider = "postgresql"`. Run `npx prisma migrate dev` locally to create
+   a migration, commit it, and run `npx prisma migrate deploy` (or
+   `prisma db push` for a quick first deploy) as part of your build/release
+   step.
 2. **Environment variables:** set all of `.env.example` on your host
    (Vercel/Render/Fly/your own server). Generate a strong `AUTH_SECRET`.
 3. **File storage:** on serverless hosts, local disk uploads
