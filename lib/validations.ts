@@ -46,7 +46,7 @@ export const videoStyleEnum = z.enum([
 export const aspectRatioEnum = z.enum(["RATIO_9_16", "RATIO_16_9", "RATIO_1_1"]);
 
 export const createProjectSchema = z.object({
-  prompt: z.string().min(10, "Describe your video in a bit more detail").max(2000),
+  prompt: z.string().min(10, "Describe your video in a bit more detail").max(20000),
   videoType: videoTypeEnum,
   style: videoStyleEnum,
   aspectRatio: aspectRatioEnum,
