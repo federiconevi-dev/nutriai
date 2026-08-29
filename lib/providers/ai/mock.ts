@@ -85,16 +85,28 @@ export class MockAIProvider implements AIProvider {
     const voiceBeats =
       VOICE_BEATS_BY_LANGUAGE[input.language] ?? VOICE_BEATS_BY_LANGUAGE.en;
 
-    const subject = extractSubject(input.prompt);
+    const subject = extractCoreIdea(input.prompt);
+    // When the user pastes a long, detailed brief (their own shot list,
+    // restrictions, CTA, etc.) instead of a short idea, pull real chunks of
+    // it into each scene's visual description instead of generic filler -
+    // and always carry the FULL original text into the generation prompt
+    // (below) so nothing the user wrote is lost once a real video provider
+    // is connected.
+    const segments = splitIntoSegments(input.prompt);
+    const useSegments = segments.length >= ranges.length;
 
-    const scenes: ScriptScene[] = ranges.map(([start, end], i) => ({
-      order: i + 1,
-      startSec: start,
-      endSec: end,
-      visual: `${VISUAL_BEATS[i % VISUAL_BEATS.length]} Subject: ${subject}.`,
-      voice: voiceBeats[i % voiceBeats.length],
-      prompt: buildScenePrompt(subject, input.style, VISUAL_BEATS[i % VISUAL_BEATS.length]),
-    }));
+    const scenes: ScriptScene[] = ranges.map(([start, end], i) => {
+      const beat = VISUAL_BEATS[i % VISUAL_BEATS.length];
+      const visual = useSegments ? segments[i % segments.length] : `${beat} Subject: ${subject}.`;
+      return {
+        order: i + 1,
+        startSec: start,
+        endSec: end,
+        visual,
+        voice: voiceBeats[i % voiceBeats.length],
+        prompt: buildScenePrompt(input.prompt, input.style, useSegments ? visual : beat),
+      };
+    });
 
     return {
       title: await this.generateTitle(input.prompt),
@@ -105,18 +117,21 @@ export class MockAIProvider implements AIProvider {
 
   async generateScenePrompts(scenes: ScriptScene[], style: string): Promise<string[]> {
     await delay(300);
-    return scenes.map((s) => buildScenePrompt(s.visual, style, s.visual));
+    const styleLabel = style.toLowerCase().replace(/_/g, " ");
+    return scenes.map(
+      (s) => `${s.visual} Style: ${styleLabel}. High production value, professional color grading, 4k.`
+    );
   }
 
   async generateTitle(prompt: string): Promise<string> {
     await delay(150);
-    const subject = extractSubject(prompt);
+    const subject = extractCoreIdea(prompt);
     return `${capitalize(subject)} — AI Video`;
   }
 
   async generateDescription(prompt: string, videoType: string): Promise<string> {
     await delay(150);
-    return `An AI-generated ${videoType.toLowerCase().replace(/_/g, " ")} based on: "${prompt}".`;
+    return `An AI-generated ${videoType.toLowerCase().replace(/_/g, " ")} based on: "${extractCoreIdea(prompt)}".`;
   }
 
   async generateVoiceText(scene: ScriptScene, tone: string): Promise<string> {
@@ -125,17 +140,49 @@ export class MockAIProvider implements AIProvider {
   }
 }
 
-function extractSubject(prompt: string) {
-  const cleaned = prompt.replace(/[.!?]+$/g, "").trim();
-  return cleaned.length > 60 ? cleaned.slice(0, 60) + "…" : cleaned;
+/** A short, natural-reading summary used for titles/descriptions - the
+ * first meaningful sentence or line, not a mid-word character cutoff. */
+function extractCoreIdea(prompt: string) {
+  const firstLine = prompt.split(/\r?\n/).map((l) => l.trim()).find((l) => l.length > 0) ?? prompt;
+  const firstSentence = firstLine.split(/(?<=[.!?])\s/)[0] ?? firstLine;
+  const cleaned = firstSentence.replace(/[.!?]+$/g, "").trim();
+  return cleaned.length > 90 ? cleaned.slice(0, 90).trim() + "…" : cleaned;
+}
+
+/**
+ * Splits a long, detailed prompt (a full creative brief, shot list, or
+ * generation instructions - as opposed to a one-line idea) into meaningful
+ * chunks that can be distributed across scenes, so the storyboard reflects
+ * what the user actually wrote instead of generic filler text.
+ */
+function splitIntoSegments(prompt: string): string[] {
+  if (prompt.length < 200) return [];
+  const raw = prompt
+    .split(/\r?\n|(?<=[.!?])\s+(?=[A-ZÁÉÍÓÚÑ])/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  const segments = raw.filter((s) => {
+    if (s.length < 12 || s.length > 220) return false;
+    // Skip meta/restriction lists (e.g. "SIN MARCA DE AGUA. SIN LOGOS...")
+    // and section headers - they belong in the generation prompt, not as a
+    // human-readable "what happens in this scene" description.
+    const letters = s.replace(/[^a-zA-ZÀ-ÿ]/g, "");
+    const isMostlyUppercase = letters.length > 6 && letters === letters.toUpperCase();
+    const looksLikeHeader = /^[-#=*\s]{2,}/.test(s) || /RESTRICCION|RESULTADO FINAL|CTA:/i.test(s);
+    return !isMostlyUppercase && !looksLikeHeader;
+  });
+
+  return segments;
 }
 
 function capitalize(text: string) {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
-function buildScenePrompt(subject: string, style: string, beat: string) {
-  return `${beat} Style: ${style.toLowerCase().replace(/_/g, " ")}. Subject: ${subject}. High production value, professional color grading, 4k.`;
+function buildScenePrompt(fullPromptOrSubject: string, style: string, beat: string) {
+  const styleLabel = style.toLowerCase().replace(/_/g, " ");
+  return `${beat}\nStyle: ${styleLabel}. High production value, professional color grading, 4k.\n\nFull creative brief:\n${fullPromptOrSubject}`;
 }
 
 function delay(ms: number) {
