@@ -30,7 +30,7 @@ export class MockVideoProvider implements VideoProvider {
     jobs.set(providerJobId, {
       status: "processing",
       startedAt: Date.now(),
-      durationMs: 4000 + Math.random() * 2500,
+      durationMs: 900 + Math.random() * 700,
       videoUrl: pickDemoClip(request.jobId + request.prompt),
       cancelled: false,
     });
