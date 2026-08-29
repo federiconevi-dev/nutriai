@@ -87,7 +87,7 @@ function GenerateFlow({ projectId }: { projectId: string }) {
         return;
       }
       if (!["COMPLETED", "FAILED", "CANCELLED"].includes(data.generation.stage)) {
-        setTimeout(poll, 1500);
+        setTimeout(poll, 800);
       }
     }
     poll();

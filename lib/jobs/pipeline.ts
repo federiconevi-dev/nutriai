@@ -116,55 +116,50 @@ export async function advanceGeneration(generationId: string) {
         break;
 
       case "GENERATING_SCENES": {
+        // Generate every scene's clip in this single call (each mock clip is
+        // fast, well within the route's maxDuration) instead of one scene per
+        // poll - far fewer network round trips, much faster overall.
         const scenes = await db.videoScene.findMany({ where: { projectId: project.id }, orderBy: { order: "asc" } });
-        const pending = scenes.find((s) => !s.videoUrl);
-        if (pending) {
-          const video = getVideoProvider();
+        const video = getVideoProvider();
+        for (const scene of scenes) {
+          if (scene.videoUrl) continue;
           const handle = await video.generateVideo({
-            jobId: pending.id,
-            prompt: pending.prompt,
+            jobId: scene.id,
+            prompt: scene.prompt,
             style: project.style,
             aspectRatio: project.aspectRatio,
-            durationSeconds: pending.endSec - pending.startSec,
+            durationSeconds: scene.endSec - scene.startSec,
           });
           const result = await pollUntilDone(() => video.getGenerationStatus(handle));
           await db.videoScene.update({
-            where: { id: pending.id },
+            where: { id: scene.id },
             data: {
-              videoUrl: result.videoUrl ?? pickDemoClip(pending.id),
-              imageUrl: pickDemoThumbnail(pending.id),
+              videoUrl: result.videoUrl ?? pickDemoClip(scene.id),
+              imageUrl: pickDemoThumbnail(scene.id),
             },
           });
-          const doneCount = scenes.length - scenes.filter((s) => !s.videoUrl).length + 1;
-          const progress = 40 + Math.round((doneCount / scenes.length) * 20);
-          await db.generation.update({ where: { id: generationId }, data: { progress } });
-        } else {
-          await setStage(generationId, "CREATING_VOICE", 60, "Creating voiceover…");
         }
+        await setStage(generationId, "CREATING_VOICE", 60, "Creating voiceover…");
         break;
       }
 
       case "CREATING_VOICE": {
         const scenes = await db.videoScene.findMany({ where: { projectId: project.id }, orderBy: { order: "asc" } });
-        const pending = scenes.find((s) => !s.audioUrl);
-        if (pending) {
-          const voice = getVoiceProvider();
+        const voice = getVoiceProvider();
+        for (const scene of scenes) {
+          if (scene.audioUrl) continue;
           const handle = await voice.generateVoice({
-            jobId: pending.id,
-            text: pending.voiceText,
+            jobId: scene.id,
+            text: scene.voiceText,
             gender: "female",
             tone: "professional",
             speed: 1,
             language: project.language,
           });
           const result = await pollUntilDone(() => voice.getVoiceStatus(handle));
-          await db.videoScene.update({ where: { id: pending.id }, data: { audioUrl: result.audioUrl } });
-          const doneCount = scenes.length - scenes.filter((s) => !s.audioUrl).length + 1;
-          const progress = 60 + Math.round((doneCount / scenes.length) * 14);
-          await db.generation.update({ where: { id: generationId }, data: { progress } });
-        } else {
-          await setStage(generationId, "ADDING_SUBTITLES", 84, "Adding subtitles…");
+          await db.videoScene.update({ where: { id: scene.id }, data: { audioUrl: result.audioUrl } });
         }
+        await setStage(generationId, "ADDING_SUBTITLES", 84, "Adding subtitles…");
         break;
       }
 

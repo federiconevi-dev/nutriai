@@ -13,7 +13,7 @@ export class MockVoiceProvider implements VoiceProvider {
 
   async generateVoice(request: VoiceGenerationRequest): Promise<VoiceGenerationHandle> {
     const providerJobId = `mockvoice_${request.jobId}`;
-    jobs.set(providerJobId, { startedAt: Date.now(), durationMs: 1200 });
+    jobs.set(providerJobId, { startedAt: Date.now(), durationMs: 300 });
     return { providerJobId };
   }
 
