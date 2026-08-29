@@ -152,6 +152,7 @@ export default function EditorPage({ params }: { params: { videoId: string } }) 
             <video
               key={selectedScene?.videoUrl || video.videoUrl}
               src={selectedScene?.videoUrl || video.videoUrl}
+              poster={selectedScene?.imageUrl || video.thumbnail || undefined}
               controls
               className={cn("h-full w-full object-cover transition-all duration-300", previewFilter)}
             />
