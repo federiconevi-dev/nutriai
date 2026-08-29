@@ -64,7 +64,14 @@ async function appendLog(generationId: string, step: string, message: string) {
 export async function advanceGeneration(generationId: string) {
   const generation = await db.generation.findUnique({
     where: { id: generationId },
-    include: { project: { include: { scenes: { orderBy: { order: "asc" } } } } },
+    include: {
+      project: {
+        include: {
+          scenes: { orderBy: { order: "asc" } },
+          assets: { include: { asset: true } },
+        },
+      },
+    },
   });
   if (!generation) return null;
   if (TERMINAL_STAGES.includes(generation.stage as GenerationStage)) return generation;
@@ -121,7 +128,13 @@ export async function advanceGeneration(generationId: string) {
         // poll - far fewer network round trips, much faster overall.
         const scenes = await db.videoScene.findMany({ where: { projectId: project.id }, orderBy: { order: "asc" } });
         const video = getVideoProvider();
-        for (const scene of scenes) {
+        // In demo mode there's no real video model to render the uploaded
+        // product photos, but we can at least make every scene's thumbnail
+        // (and therefore the project/video thumbnail too) show the user's
+        // own uploaded photos instead of a generic placeholder.
+        const uploadedPhotoUrls = project.assets.map((pa) => pa.asset.url);
+        for (let i = 0; i < scenes.length; i++) {
+          const scene = scenes[i];
           if (scene.videoUrl) continue;
           const handle = await video.generateVideo({
             jobId: scene.id,
@@ -135,7 +148,9 @@ export async function advanceGeneration(generationId: string) {
             where: { id: scene.id },
             data: {
               videoUrl: result.videoUrl ?? pickDemoClip(scene.id),
-              imageUrl: pickDemoThumbnail(scene.id),
+              imageUrl: uploadedPhotoUrls.length
+                ? uploadedPhotoUrls[i % uploadedPhotoUrls.length]
+                : pickDemoThumbnail(scene.id),
             },
           });
         }

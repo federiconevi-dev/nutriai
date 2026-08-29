@@ -18,7 +18,7 @@ export async function POST(req: Request, { params }: { params: { id: string; sce
 
   const scene = await db.videoScene.findFirst({
     where: { id: params.sceneId, projectId: params.id, project: { userId: session.user.id } },
-    include: { project: true },
+    include: { project: { include: { assets: { include: { asset: true } } } } },
   });
   if (!scene) return NextResponse.json({ error: "Scene not found" }, { status: 404 });
 
@@ -47,11 +47,14 @@ export async function POST(req: Request, { params }: { params: { id: string; sce
     status = await video.getGenerationStatus(handle);
   }
 
+  const uploadedPhotoUrls = scene.project.assets.map((pa) => pa.asset.url);
   const updated = await db.videoScene.update({
     where: { id: scene.id },
     data: {
       videoUrl: status.videoUrl ?? pickDemoClip(`${scene.id}-${Date.now()}`),
-      imageUrl: pickDemoThumbnail(`${scene.id}-${Date.now()}`),
+      imageUrl: uploadedPhotoUrls.length
+        ? uploadedPhotoUrls[scene.order % uploadedPhotoUrls.length]
+        : pickDemoThumbnail(`${scene.id}-${Date.now()}`),
     },
   });
 
