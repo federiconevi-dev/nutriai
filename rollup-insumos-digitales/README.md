@@ -17,6 +17,7 @@ Para usar fotos reales, copialas en `fotos/` con estos nombres y volvé a genera
 | DTF Textil | `fotos/06-dtf-textil.jpg` |
 | Plotter de corte QR | `fotos/07-plotter-corte.jpg` |
 | Corte Láser | `fotos/08-corte-laser.jpg` |
+| Laminado y montaje | `fotos/09-laminado.jpg` |
 
 Para regenerar: `npm i playwright && node render.js`.
 

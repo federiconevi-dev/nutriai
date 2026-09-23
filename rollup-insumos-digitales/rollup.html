@@ -85,33 +85,33 @@
   .section-title h2 { font-size: 22px; font-weight: 800; letter-spacing: 5px; text-transform: uppercase; color: var(--navy); white-space: nowrap; }
   .section-title .line { flex: 1; height: 3px; background: linear-gradient(90deg, var(--navy), transparent); border-radius: 2px; }
 
-  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 0 40px; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; padding: 0 36px; }
   .card {
-    background: var(--card); border-radius: 22px; overflow: hidden; height: 280px;
+    background: var(--card); border-radius: 22px; overflow: hidden; height: 374px;
     box-shadow: 0 2px 0 rgba(13,27,46,.04), 0 12px 28px rgba(13,27,46,.08);
     display: flex; flex-direction: column; position: relative;
   }
-  .card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 6px; background: var(--accent); }
+  .card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: var(--accent); }
   .pic {
-    height: 134px; position: relative; display: grid; place-items: center;
+    height: 146px; position: relative; display: grid; place-items: center;
     background: linear-gradient(180deg, #eef2f7, #e2e8f0);
     background-size: cover; background-position: center;
   }
   .pic svg { width: 100%; height: 100%; display: block; }
   .pic.has-photo svg { display: none; }
   .num {
-    position: absolute; top: 12px; right: 14px; font-weight: 900; font-size: 15px; color: #fff;
-    background: var(--accent); border-radius: 999px; padding: 5px 11px; letter-spacing: 1px;
+    position: absolute; top: 10px; right: 10px; font-weight: 900; font-size: 13px; color: #fff;
+    background: var(--accent); border-radius: 999px; padding: 4px 9px; letter-spacing: 1px; z-index: 1;
   }
-  .body { padding: 11px 18px 0 24px; }
-  .tag { font-size: 12px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; color: var(--accent); }
-  .card h3 { font-size: 21px; line-height: 1.08; font-weight: 800; color: var(--navy); margin-top: 4px; letter-spacing: -.4px; }
-  .card p { font-size: 13.6px; line-height: 1.4; color: var(--muted); margin-top: 6px; font-weight: 500; }
+  .body { padding: 12px 14px 0 20px; }
+  .tag { font-size: 11px; font-weight: 700; letter-spacing: 1.8px; text-transform: uppercase; color: var(--accent); }
+  .card h3 { font-size: 19.5px; line-height: 1.1; font-weight: 800; color: var(--navy); margin-top: 4px; letter-spacing: -.4px; }
+  .card p { font-size: 13.4px; line-height: 1.4; color: var(--muted); margin-top: 6px; font-weight: 500; }
   .card p b { color: var(--ink); font-weight: 700; }
 
   /* ---------- contacto ---------- */
   .contact {
-    margin: 24px 40px 0; border-radius: 24px; padding: 20px 32px 18px;
+    margin: 24px 36px 0; border-radius: 24px; padding: 20px 32px 18px;
     background: linear-gradient(150deg, var(--navy-2), var(--navy)); color: #fff;
     display: grid; grid-template-columns: 1.15fr 1fr; gap: 10px 20px; position: relative; overflow: hidden;
   }
@@ -145,7 +145,7 @@
   </header>
   <div class="cmyk-bar"><span></span><span></span><span></span><span></span></div>
 
-  <div class="section-title"><h2>Nuestras máquinas</h2><div class="line"></div></div>
+  <div class="section-title"><h2>Máquinas y servicios</h2><div class="line"></div></div>
 
   <main class="grid">
 
@@ -182,7 +182,7 @@
       <div class="body">
         <div class="tag">Impresión láser</div>
         <h3>Láser Color de alta velocidad</h3>
-        <p>Impresión <b>full color</b> con calidad comparable a los sistemas <b>offset</b>, a alta velocidad y sobre una gran variedad de soportes.</p>
+        <p>Impresión <b>full color</b> con calidad comparable a los sistemas <b>offset</b>, a alta velocidad, en gramajes de <b>70 a 400 g</b> y sobre una gran variedad de soportes.</p>
       </div>
     </article>
 
@@ -215,7 +215,7 @@
       </div>
       <div class="body">
         <div class="tag">Impresión láser</div>
-        <h3>Láser Blanco y Negro de producción</h3>
+        <h3>Láser Blanco y Negro</h3>
         <p>Velocidad de impresión de <b>hasta 136 ppm</b>, con terminación automática de <b>plegado y abrochado</b>.</p>
       </div>
     </article>
@@ -250,7 +250,7 @@
       <div class="body">
         <div class="tag">Gran formato · UV</div>
         <h3>Impresora Híbrida UV</h3>
-        <p>Imprime sobre materiales <b>rígidos y flexibles</b> con tecnología de <b>curado UV</b>. Impresión directa para cartelería y señalética.</p>
+        <p>Imprime sobre materiales <b>rígidos y flexibles</b> con <b>curado UV</b>: 6 colores + blanco + barniz sobre vinilo, <b>PVC espumado</b> y otros rígidos. Impresión directa para cartelería y señalética.</p>
       </div>
     </article>
 
@@ -286,8 +286,8 @@
       </div>
       <div class="body">
         <div class="tag">Gran formato · Ecosolvente</div>
-        <h3>Impresora Ecosolvente con plotter de corte integrado</h3>
-        <p>Gigantografías en <b>lona, vinilo, tela, canvas</b> y papeles especiales.</p>
+        <h3>Ecosolvente con plotter de corte integrado</h3>
+        <p>Impresión de gran formato con tintas ecosolventes para <b>gigantografías</b> en <b>lona, vinilo, tela, canvas</b> y papeles especiales.</p>
       </div>
     </article>
 
@@ -320,8 +320,8 @@
       </div>
       <div class="body">
         <div class="tag">Impresión UV</div>
-        <h3>UV CMYK + Blanco + Barniz</h3>
-        <p>Tinta UV con <b>blanco y barniz transparente</b> para <b>stickers ultra resistentes</b>. También sobre vinilo, PVC espumado y otros soportes rígidos.</p>
+        <h3>Stickers UV</h3>
+        <p>Impresión con tinta UV en <b>CMYK + Blanco + Barniz transparente</b> para <b>stickers ultra resistentes</b>.</p>
       </div>
     </article>
 
@@ -356,7 +356,7 @@
       <div class="body">
         <div class="tag">Decoración textil</div>
         <h3>Impresión DTF Textil</h3>
-        <p>Estampado textil <b>de alta calidad</b> por transferencia desde film, con <b>adhesivo en polvo</b>.</p>
+        <p>Impresión DTF textil <b>de alta calidad</b> con <b>adhesivo en polvo</b>.</p>
       </div>
     </article>
 
@@ -394,8 +394,8 @@
       </div>
       <div class="body">
         <div class="tag">Corte</div>
-        <h3>Plotter de corte de alta producción</h3>
-        <p>Con <b>lectura de código QR</b>. Velocidad de corte de <b>hasta 70 cm/s</b> y ancho máximo de <b>60 cm</b>.</p>
+        <h3>Plotter de corte alta producción</h3>
+        <p>Con <b>lectura de código QR</b>, hasta <b>70 cm/s</b> y <b>60 cm</b> de ancho. Corte digital para <b>packaging y etiquetas</b>.</p>
       </div>
     </article>
 
@@ -432,14 +432,50 @@
       <div class="body">
         <div class="tag">Corte</div>
         <h3>Corte Láser</h3>
-        <p>Corte preciso de <b>madera, PET, acrílico</b> y otros materiales.</p>
+        <p>Corte láser de <b>madera, PET, acrílico</b> y otros materiales.</p>
+      </div>
+    </article>
+
+    <!-- 9. Laminado y montaje -->
+    <article class="card" style="--accent: #8d6e63">
+      <div class="pic" data-photo="fotos/09-laminado.jpg"><span class="num">09</span>
+        <svg viewBox="0 0 320 142" aria-hidden="true">
+          <ellipse cx="160" cy="132" rx="140" ry="7" fill="#0d1b2e" opacity=".12"/>
+          <g fill="#94a3b8"><rect x="58" y="78" width="7" height="52"/><rect x="235" y="78" width="7" height="52"/><rect x="50" y="126" width="24" height="4" rx="2"/><rect x="226" y="126" width="24" height="4" rx="2"/></g>
+          <!-- laminadora: laterales y rodillos -->
+          <rect x="44" y="30" width="26" height="54" rx="6" fill="#dfe5ec" stroke="#c3ccd8" stroke-width="2"/>
+          <rect x="230" y="30" width="26" height="54" rx="6" fill="#dfe5ec" stroke="#c3ccd8" stroke-width="2"/>
+          <rect x="235" y="38" width="16" height="10" rx="2" fill="#1d2533"/><rect x="237" y="40" width="12" height="6" fill="#8d6e63"/>
+          <rect x="70" y="40" width="160" height="14" rx="7" fill="#f8fafc" stroke="#c3ccd8" stroke-width="2"/>
+          <rect x="70" y="56" width="160" height="14" rx="7" fill="#f8fafc" stroke="#c3ccd8" stroke-width="2"/>
+          <!-- rollo de film laminado arriba -->
+          <rect x="84" y="16" width="132" height="14" rx="7" fill="#e8f7ff" stroke="#94c9e6"/>
+          <path d="M92 30 Q 110 44 120 48 L 180 48 Q 190 44 208 30" fill="#e8f7ff" opacity=".7" stroke="#94c9e6"/>
+          <!-- placa rígida con vinilo montado saliendo -->
+          <path d="M82 70 L218 70 L234 100 L66 100 Z" fill="#fff" stroke="#c3ccd8"/>
+          <path d="M92 72 L208 72 L220 96 L80 96 Z" fill="#00a3e0" opacity=".85"/>
+          <path d="M80 96 L120 80 L150 92 L176 82 L220 96 Z" fill="#e6007e" opacity=".85"/>
+          <path d="M150 74 L170 74 L180 94 L140 94 Z" fill="#fff" opacity=".35"/>
+          <!-- placa terminada -->
+          <g transform="rotate(-8 286 96)">
+            <rect x="262" y="70" width="48" height="52" rx="3" fill="#fff" stroke="#c3ccd8" stroke-width="2"/>
+            <rect x="266" y="74" width="40" height="44" fill="#ffd400"/>
+            <circle cx="286" cy="96" r="12" fill="#e6007e"/>
+            <path d="M268 76 L282 76 L270 90 Z" fill="#fff" opacity=".5"/>
+          </g>
+        </svg>
+      </div>
+      <div class="body">
+        <div class="tag">Terminación</div>
+        <h3>Laminado y montaje</h3>
+        <p><b>Laminado</b> para gran formato y <b>montaje de vinilo</b> sobre materiales rígidos.</p>
       </div>
     </article>
 
   </main>
 
   <section class="contact">
-    <p class="claim">Buscamos brindar <b>la mejor relación precio/calidad</b>, actualizando constantemente nuestras herramientas de trabajo e incorporando <b>nuevas tecnologías</b>.</p>
+    <p class="claim">Nuestro objetivo: brindar <b>la mejor relación precio/calidad</b> a los clientes del gremio <b>en el menor tiempo posible</b>, actualizando permanentemente nuestras herramientas de trabajo e incorporando <b>nuevas tecnologías</b> para ampliar nuestros servicios.</p>
 
     <div class="row">
       <div class="ico" style="background: var(--m)"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg></div>
