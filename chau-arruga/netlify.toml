@@ -1,0 +1,4 @@
+# Publica solo la landing y las fotos (CLAUDE.md y assets/proveedor quedan privados)
+[build]
+  command = "rm -rf dist && mkdir dist && cp -r index.html img dist/"
+  publish = "dist"

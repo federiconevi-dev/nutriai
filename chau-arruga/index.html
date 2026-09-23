@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vapo 1000 — Plancha a vapor de mano | chau arruga.</title>
+<meta name="description" content="Plancha a vapor de mano 2 en 1: 1000W, calienta en 9 segundos y entra en la cartera. Envío gratis a todo el país y 3 cuotas sin interés.">
+<meta property="og:title" content="Vapo 1000 — Chau arrugas en 9 segundos">
+<meta property="og:description" content="Plancha a vapor de mano 2 en 1. Envío gratis a todo el país.">
+<meta property="og:image" content="img/hero.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=DM+Sans:wght@400;500;700&display=swap">
+<style>
+:root{
+  --crema:#F7F1EA; --blanco:#FFFFFF; --tinta:#221C1A; --gris:#5E534D; --gris-2:#4A3F3A;
+  --linea:#E3D6CA; --linea-2:#EFE6DD; --fucsia:#B0126E; --fucsia-osc:#8A0E57; --rosa:#F6E1EC;
+  --display:'Bricolage Grotesque',Georgia,serif; --body:'DM Sans',system-ui,sans-serif;
+  --pad:20px; --max:1200px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{margin:0;font-family:var(--body);background:var(--crema);color:var(--tinta);-webkit-font-smoothing:antialiased}
+img{max-width:100%;display:block}
+a{color:var(--fucsia)}
+:focus-visible{outline:3px solid var(--fucsia);outline-offset:3px;border-radius:6px}
+h1,h2{font-family:var(--display);font-weight:800;margin:0;letter-spacing:-.02em}
+h2{font-size:clamp(30px,4vw,48px);line-height:1.06}
+p{margin:0}
+.wrap{max-width:var(--max);margin:0 auto;padding:0 var(--pad)}
+.marca{font-family:var(--display);font-weight:800;font-size:22px;color:inherit;text-decoration:none}
+.marca span{color:var(--fucsia)}
+
+.barra{background:var(--tinta);color:#fff;font-size:13px;font-weight:700;text-align:center;padding:10px 16px}
+.header{display:flex;justify-content:space-between;align-items:center;padding:14px 0}
+.header nav{display:flex;gap:28px;align-items:center;font-weight:500}
+.header nav a{color:var(--tinta);text-decoration:none;padding:12px 0}
+.header nav .solo-desk{display:none}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:56px;padding:0 26px;border-radius:14px;font-weight:700;font-size:17px;text-decoration:none;border:0;cursor:pointer;font-family:var(--body)}
+.btn-primario{background:var(--fucsia);color:#fff}
+.btn-primario:hover{background:var(--fucsia-osc)}
+.btn-borde{border:2px solid var(--tinta);color:var(--tinta);background:transparent}
+.btn-blanco{background:#fff;color:var(--tinta)}
+.btn-chico{min-height:44px;padding:0 20px;font-size:15px}
+
+/* hero */
+.hero{display:grid;gap:28px;padding:8px 0 56px}
+.galeria-main{background:#fff;border-radius:22px;overflow:hidden;aspect-ratio:1/1}
+.galeria-main img{width:100%;height:100%;object-fit:cover}
+.galeria-main img.contain{object-fit:contain}
+.thumbs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-top:10px}
+.thumbs button{padding:0;border:2px solid transparent;border-radius:12px;overflow:hidden;background:#fff;cursor:pointer;aspect-ratio:1/1}
+.thumbs button[aria-pressed="true"]{border-color:var(--fucsia)}
+.thumbs img{width:100%;height:100%;object-fit:cover}
+.hero-texto{display:flex;flex-direction:column;gap:16px}
+.modelo{font-weight:700;color:var(--fucsia);font-size:15px}
+.hero h1{font-size:clamp(38px,5.4vw,64px);line-height:1}
+.bajada{font-size:clamp(17px,1.6vw,19px);line-height:1.55;color:var(--gris);max-width:34em}
+.datos{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.datos div{background:#fff;border-radius:12px;padding:12px 4px;display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center}
+.datos b{font-family:var(--display);font-weight:800;font-size:clamp(18px,2vw,24px)}
+.datos span{font-size:12px;color:var(--gris)}
+.precio{display:flex;align-items:center;flex-wrap:wrap;gap:12px}
+.precio strong{font-family:var(--display);font-weight:800;font-size:clamp(38px,4vw,48px)}
+.chip-lanz{font-size:13px;font-weight:700;color:var(--fucsia-osc);background:var(--rosa);padding:6px 12px;border-radius:999px}
+.cuotas{font-size:15px;color:var(--gris-2);line-height:1.5}
+.packs{display:grid;gap:8px}
+.pack{display:flex;align-items:center;gap:12px;min-height:68px;padding:14px 16px;border-radius:14px;background:#fff;border:2px solid var(--linea);cursor:pointer;text-align:left;font-family:var(--body);color:var(--tinta);width:100%}
+.pack[aria-checked="true"]{border-color:var(--fucsia)}
+.radio{flex-shrink:0;width:20px;height:20px;border-radius:50%;border:2px solid #A89A8F}
+.pack[aria-checked="true"] .radio{border:6px solid var(--fucsia)}
+.pack-txt{flex-grow:1;display:flex;flex-direction:column;gap:2px}
+.pack-txt b{font-size:16px}
+.pack-txt span{font-size:13px;color:var(--gris)}
+.pack-precio{display:flex;flex-direction:column;align-items:flex-end;gap:4px;font-weight:700;font-size:18px}
+.ahorro{font-size:11px;color:#fff;background:var(--fucsia);padding:3px 8px;border-radius:999px;white-space:nowrap}
+.ctas{display:grid;gap:10px}
+.nota{font-size:13px;color:var(--gris);text-align:center}
+.confianza{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.confianza div{background:#fff;border-radius:12px;padding:12px 6px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;font-size:12px;font-weight:500;line-height:1.3}
+
+/* problema */
+.problema{display:grid;background:var(--tinta);color:var(--crema)}
+.problema img{width:100%;height:100%;min-height:420px;max-height:640px;object-fit:cover}
+.problema-txt{padding:40px var(--pad);display:flex;flex-direction:column;justify-content:center;gap:18px;align-items:flex-start}
+.problema-txt p{font-size:17px;line-height:1.6;color:#DCD3CC;max-width:32em}
+
+/* beneficios */
+.seccion{padding:72px 0 16px}
+.seccion > .wrap > h2{margin-bottom:28px}
+.beneficios{display:grid;gap:16px}
+.beneficio{background:#fff;border-radius:22px;overflow:hidden}
+.beneficio img{width:100%;aspect-ratio:3/2;object-fit:cover}
+.beneficio div{padding:20px 22px 24px;display:flex;flex-direction:column;gap:6px}
+.beneficio h3{margin:0;font-size:20px}
+.beneficio p{font-size:16px;line-height:1.55;color:var(--gris)}
+
+/* uso */
+.uso{display:grid;gap:28px;align-items:center}
+.uso > img{border-radius:22px;width:100%;aspect-ratio:9/10;object-fit:cover}
+.pasos{list-style:none;margin:20px 0 0;padding:0;display:flex;flex-direction:column;gap:16px}
+.pasos li{display:flex;gap:16px;align-items:center;font-size:17px;line-height:1.45}
+.num{flex-shrink:0;width:48px;height:48px;border-radius:50%;background:var(--fucsia);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:800;font-size:21px}
+.telas{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.telas span{padding:10px 16px;border-radius:999px;background:#fff;border:1px solid var(--linea);font-size:15px;font-weight:500}
+
+/* specs */
+.specs{display:grid;gap:20px;align-items:start}
+.specs-img{background:#fff;border-radius:22px;overflow:hidden}
+.specs-img img{width:100%;aspect-ratio:750/580;object-fit:contain}
+.caja{background:var(--rosa);border-radius:16px;padding:18px 22px;margin-top:14px;line-height:1.5}
+.tabla{background:#fff;border-radius:22px;padding:6px 22px;margin:0}
+.tabla div{display:flex;justify-content:space-between;gap:12px;padding:15px 0;border-bottom:1px solid var(--linea-2);font-size:16px}
+.tabla div:last-child{border-bottom:0}
+.tabla dt{color:var(--gris)}
+.tabla dd{margin:0;font-weight:700;text-align:right}
+
+/* faq */
+.faq{max-width:820px;margin:0 auto;display:flex;flex-direction:column;gap:10px}
+.faq details{background:#fff;border-radius:16px}
+.faq summary{list-style:none;cursor:pointer;min-height:60px;padding:16px 22px;display:flex;justify-content:space-between;align-items:center;gap:12px;font-weight:700;font-size:17px}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:'+';font-size:24px;color:var(--fucsia);font-weight:500}
+.faq details[open] summary::after{content:'−'}
+.faq details p{padding:0 22px 20px;font-size:16px;line-height:1.6;color:var(--gris)}
+.centrado{text-align:center}
+
+/* cierre */
+.cierre{margin:72px auto 72px;max-width:var(--max);border-radius:26px;overflow:hidden;background:var(--fucsia);color:#fff;display:grid}
+.cierre img{width:100%;height:100%;min-height:300px;object-fit:cover}
+.cierre > div{padding:32px 26px;display:flex;flex-direction:column;justify-content:center;gap:16px;align-items:flex-start}
+.cierre p{font-size:17px;line-height:1.5;color:#FBE9F2}
+
+footer{background:var(--tinta);color:#CFC6BF;padding:40px 0;font-size:15px;line-height:1.6}
+footer .wrap{display:flex;flex-direction:column;gap:12px}
+footer .marca{color:#fff}
+footer a{color:#fff}
+
+/* barra de compra fija (solo mobile) */
+.sticky{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--linea);padding:10px 16px calc(10px + env(safe-area-inset-bottom));display:flex;gap:12px;align-items:center;transform:translateY(110%);transition:transform .25s ease;z-index:10}
+.sticky.visible{transform:none}
+.sticky .p{font-family:var(--display);font-weight:800;font-size:22px;white-space:nowrap}
+.sticky .btn{flex-grow:1;min-height:50px;font-size:16px}
+@media (prefers-reduced-motion:reduce){.sticky{transition:none}}
+
+@media (min-width:900px){
+  :root{--pad:40px}
+  .header nav .solo-desk{display:inline}
+  .hero{grid-template-columns:repeat(2,minmax(0,1fr));gap:64px;align-items:center;padding:16px 0 88px}
+  .ctas{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .packs{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .problema{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .problema-txt{padding:80px 80px}
+  .beneficios{grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
+  .uso{grid-template-columns:repeat(2,minmax(0,1fr));gap:64px}
+  .specs{grid-template-columns:repeat(2,minmax(0,1fr));gap:64px}
+  .cierre{grid-template-columns:repeat(2,minmax(0,1fr));margin:96px var(--pad) 96px}
+  .cierre > div{padding:56px}
+  footer .wrap{flex-direction:row;justify-content:space-between}
+  .sticky{display:none}
+}
+@media (min-width:1280px){.cierre{margin:96px auto 96px}}
+</style>
+</head>
+<body>
+
+<div class="barra">Lanzamiento: envío gratis a todo el país + 3 cuotas sin interés</div>
+
+<div class="wrap">
+  <header class="header">
+    <a class="marca" href="#">chau arruga<span>.</span></a>
+    <nav aria-label="Principal">
+      <a class="solo-desk" href="#beneficios">Beneficios</a>
+      <a class="solo-desk" href="#caracteristicas">Características</a>
+      <a class="solo-desk" href="#preguntas">Preguntas</a>
+      <a class="btn btn-primario btn-chico" href="#comprar">Comprar</a>
+    </nav>
+  </header>
+
+  <main>
+  <section class="hero">
+    <div>
+      <div class="galeria-main"><img id="foto-principal" class="contain" src="img/hero.jpg" alt="Plancha a vapor de mano Vapo 1000, gris con fucsia" width="800" height="800"></div>
+      <div class="thumbs" role="group" aria-label="Fotos del producto">
+        <button type="button" aria-pressed="true" data-src="img/hero.jpg" data-fit="contain" aria-label="Ver el producto"><img src="img/hero.jpg" alt=""></button>
+        <button type="button" aria-pressed="false" data-src="img/perchero.jpg" aria-label="Ver usándola sobre ropa colgada"><img src="img/perchero.jpg" alt="" loading="lazy"></button>
+        <button type="button" aria-pressed="false" data-src="img/manga.jpg" aria-label="Ver planchando la manga de un saco"><img src="img/manga.jpg" alt="" loading="lazy"></button>
+        <button type="button" aria-pressed="false" data-src="img/plano.jpg" aria-label="Ver planchando en horizontal"><img src="img/plano.jpg" alt="" loading="lazy"></button>
+        <button type="button" aria-pressed="false" data-src="img/bolso.jpg" aria-label="Ver cómo entra en la cartera"><img src="img/bolso.jpg" alt="" loading="lazy"></button>
+      </div>
+    </div>
+
+    <div class="hero-texto" id="comprar">
+      <div class="modelo">Vapo 1000 · Plancha a vapor 2 en 1</div>
+      <h1>Chau arrugas en 9 segundos.</h1>
+      <p class="bajada">La Vapo 1000 deja tus camisas, sacos y vestidos impecables sin sacar la tabla. Colgada o apoyada, y tan compacta que entra en la cartera.</p>
+      <div class="datos">
+        <div><b>1000W</b><span>de potencia</span></div>
+        <div><b>9 s</b><span>para calentar</span></div>
+        <div><b>90°</b><span>mango que gira</span></div>
+        <div><b>500 g</b><span>súper liviana</span></div>
+      </div>
+      <div class="precio"><strong id="precio-unidad">$39.990</strong><span class="chip-lanz">Precio de lanzamiento</span></div>
+      <p class="cuotas">3 cuotas sin interés de $13.330 · <b>$35.990</b> por transferencia (10% OFF)</p>
+
+      <div class="packs" role="radiogroup" aria-label="Elegí cuántas querés">
+        <button type="button" class="pack" role="radio" aria-checked="true" data-pack="1">
+          <span class="radio"></span>
+          <span class="pack-txt"><b>1 Vapo 1000</b><span>Para vos</span></span>
+          <span class="pack-precio">$39.990</span>
+        </button>
+        <button type="button" class="pack" role="radio" aria-checked="false" data-pack="2">
+          <span class="radio"></span>
+          <span class="pack-txt"><b>2 Vapo 1000</b><span>Una para vos y otra para regalar</span></span>
+          <span class="pack-precio">$69.990<span class="ahorro">Ahorrás $9.990</span></span>
+        </button>
+      </div>
+
+      <div class="ctas">
+        <a id="btn-comprar" class="btn btn-primario" href="#">Comprar 1 por $39.990</a>
+        <a id="btn-whatsapp" class="btn btn-borde" href="#" target="_blank" rel="noopener">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.5A8.4 8.4 0 1 1 21 11.5z"/></svg>
+          Consultar por WhatsApp</a>
+      </div>
+      <p class="nota">Pago seguro con Mercado Pago · 10 días para arrepentirte</p>
+      <div class="confianza">
+        <div><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#B0126E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>Pagás con Mercado Pago</div>
+        <div><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#B0126E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 3h15v13H1z"/><path d="M16 8h4l3 3v5h-7z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>Envío gratis a todo el país</div>
+        <div><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#B0126E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Garantía de 3 meses</div>
+      </div>
+    </div>
+  </section>
+  </main>
+</div>
+
+<section class="problema">
+  <img src="img/perchero.jpg" alt="Mujer pasando vapor sobre ropa colgada en un perchero" loading="lazy">
+  <div class="problema-txt">
+    <h2>¿Salís en 5 minutos y la camisa está toda arrugada?</h2>
+    <p>Nada de armar la tabla ni esperar que caliente la plancha. La enchufás, en unos segundos sale vapor y se la pasás a la ropa colgada en la percha. Listo para salir.</p>
+    <a class="btn btn-primario" href="#comprar">Quiero terminar con las arrugas</a>
+  </div>
+</section>
+
+<section class="seccion" id="beneficios">
+  <div class="wrap">
+    <h2>Por qué te va a encantar</h2>
+    <div class="beneficios">
+      <article class="beneficio"><img src="img/manga.jpg" alt="Planchando la manga de un saco" loading="lazy"><div><h3>1000W de vapor potente</h3><p>Vapor fuerte y parejo que afloja las arrugas al instante, hasta en mangas, cuellos y costuras.</p></div></article>
+      <article class="beneficio"><img src="img/plano.jpg" alt="Plancha apoyada sobre una tela satinada" loading="lazy"><div><h3>2 en 1: colgada o apoyada</h3><p>Usala en vertical con la ropa en la percha, o en horizontal sobre la mesa como una plancha común. Planchá con vapor o en seco.</p></div></article>
+      <article class="beneficio"><img src="img/tela-arriba.jpg" alt="Vista superior de la plancha con el mango girado" loading="lazy"><div><h3>Mango que gira 90°</h3><p>Se acomoda a cada prenda y se pliega con un clic para guardarla en cualquier lado.</p></div></article>
+      <article class="beneficio"><img src="img/bolso.jpg" alt="Guardando la plancha dentro de una cartera" loading="lazy" style="object-position:center 30%"><div><h3>Entra en la cartera</h3><p>Pesa unos 500 g y es del tamaño de un vaso. Ideal para viajes, la oficina o tener siempre a mano.</p></div></article>
+    </div>
+  </div>
+</section>
+
+<section class="seccion">
+  <div class="wrap uso">
+    <img src="img/blazer.jpg" alt="Mujer planchando un saco en un maniquí con la plancha de mano" loading="lazy">
+    <div>
+      <h2>Así de fácil se usa</h2>
+      <ol class="pasos">
+        <li><span class="num" aria-hidden="true">1</span><span><b>Cargá agua</b> en el tanque con el vasito medidor que viene incluido.</span></li>
+        <li><span class="num" aria-hidden="true">2</span><span><b>Enchufala:</b> en unos 9 segundos empieza a salir vapor.</span></li>
+        <li><span class="num" aria-hidden="true">3</span><span><b>Pasala</b> sobre la prenda, colgada o apoyada. ¡Lista para usar!</span></li>
+      </ol>
+      <p style="margin-top:28px;font-weight:700">Anda en todas tus telas</p>
+      <div class="telas"><span>Algodón y lino</span><span>Lana</span><span>Paño</span><span>Seda</span><span>Sintéticos</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="seccion" id="caracteristicas">
+  <div class="wrap">
+    <h2>Características</h2>
+    <div class="specs">
+      <div>
+        <div class="specs-img"><img src="img/medidas.jpg" alt="Medidas: 25 cm de largo, 9,3 cm de alto y 7,5 cm de ancho, junto a su base" loading="lazy"></div>
+        <div class="caja"><b>En la caja viene</b><br>1 plancha a vapor + 1 base de apoyo + 1 vasito medidor</div>
+      </div>
+      <dl class="tabla">
+        <div><dt>Modelo</dt><dd>ZN-530</dd></div>
+        <div><dt>Potencia</dt><dd>1000W</dd></div>
+        <div><dt>Voltaje</dt><dd>220V / 50Hz</dd></div>
+        <div><dt>Tanque de agua</dt><dd>60 ml</dd></div>
+        <div><dt>Calentamiento</dt><dd>9 segundos aprox.</dd></div>
+        <div><dt>Medidas</dt><dd>25 × 7,5 × 9 cm</dd></div>
+        <div><dt>Peso</dt><dd>500 g aprox.</dd></div>
+        <div><dt>Cable</dt><dd>1,5 m</dd></div>
+        <div><dt>Color</dt><dd>Gris con fucsia</dd></div>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<section class="seccion" id="preguntas">
+  <div class="wrap">
+    <h2 class="centrado">Preguntas frecuentes</h2>
+    <div class="faq">
+      <details open><summary>¿Reemplaza a la plancha común?</summary><p>Para el día a día y la ropa colgada, sí: es más rápida y práctica. Además se puede usar apoyada como una plancha. Para pliegues muy marcados (como la raya del pantalón) una plancha tradicional sigue siendo lo mejor.</p></details>
+      <details><summary>¿Cuánto tarda en calentar?</summary><p>Unos 9 segundos desde que la enchufás hasta que empieza a salir vapor.</p></details>
+      <details><summary>¿Funciona con la corriente de Argentina?</summary><p>Sí, funciona a 220V / 50Hz, igual que la red argentina.</p></details>
+      <details><summary>¿Cuánto dura el tanque?</summary><p>El tanque es de 60 ml y alcanza para varias prendas. Se recarga en segundos con el vasito medidor que viene incluido.</p></details>
+      <details><summary>¿Puedo usarla en cualquier tela?</summary><p>Sirve para algodón, lino, lana, paño, seda y sintéticos. En sedas y telas delicadas probá primero en una parte que no se vea.</p></details>
+      <details><summary>¿Cuánto sale el envío?</summary><p>Nada: el envío es gratis a todo el país. Despachamos en 24/48 h hábiles y te pasamos el número de seguimiento.</p></details>
+      <details><summary>¿Cómo puedo pagar?</summary><p>Con Mercado Pago: tarjeta de crédito en 3 cuotas sin interés, débito o dinero en cuenta. Y si pagás por transferencia tenés 10% OFF.</p></details>
+      <details><summary>¿Y si no me convence?</summary><p>Tenés 10 días desde que la recibís para arrepentirte y devolverla. Además tiene garantía de 3 meses.</p></details>
+    </div>
+  </div>
+</section>
+
+<section class="cierre">
+  <img src="img/valija.jpg" alt="La plancha guardada en una valija junto a la ropa" loading="lazy">
+  <div>
+    <h2>Tu ropa impecable, estés donde estés.</h2>
+    <p>Precio de lanzamiento: $39.990, o llevate 2 por $69.990. Envío gratis y 10 días para arrepentirte.</p>
+    <a class="btn btn-blanco" href="#comprar">Quiero mi Vapo 1000</a>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <a class="marca" href="#">chau arruga<span>.</span></a>
+    <div>
+      <div><a id="footer-wa" href="#" target="_blank" rel="noopener">WhatsApp</a> · <a href="https://instagram.com/chauarruga" target="_blank" rel="noopener">Instagram @chauarruga</a></div>
+      <div>10 días para arrepentirte · Garantía de 3 meses</div>
+    </div>
+  </div>
+</footer>
+
+<div class="sticky" id="sticky" aria-hidden="true">
+  <span class="p" id="sticky-precio">$39.990</span>
+  <a class="btn btn-primario" href="#comprar" tabindex="-1">Comprar ahora</a>
+</div>
+
+<script>
+// ====== CONFIGURACIÓN: completá esto ======
+const CONFIG = {
+  whatsapp: '5491135149209',           // número con 549 + código de área sin 0 + número sin 15
+  packs: {
+    1: { precio: '$39.990', cta: 'Comprar 1 por $39.990', link: '' }, // link de pago de Mercado Pago para 1 unidad
+    2: { precio: '$69.990', cta: 'Comprar 2 por $69.990', link: '' }  // link de pago de Mercado Pago para 2 unidades
+  }
+};
+// ==========================================
+
+let packActual = 1;
+
+function waLink(texto) {
+  return 'https://wa.me/' + CONFIG.whatsapp + '?text=' + encodeURIComponent(texto);
+}
+
+function actualizarCompra() {
+  const p = CONFIG.packs[packActual];
+  const btn = document.getElementById('btn-comprar');
+  btn.textContent = p.cta;
+  // Si todavía no hay link de Mercado Pago, el botón manda a WhatsApp con el pedido armado
+  btn.href = p.link || waLink('¡Hola! Quiero comprar ' + packActual + ' Vapo 1000 (' + p.precio + ').');
+  btn.target = p.link ? '_self' : '_blank';
+  document.getElementById('sticky-precio').textContent = p.precio;
+}
+
+document.querySelectorAll('.pack').forEach(el => {
+  el.addEventListener('click', () => {
+    packActual = Number(el.dataset.pack);
+    document.querySelectorAll('.pack').forEach(o => o.setAttribute('aria-checked', o === el ? 'true' : 'false'));
+    actualizarCompra();
+  });
+});
+
+const principal = document.getElementById('foto-principal');
+document.querySelectorAll('.thumbs button').forEach(b => {
+  b.addEventListener('click', () => {
+    principal.src = b.dataset.src;
+    principal.alt = b.getAttribute('aria-label').replace('Ver ', '');
+    principal.classList.toggle('contain', b.dataset.fit === 'contain');
+    document.querySelectorAll('.thumbs button').forEach(o => o.setAttribute('aria-pressed', o === b ? 'true' : 'false'));
+  });
+});
+
+const consulta = waLink('¡Hola! Tengo una consulta sobre la Vapo 1000.');
+document.getElementById('btn-whatsapp').href = consulta;
+document.getElementById('footer-wa').href = consulta;
+
+// Barra de compra fija en mobile cuando el bloque de compra sale de pantalla
+const sticky = document.getElementById('sticky');
+new IntersectionObserver(([e]) => {
+  sticky.classList.toggle('visible', !e.isIntersecting && e.boundingClientRect.top < 0);
+}).observe(document.getElementById('btn-comprar'));
+
+actualizarCompra();
+</script>
+</body>
+</html>
