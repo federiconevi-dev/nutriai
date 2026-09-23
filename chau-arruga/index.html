@@ -37,13 +37,14 @@ p{margin:0}
 .header nav{display:flex;gap:28px;align-items:center;font-weight:500}
 .header nav a{color:var(--tinta);text-decoration:none;padding:12px 0}
 .header nav .solo-desk{display:none}
+.header nav a.btn{padding:0 20px;color:#fff}
 
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:56px;padding:0 26px;border-radius:14px;font-weight:700;font-size:17px;text-decoration:none;border:0;cursor:pointer;font-family:var(--body)}
 .btn-primario{background:var(--fucsia);color:#fff}
 .btn-primario:hover{background:var(--fucsia-osc)}
 .btn-borde{border:2px solid var(--tinta);color:var(--tinta);background:transparent}
 .btn-blanco{background:#fff;color:var(--tinta)}
-.btn-chico{min-height:44px;padding:0 20px;font-size:15px}
+.btn-chico{min-height:44px;padding:0 20px;font-size:15px;white-space:nowrap}
 
 /* hero */
 .hero{display:grid;gap:28px;padding:8px 0 56px}
@@ -138,6 +139,37 @@ footer .wrap{display:flex;flex-direction:column;gap:12px}
 footer .marca{color:#fff}
 footer a{color:#fff}
 
+/* badge hero */
+.galeria-main{position:relative}
+.badge{position:absolute;top:14px;left:14px;background:var(--fucsia);color:#fff;font-family:var(--display);font-weight:800;font-size:15px;padding:8px 14px;border-radius:999px;box-shadow:0 6px 18px rgba(176,18,110,.25)}
+.transfer{font-size:14px;text-align:center;color:var(--gris-2)}
+.transfer a{font-weight:700}
+
+/* comparación */
+.comp{background:#fff;border-radius:22px;overflow:hidden;max-width:920px}
+.comp table{width:100%;border-collapse:collapse;font-size:14px;table-layout:fixed}
+.comp th,.comp td{padding:12px 10px;text-align:left;border-bottom:1px solid var(--linea-2);vertical-align:top;line-height:1.4}
+.comp tr:last-child td{border-bottom:0}
+.comp thead th{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--gris);font-weight:700}
+.comp thead th.nuestra{color:var(--fucsia)}
+.comp td.nuestra{font-weight:700;background:#FCF4F8}
+.comp td:first-child,.comp th:first-child{color:var(--gris);width:30%}
+.comp thead th{font-size:12px}
+.fuente{font-size:13px;color:var(--gris);margin-top:12px;max-width:920px;line-height:1.5}
+
+/* compra y garantía */
+.proceso{display:grid;gap:14px}
+.proceso div{background:#fff;border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:8px}
+.proceso b{font-family:var(--display);font-weight:800;font-size:20px}
+.proceso p{font-size:16px;line-height:1.55;color:var(--gris)}
+.proceso .paso{font-size:13px;font-weight:700;color:var(--fucsia);text-transform:uppercase;letter-spacing:.05em}
+.garantia{margin-top:16px;background:var(--tinta);color:var(--crema);border-radius:22px;padding:28px;display:grid;gap:18px}
+.garantia h3{margin:0;font-family:var(--display);font-weight:800;font-size:26px;color:#fff}
+.garantia ul{margin:0;padding:0;list-style:none;display:grid;gap:12px}
+.garantia li{display:flex;gap:12px;align-items:flex-start;font-size:16px;line-height:1.5;color:#DCD3CC}
+.garantia li b{color:#fff}
+.check{flex-shrink:0;width:24px;height:24px;border-radius:50%;background:var(--fucsia);display:flex;align-items:center;justify-content:center}
+
 /* barra de compra fija (solo mobile) */
 .sticky{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--linea);padding:10px 16px calc(10px + env(safe-area-inset-bottom));display:flex;gap:12px;align-items:center;transform:translateY(110%);transition:transform .25s ease;z-index:10}
 .sticky.visible{transform:none}
@@ -150,12 +182,14 @@ footer a{color:#fff}
   .header nav .solo-desk{display:inline}
   .hero{grid-template-columns:repeat(2,minmax(0,1fr));gap:64px;align-items:center;padding:16px 0 88px}
   .ctas{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .packs{grid-template-columns:repeat(2,minmax(0,1fr))}
   .problema{grid-template-columns:repeat(2,minmax(0,1fr))}
   .problema-txt{padding:80px 80px}
   .beneficios{grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
   .uso{grid-template-columns:repeat(2,minmax(0,1fr));gap:64px}
   .specs{grid-template-columns:repeat(2,minmax(0,1fr));gap:64px}
+  .proceso{grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+  .garantia{grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);padding:44px;gap:40px;align-items:center}
+  .comp th,.comp td{padding:16px 24px;font-size:16px}
   .cierre{grid-template-columns:repeat(2,minmax(0,1fr));margin:96px var(--pad) 96px}
   .cierre > div{padding:56px}
   footer .wrap{flex-direction:row;justify-content:space-between}
@@ -173,6 +207,7 @@ footer a{color:#fff}
     <a class="marca" href="#">chau arruga<span>.</span></a>
     <nav aria-label="Principal">
       <a class="solo-desk" href="#beneficios">Beneficios</a>
+      <a class="solo-desk" href="#comparacion">Comparación</a>
       <a class="solo-desk" href="#caracteristicas">Características</a>
       <a class="solo-desk" href="#preguntas">Preguntas</a>
       <a class="btn btn-primario btn-chico" href="#comprar">Comprar</a>
@@ -182,7 +217,7 @@ footer a{color:#fff}
   <main>
   <section class="hero">
     <div>
-      <div class="galeria-main"><img id="foto-principal" class="contain" src="img/hero.jpg" alt="Plancha a vapor de mano Vapo 1000, gris con fucsia" width="800" height="800"></div>
+      <div class="galeria-main"><span class="badge">Lista en 9 s</span><img id="foto-principal" class="contain" src="img/hero.jpg" alt="Plancha a vapor de mano Vapo 1000, gris con fucsia" width="800" height="800"></div>
       <div class="thumbs" role="group" aria-label="Fotos del producto">
         <button type="button" aria-pressed="true" data-src="img/hero.jpg" data-fit="contain" aria-label="Ver el producto"><img src="img/hero.jpg" alt=""></button>
         <button type="button" aria-pressed="false" data-src="img/perchero.jpg" aria-label="Ver usándola sobre ropa colgada"><img src="img/perchero.jpg" alt="" loading="lazy"></button>
@@ -213,7 +248,7 @@ footer a{color:#fff}
         </button>
         <button type="button" class="pack" role="radio" aria-checked="false" data-pack="2">
           <span class="radio"></span>
-          <span class="pack-txt"><b>2 Vapo 1000</b><span>Una para vos y otra para regalar</span></span>
+          <span class="pack-txt"><b>2 Vapo 1000</b><span>Una para vos y otra para regalar · $34.995 c/u</span></span>
           <span class="pack-precio">$69.990<span class="ahorro">Ahorrás $9.990</span></span>
         </button>
       </div>
@@ -224,6 +259,7 @@ footer a{color:#fff}
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.5A8.4 8.4 0 1 1 21 11.5z"/></svg>
           Consultar por WhatsApp</a>
       </div>
+      <p class="transfer">¿Preferís transferencia? <a id="btn-transfer" href="#" target="_blank" rel="noopener">Pedila por WhatsApp con 10% OFF</a></p>
       <p class="nota">Pago seguro con Mercado Pago · 10 días para arrepentirte</p>
       <div class="confianza">
         <div><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#B0126E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>Pagás con Mercado Pago</div>
@@ -253,6 +289,26 @@ footer a{color:#fff}
       <article class="beneficio"><img src="img/tela-arriba.jpg" alt="Vista superior de la plancha con el mango girado" loading="lazy"><div><h3>Mango que gira 90°</h3><p>Se acomoda a cada prenda y se pliega con un clic para guardarla en cualquier lado.</p></div></article>
       <article class="beneficio"><img src="img/bolso.jpg" alt="Guardando la plancha dentro de una cartera" loading="lazy" style="object-position:center 30%"><div><h3>Entra en la cartera</h3><p>Pesa unos 500 g y es del tamaño de un vaso. Ideal para viajes, la oficina o tener siempre a mano.</p></div></article>
     </div>
+  </div>
+</section>
+
+<section class="seccion" id="comparacion">
+  <div class="wrap">
+    <h2>No es un vaporizador más</h2>
+    <p class="bajada" style="margin:-12px 0 24px">Así se compara con los vaporizadores de mano comunes que se consiguen en Argentina.</p>
+    <div class="comp">
+      <table>
+        <thead><tr><th scope="col"></th><th scope="col" class="nuestra">Vapo 1000</th><th scope="col">Vaporizador común</th></tr></thead>
+        <tbody>
+          <tr><td>Tiempo para calentar</td><td class="nuestra">9 segundos aprox.</td><td>20 a 40 segundos</td></tr>
+          <tr><td>Se usa apoyada, como una plancha</td><td class="nuestra">Sí, con placa cerámica</td><td>En general, solo colgada</td></tr>
+          <tr><td>Planchado en seco</td><td class="nuestra">Sí</td><td>En general, solo vapor</td></tr>
+          <tr><td>Se pliega para guardar</td><td class="nuestra">Sí, mango que gira 90°</td><td>En general, no</td></tr>
+          <tr><td>Tanque de agua</td><td class="nuestra">60 ml, pensado para retoques rápidos</td><td>250 a 350 ml, para sesiones largas</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="fuente">Comparación hecha con los datos que publican los fabricantes de vaporizadores de mano que se venden en Argentina. Si planchás mucha ropa de una sola vez, un tanque más grande te va a rendir más. La Vapo 1000 está pensada para que la uses todos los días y la lleves a donde vayas.</p>
   </div>
 </section>
 
@@ -295,6 +351,25 @@ footer a{color:#fff}
   </div>
 </section>
 
+<section class="seccion" id="como-comprar">
+  <div class="wrap">
+    <h2>Comprar es así de simple</h2>
+    <div class="proceso">
+      <div><span class="paso">Paso 1</span><b>Pagás como quieras</b><p>Con Mercado Pago en 3 cuotas sin interés, o por transferencia con 10% OFF.</p></div>
+      <div><span class="paso">Paso 2</span><b>Despachamos en 24/48 h</b><p>Te mandamos el número de seguimiento para que sepas dónde está tu pedido.</p></div>
+      <div><span class="paso">Paso 3</span><b>La recibís gratis</b><p>El envío no tiene costo, a cualquier lugar del país.</p></div>
+    </div>
+    <div class="garantia">
+      <h3>Comprá sin riesgo.</h3>
+      <ul>
+        <li><span class="check"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><span><b>10 días para arrepentirte</b> desde que la recibís.</span></li>
+        <li><span class="check"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><span><b>Garantía de 3 meses</b> ante cualquier falla.</span></li>
+        <li><span class="check"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><span><b>Te atiende una persona</b> por WhatsApp, antes y después de la compra.</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
 <section class="seccion" id="preguntas">
   <div class="wrap">
     <h2 class="centrado">Preguntas frecuentes</h2>
@@ -302,7 +377,7 @@ footer a{color:#fff}
       <details open><summary>¿Reemplaza a la plancha común?</summary><p>Para el día a día y la ropa colgada, sí: es más rápida y práctica. Además se puede usar apoyada como una plancha. Para pliegues muy marcados (como la raya del pantalón) una plancha tradicional sigue siendo lo mejor.</p></details>
       <details><summary>¿Cuánto tarda en calentar?</summary><p>Unos 9 segundos desde que la enchufás hasta que empieza a salir vapor.</p></details>
       <details><summary>¿Funciona con la corriente de Argentina?</summary><p>Sí, funciona a 220V / 50Hz, igual que la red argentina.</p></details>
-      <details><summary>¿Cuánto dura el tanque?</summary><p>El tanque es de 60 ml y alcanza para varias prendas. Se recarga en segundos con el vasito medidor que viene incluido.</p></details>
+      <details><summary>¿Cuánto dura el tanque?</summary><p>El tanque es de 60 ml: está pensado para retoques rápidos, como la camisa o el vestido antes de salir. Si vas a planchar varias prendas seguidas, lo recargás en segundos con el vasito medidor que viene incluido.</p></details>
       <details><summary>¿Puedo usarla en cualquier tela?</summary><p>Sirve para algodón, lino, lana, paño, seda y sintéticos. En sedas y telas delicadas probá primero en una parte que no se vea.</p></details>
       <details><summary>¿Cuánto sale el envío?</summary><p>Nada: el envío es gratis a todo el país. Despachamos en 24/48 h hábiles y te pasamos el número de seguimiento.</p></details>
       <details><summary>¿Cómo puedo pagar?</summary><p>Con Mercado Pago: tarjeta de crédito en 3 cuotas sin interés, débito o dinero en cuenta. Y si pagás por transferencia tenés 10% OFF.</p></details>
@@ -360,6 +435,7 @@ function actualizarCompra() {
   btn.href = p.link || waLink('¡Hola! Quiero comprar ' + packActual + ' Vapo 1000 (' + p.precio + ').');
   btn.target = p.link ? '_self' : '_blank';
   document.getElementById('sticky-precio').textContent = p.precio;
+  document.getElementById('btn-transfer').href = waLink('¡Hola! Quiero comprar ' + packActual + ' Vapo 1000 pagando por transferencia con 10% OFF.');
 }
 
 document.querySelectorAll('.pack').forEach(el => {
