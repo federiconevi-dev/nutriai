@@ -313,26 +313,27 @@
   .fit .yes li svg{color:var(--wa)}
   .fit .no li svg{color:#ff4d4d}
 
-  /* ---------- Planes ---------- */
-  .plans{display:grid;gap:18px;margin-top:40px}
-  .plan{position:relative;border-radius:26px;padding:32px 24px 26px;display:flex;flex-direction:column;background:var(--card);box-shadow:0 0 0 1px var(--line) inset;transition:transform .35s var(--ease)}
-  .plan:hover{transform:translateY(-6px)}
-  .plan .kind{font-size:12px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
-  .plan h3{font-family:var(--display);font-weight:400;text-transform:uppercase;font-size:60px;line-height:1;margin:10px 0 4px}
-  .plan .billing{font-weight:800;margin-bottom:20px;color:var(--blue-2)}
-  .plan ul{list-style:none;display:grid;gap:11px;margin-bottom:28px;flex:1}
-  .plan li{display:flex;gap:10px;color:var(--soft);font-size:15px}
-  .plan li svg{width:18px;height:18px;flex:none;margin-top:3px;color:var(--wa)}
-  .plan--star{
-    background:radial-gradient(100% 70% at 50% 0%,rgba(255,98,0,.22),transparent 60%),radial-gradient(90% 60% at 50% 100%,rgba(10,60,255,.35),transparent 70%),#0a0a10;
-    box-shadow:0 0 0 1.5px rgba(255,98,0,.75) inset,0 40px 100px -30px rgba(255,98,0,.6);
+  /* ---------- Membresía Inicial ---------- */
+  .member{
+    position:relative;display:grid;gap:30px;margin-top:44px;border-radius:30px;padding:40px 22px 26px;
+    background:radial-gradient(90% 60% at 0% 0%,rgba(255,98,0,.2),transparent 60%),radial-gradient(90% 70% at 100% 100%,rgba(10,60,255,.45),transparent 70%),#0a0a10;
+    box-shadow:0 0 0 1.5px rgba(255,98,0,.7) inset,0 50px 120px -40px rgba(255,98,0,.55),0 30px 120px -40px rgba(10,60,255,.7);
   }
-  .plan--star .billing{color:var(--amber)}
-  .badge{position:absolute;top:-15px;left:50%;transform:translateX(-50%);white-space:nowrap;background:var(--fire);color:#000;font-weight:800;font-size:12px;letter-spacing:.14em;text-transform:uppercase;padding:9px 16px;border-radius:999px;box-shadow:0 8px 30px -6px rgba(255,98,0,.9)}
+  .badge{position:absolute;top:-15px;white-space:nowrap;background:var(--fire);color:#000;font-weight:800;font-size:12px;letter-spacing:.14em;text-transform:uppercase;padding:9px 16px;border-radius:999px;box-shadow:0 8px 30px -6px rgba(255,98,0,.9)}
+  .member .badge{left:26px}
+  .member .kind{font-size:12px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+  .member h3{font-family:var(--display);font-weight:400;text-transform:uppercase;font-size:clamp(60px,15vw,96px);line-height:.95;margin:10px 0 16px}
+  .member-main p{color:var(--soft);margin-bottom:26px;max-width:460px}
+  .member-note{display:block;text-align:center;color:var(--muted);font-size:13px;margin-top:12px}
+  .member-list{border-top:1px solid var(--line);padding-top:26px}
+  .member-list ul{list-style:none;display:grid;gap:16px;margin-top:16px}
+  .member-list li{display:flex;gap:14px;align-items:flex-start}
+  .member-list .ck{width:28px;height:28px;border-radius:50%;flex:none;display:grid;place-items:center;background:rgba(37,211,102,.15);color:var(--wa);box-shadow:0 0 0 1px rgba(37,211,102,.35) inset}
+  .member-list .ck svg{width:15px;height:15px}
+  .member-list b{display:block;font-size:17px;line-height:1.25}
+  .member-list small{display:block;color:var(--muted);font-size:14px;line-height:1.4;margin-top:2px}
+
   .plans-note{color:var(--muted);font-size:14px;margin-top:24px;text-align:center}
-  .includes{display:flex;flex-wrap:wrap;gap:10px;margin-top:24px}
-  .chip{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:999px;background:rgba(255,255,255,.05);box-shadow:0 0 0 1px var(--line) inset;font-size:14px;font-weight:700}
-  .chip svg{width:16px;height:16px;color:var(--orange)}
 
   /* ---------- Cierre ---------- */
   .closing{text-align:center;overflow:hidden;padding:130px 0 150px}
@@ -402,9 +403,8 @@
     .photo{margin:0}
     .adv{grid-template-columns:repeat(2,1fr);column-gap:40px}
     .fit{grid-template-columns:1fr 1fr}
-    .plans{grid-template-columns:repeat(3,1fr);align-items:stretch}
-    .plan--star{transform:scale(1.04)}
-    .plan--star:hover{transform:scale(1.04) translateY(-6px)}
+    .member{grid-template-columns:1.05fr .95fr;gap:50px;padding:56px 50px 48px;align-items:center}
+    .member-list{border-top:0;padding-top:0;border-left:1px solid var(--line);padding-left:44px}
     .faq-grid{grid-template-columns:.8fr 1.2fr;gap:60px;align-items:start}
     .faq-grid .head{position:sticky;top:110px}
     .qa button{font-size:18px;padding:22px 24px}
@@ -573,7 +573,7 @@
   <div class="wrap">
     <div class="step-body">
       <h4 class="reveal">Escribime y arrancamos</h4>
-      <p class="reveal d1">Cuando lo tengas claro, mandame un WhatsApp. Te cuento los planes, resolvemos tus dudas y arrancás hoy.</p>
+      <p class="reveal d1">Cuando lo tengas claro, mandame un WhatsApp. Te cuento cómo es la membresía, resolvemos tus dudas y arrancás hoy.</p>
       <div class="wa-row reveal d2">
         <span class="num">+54 9 11 3514-9209</span>
         <a class="btn" data-wa href="#"><svg><use href="#i-wa"/></svg> Escribime por WhatsApp</a>
@@ -697,59 +697,34 @@
 </section>
 -->
 
-<!-- =============== 5. PLANES =============== -->
-<section id="planes" style="padding-top:0">
+<!-- =============== 5. MEMBRESÍA INICIAL =============== -->
+<section id="membresia" style="padding-top:0">
   <div class="wrap">
-    <span class="eyebrow reveal"><i></i> Planes</span>
-    <h2 class="display h2 reveal d1">Elegí tu<br><span class="fire">entrada</span></h2>
-    <p class="lead reveal d2">Adentro del club te encontrás con:</p>
-    <div class="includes reveal d2">
-      <span class="chip"><svg><use href="#i-check"/></svg> Entrenamiento Inicial</span>
-      <span class="chip"><svg><use href="#i-check"/></svg> Clases en vivo</span>
-      <span class="chip"><svg><use href="#i-check"/></svg> Clases grabadas</span>
-      <span class="chip"><svg><use href="#i-check"/></svg> Comunidad</span>
-      <span class="chip"><svg><use href="#i-check"/></svg> Niveles que se desbloquean</span>
-    </div>
+    <span class="eyebrow reveal"><i></i> La membresía</span>
+    <h2 class="display h2 reveal d1">Tu punto de<br><span class="fire">partida</span></h2>
 
-    <!-- ✏️ PLANES: los textos de cada tarjeta se editan acá abajo -->
-    <div class="plans">
-      <article class="plan reveal d1">
-        <span class="kind">Para arrancar</span>
-        <h3>Standard</h3>
-        <div class="billing">Pago anual</div>
-        <ul>
-          <li><svg><use href="#i-check"/></svg> Se paga una vez por año</li>
-          <li><svg><use href="#i-check"/></svg> Ideal para dar tus primeros pasos</li>
-          <li><svg><use href="#i-check"/></svg> Te detallo qué incluye por WhatsApp</li>
-        </ul>
-        <a class="btn btn--ghost btn--block" data-wa href="#">Consultar precio</a>
-      </article>
-
-      <article class="plan reveal d2">
-        <span class="kind">Para ir a fondo</span>
-        <h3>Pro</h3>
-        <div class="billing">Pago anual</div>
-        <ul>
-          <li><svg><use href="#i-check"/></svg> Se paga una vez por año</li>
-          <li><svg><use href="#i-check"/></svg> Para los que quieren acelerar</li>
-          <li><svg><use href="#i-check"/></svg> Te detallo qué incluye por WhatsApp</li>
-        </ul>
-        <a class="btn btn--ghost btn--block" data-wa href="#">Consultar precio</a>
-      </article>
-
-      <article class="plan plan--star reveal d3">
-        <span class="badge">🔥 La más elegida</span>
-        <span class="kind">Para siempre</span>
-        <h3 class="fire">Exclusive</h3>
-        <div class="billing">Pago único · De por vida</div>
-        <ul>
-          <li><svg><use href="#i-check"/></svg> Pagás una sola vez</li>
-          <li><svg><use href="#i-check"/></svg> Acceso de por vida</li>
-          <li><svg><use href="#i-check"/></svg> Sin renovaciones anuales</li>
-        </ul>
+    <!-- ✏️ MEMBRESÍA: los textos de la tarjeta se editan acá abajo -->
+    <article class="member reveal zoom d2">
+      <span class="badge">🔥 La misma que tengo yo</span>
+      <div class="member-main">
+        <span class="kind">Club de Emprendedores</span>
+        <h3>Membresía<br><span class="fire">Inicial</span></h3>
+        <p>La puerta de entrada al club. Arrancás de cero con el Entrenamiento Inicial y vas por tu primera venta en la primera semana, con clases, comunidad y un paso a paso para no perderte.</p>
         <a class="btn btn--fire btn--block" data-wa href="#"><svg><use href="#i-wa"/></svg> Consultar precio</a>
-      </article>
-    </div>
+        <small class="member-note">Precio y forma de pago, por WhatsApp.</small>
+      </div>
+      <div class="member-list">
+        <span class="kind">Qué incluye</span>
+        <ul>
+          <li><span class="ck"><svg><use href="#i-check"/></svg></span><div><b>Entrenamiento Inicial</b><small>El paso a paso para tu primera venta.</small></div></li>
+          <li><span class="ck"><svg><use href="#i-check"/></svg></span><div><b>Clases en vivo</b><small>Preguntás y resolvés dudas en el momento.</small></div></li>
+          <li><span class="ck"><svg><use href="#i-check"/></svg></span><div><b>Clases grabadas</b><small>Las mirás cuando quieras, las veces que quieras.</small></div></li>
+          <li><span class="ck"><svg><use href="#i-check"/></svg></span><div><b>Comunidad de miembros</b><small>Gente en la misma que vos, empujando.</small></div></li>
+          <li><span class="ck"><svg><use href="#i-check"/></svg></span><div><b>Niveles que se desbloquean</b><small>A medida que avanzás, se abre más contenido.</small></div></li>
+          <li><span class="ck"><svg><use href="#i-check"/></svg></span><div><b>Mi acompañamiento</b><small>Te ayudo a arrancar desde el día uno.</small></div></li>
+        </ul>
+      </div>
+    </article>
     <p class="plans-note reveal">La empresa se queda con un 10% de cada venta que hagas. Te explico todo por WhatsApp.</p>
   </div>
 </section>
@@ -797,12 +772,12 @@
         <div class="ans"><div><p>El Entrenamiento Inicial está pensado para que vayas por tu primera venta en la primera semana. Qué tan rápido llegues depende de cuánto le metas.</p></div></div>
       </div>
       <div class="qa reveal">
-        <button aria-expanded="false">¿El pago es para siempre?<span class="plus"></span></button>
-        <div class="ans"><div><p>Standard y Pro se renuevan cada año. Exclusive se paga una sola vez y es de por vida. La empresa se queda con un 10% de cada venta que hagas.</p></div></div>
+        <button aria-expanded="false">¿Cuánto sale y cómo es el pago?<span class="plus"></span></button>
+        <div class="ans"><div><p>El precio y la forma de pago de la membresía Inicial te los paso por WhatsApp. Aparte, la empresa se queda con un 10% de cada venta que hagas.</p></div></div>
       </div>
       <div class="qa reveal">
-        <button aria-expanded="false">¿Cómo pago?<span class="plus"></span></button>
-        <div class="ans"><div><p>Te lo explico por WhatsApp. <a data-wa href="#">Escribime acá →</a></p></div></div>
+        <button aria-expanded="false">¿Qué pasa después de escribirte?<span class="plus"></span></button>
+        <div class="ans"><div><p>Te respondo yo, te cuento todo, resolvemos tus dudas y si te cierra, te ayudo a entrar y arrancar. <a data-wa href="#">Escribime acá →</a></p></div></div>
       </div>
     </div>
   </div>
