@@ -195,10 +195,11 @@
   .photo{position:relative;width:100%;max-width:400px;aspect-ratio:4/5;margin:0 auto;border-radius:24px;overflow:hidden;background:linear-gradient(180deg,#141418,#0c0c0e);box-shadow:0 0 0 1px var(--line) inset}
   .photo::before{content:"";position:absolute;inset:0;background:radial-gradient(70% 50% at 50% 100%,rgba(47,107,255,.28),transparent 70%)}
   .photo img{position:relative;width:100%;height:100%;object-fit:cover}
+  .photo::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(to top,rgba(10,10,11,.55),transparent 35%)}
   .photo .ph{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--muted)}
   .photo .ph .initial{font-family:var(--display);font-size:120px;line-height:1;color:rgba(255,255,255,.9)}
   .photo .ph small{font-size:13px}
-  .photo .cap{position:absolute;left:16px;right:16px;bottom:16px;display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:12px;background:rgba(10,10,11,.75);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);font-size:13.5px;font-weight:700}
+  .photo .cap{position:absolute;z-index:2;left:16px;right:16px;bottom:16px;display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:12px;background:rgba(10,10,11,.75);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);font-size:13.5px;font-weight:700}
   .photo .cap i{width:7px;height:7px;border-radius:50%;background:var(--wa)}
   .me-text p{color:var(--soft);margin-bottom:16px;font-size:18px}
   .me-text p b{color:#fff}
@@ -464,15 +465,8 @@
 <section id="camino" class="divider">
   <div class="wrap me">
     <div class="photo reveal">
-      <!--
-        ✏️ FOTO: poné tu foto en esta misma carpeta (ej: fede.jpg) y reemplazá
-        TODO el <div class="ph">…</div> de abajo por:
-        <img src="fede.jpg" alt="Fede" loading="lazy" width="800" height="1000">
-      -->
-      <div class="ph" aria-hidden="true">
-        <span class="initial">F</span>
-        <small>Tu foto acá</small>
-      </div>
+      <!-- ✏️ FOTO: para cambiarla, reemplazá el archivo fede.jpg (ideal 800×1000, vertical 4:5) -->
+      <img src="fede.jpg" alt="Fede, miembro del Club de Emprendedores" loading="lazy" width="800" height="1000">
       <span class="cap"><i></i> Fede · Miembro del Club</span>
     </div>
     <div class="me-text">
