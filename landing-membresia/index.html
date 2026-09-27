@@ -191,12 +191,14 @@
   .lvl.lock{opacity:.5}
   .lvl em{margin-left:auto;font-style:normal;font-size:10px;color:var(--muted)}
   .toast{
-    position:absolute;left:-26px;right:-26px;display:flex;align-items:center;gap:10px;padding:11px 13px;border-radius:16px;
+    position:absolute;left:18px;right:18px;display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:16px;
     background:rgba(22,22,30,.78);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
     box-shadow:0 0 0 1px rgba(255,255,255,.12) inset,0 20px 40px -10px rgba(0,0,0,.8);
     font-size:12.5px;line-height:1.25;opacity:0;transform:translateY(14px) scale(.96);transition:opacity .5s var(--ease),transform .5s var(--ease);z-index:4
   }
   .toast.show{opacity:1;transform:none}
+  .toast div{min-width:0}
+  .toast b,.toast small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .toast .ti{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;flex:none;font-size:16px}
   .toast small{display:block;color:var(--muted);font-size:10.5px}
   .toast.t1{top:96px}
@@ -256,7 +258,7 @@
   /* ---------- Qué aprendés ---------- */
   .topics{display:grid;gap:14px;margin-top:40px}
   .topic{
-    position:relative;overflow:hidden;border-radius:24px;padding:28px 24px;min-height:190px;display:flex;flex-direction:column;justify-content:flex-end;
+    position:relative;overflow:hidden;border-radius:24px;padding:104px 24px 28px;display:flex;flex-direction:column;justify-content:flex-end;
     background:var(--card);box-shadow:0 0 0 1px var(--line) inset;transition:transform .35s var(--ease);
   }
   .topic::before{content:"";position:absolute;inset:0;background:radial-gradient(300px circle at var(--mx,50%) var(--my,0%),rgba(0,153,255,.25),transparent 60%);opacity:0;transition:opacity .35s}
@@ -266,7 +268,7 @@
   .topic .big-ico svg{width:26px;height:26px}
   .topic h3{position:relative;font-family:var(--display);font-weight:400;text-transform:uppercase;font-size:clamp(34px,6vw,46px);line-height:1}
   .topic p{position:relative;color:var(--muted);margin-top:8px;font-size:15px}
-  .topic .ghost-n{position:absolute;left:18px;top:6px;font-family:var(--display);font-size:92px;line-height:1;color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.1)}
+  .topic .ghost-n{position:absolute;left:22px;top:20px;font-family:var(--display);font-size:64px;line-height:1;color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.1)}
 
   /* ---------- Roadmap ---------- */
   .road{position:relative;margin-top:46px;padding-left:44px;max-width:760px}
@@ -324,7 +326,7 @@
   .badge{position:absolute;top:-15px;white-space:nowrap;background:var(--fire);color:#000;font-weight:800;font-size:12px;letter-spacing:.14em;text-transform:uppercase;padding:9px 16px;border-radius:999px;box-shadow:0 8px 30px -6px rgba(255,98,0,.9)}
   .member .badge{left:26px}
   .member .kind{font-size:12px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
-  .member h3{font-family:var(--display);font-weight:400;text-transform:uppercase;font-size:clamp(60px,15vw,96px);line-height:.95;margin:10px 0 16px}
+  .member h3{font-family:var(--display);font-weight:400;text-transform:uppercase;font-size:clamp(54px,14vw,92px);line-height:.95;margin:10px 0 16px}
   .member-main p{color:var(--soft);margin-bottom:26px;max-width:460px}
   .member-note{display:block;text-align:center;color:var(--muted);font-size:13px;margin-top:12px}
   .member-list{border-top:1px solid var(--line);padding-top:26px}
@@ -400,13 +402,12 @@
     .wrap{padding:0 36px}
     .hero .ctas{flex-direction:row;max-width:none}
     .topics{grid-template-columns:repeat(2,1fr);gap:18px}
-    .topic{min-height:230px;padding:34px 30px}
+    .topic{min-height:250px;padding:110px 30px 32px}
     .me{grid-template-columns:.9fr 1.1fr;gap:70px}
     .photo{margin:0}
     .adv{grid-template-columns:repeat(2,1fr);column-gap:40px}
     .fit{grid-template-columns:1fr 1fr}
-    .member{grid-template-columns:1.05fr .95fr;gap:50px;padding:56px 50px 48px;align-items:center}
-    .member-list{border-top:0;padding-top:0;border-left:1px solid var(--line);padding-left:44px}
+    .member{padding:52px 44px 40px}
     .faq-grid{grid-template-columns:.8fr 1.2fr;gap:60px;align-items:start}
     .faq-grid .head{position:sticky;top:110px}
     .qa button{font-size:18px;padding:22px 24px}
@@ -424,9 +425,15 @@
     .adv article:last-child{border-right:1px solid var(--line)}
     .adv .n{grid-row:auto;margin-bottom:18px}
     .beams{right:-30%;width:100%}
+    .member{grid-template-columns:1.05fr .95fr;gap:50px;padding:56px 50px 48px;align-items:center}
+    .member-list{border-top:0;padding-top:0;border-left:1px solid var(--line);padding-left:44px}
   }
   @media (max-width:420px){
-    .toast{left:-14px;right:-14px}
+    .toast{left:16px;right:16px}
+  }
+  @media (max-width:380px){
+    .brand small{display:none}
+    .top .mini{padding:9px 12px}
   }
 </style>
 </head>
