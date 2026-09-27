@@ -16,3 +16,6 @@ prisma/dev.db-journal
 .vercel
 tsconfig.tsbuildinfo
 next-env.d.ts
+
+# Netlify CLI local state
+.netlify
