@@ -102,6 +102,17 @@ footer .w{display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px}
 footer nav{all:unset;display:flex;gap:20px}
 .rev{opacity:0;transform:translateY(24px);transition:opacity .7s,transform .7s}
 .rev.on{opacity:1;transform:none}
+.sr{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden}
+.drop{position:relative}.drop.over{border-color:var(--b);background:#1a1426}
+#cv{position:absolute;inset:0;width:100%;height:100%;z-index:3;display:none;background:#000}
+.phone.has #cv{display:block}.phone.has~.tag{display:none}
+.panel{margin-top:16px;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:18px;display:grid;gap:12px}
+.panel[hidden]{display:none}
+.panel input{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--tx);font:inherit;font-size:16px}
+.bar{height:8px;border-radius:9px;background:var(--line);overflow:hidden}.bar i{display:block;height:100%;width:0;background:var(--g);transition:width .2s}
+#msg{color:var(--mut);font-size:14px}
+.row{display:flex;gap:10px;flex-wrap:wrap}.row .btn{border:0;font:inherit;font-weight:700;cursor:pointer;flex:1;justify-content:center}
+.btn:disabled{opacity:.5;cursor:wait}
 @media(max-width:880px){
 .hero .w,.grid,.price{grid-template-columns:1fr}
 .links{display:none}
@@ -126,15 +137,21 @@ section{padding:72px 0}
     <span class="pill">✨ +12.000 videos editados este mes</span>
     <h1>Tu video crudo,<br><span class="grad">editado y viral</span><br>en minutos.</h1>
     <p class="sub">Subí lo que grabaste con el celu. La IA le pone subtítulos animados, corta los silencios, agrega zooms y sonidos. Vos solo publicás.</p>
-    <label class="drop">
-      <input type="file" accept="video/*" hidden onchange="this.closest('label').querySelector('strong').textContent='✓ '+this.files[0].name">
+    <label class="drop" id="drop">
+      <input type="file" id="file" accept="video/*" class="sr">
       <span class="btn">⬆ Subir video</span>
-      <span><strong>Arrastrá tu video acá</strong><small>MP4 o MOV · hasta 3 min · gratis</small></span>
+      <span><strong id="fname">Tocá o arrastrá tu video acá</strong><small>MP4 o MOV · hasta 3 min · gratis</small></span>
     </label>
+    <div id="panel" class="panel" hidden>
+      <input id="hook" maxlength="60" placeholder="Texto del subtítulo (ej: esto cambió todo)">
+      <div class="bar"><i id="prog"></i></div>
+      <p id="msg">Listo para editar: recorte 9:16, zooms automáticos y subtítulo animado.</p>
+      <div class="row"><button class="btn" id="go">✨ Editar video</button><a class="btn ghost" id="dl" hidden>⬇ Descargar</a></div>
+    </div>
     <div class="proof"><div class="av"><i></i><i></i><i></i></div><span><span class="stars">★★★★★</span> 4.9 · creadores de toda Latinoamérica</span></div>
   </div>
   <div class="mock">
-    <div class="phone">
+    <div class="phone" id="phone"><canvas id="cv" width="720" height="1280"></canvas>
       <div class="face"></div>
       <div class="cap"><span>esto&nbsp;</span><span>cambió&nbsp;</span><span>todo</span></div>
       <div class="ui"><div><b></b>48K</div><div><b></b>1.2K</div><div><b></b>Share</div></div>
@@ -231,6 +248,72 @@ section{padding:72px 0}
 <script>
 const io=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting){x.target.classList.add('on');io.unobserve(x.target)}}),{threshold:.15});
 document.querySelectorAll('.rev').forEach(el=>io.observe(el));
+
+const $=q=>document.querySelector(q),v=document.createElement('video'),cv=$('#cv'),cx=cv.getContext('2d');
+v.playsInline=true;v.muted=true;v.loop=true;v.setAttribute('playsinline','');
+let ac,dest,rec,busy=false;
+const msg=t=>$('#msg').textContent=t;
+function load(f){
+  if(!f)return;
+  if(!f.type.startsWith('video/')&&!/\.(mp4|mov|webm|m4v)$/i.test(f.name)){alert('Elegí un archivo de video (MP4, MOV o WEBM).');return}
+  if(f.size>1e9){alert('El video pesa más de 1 GB.');return}
+  v.src=URL.createObjectURL(f);v.load();v.play().catch(()=>{});
+  $('#fname').textContent='✓ '+f.name;$('#panel').hidden=false;$('#phone').classList.add('has');
+  $('#dl').hidden=true;$('#prog').style.width='0';msg('Listo para editar: recorte 9:16, zooms automáticos y subtítulo animado.');
+  $('#phone').scrollIntoView({behavior:'smooth',block:'center'});
+}
+v.onerror=()=>msg('Tu navegador no puede abrir este video. Probá con un MP4 o con Chrome/Safari.');
+$('#file').onchange=e=>load(e.target.files[0]);
+const d=$('#drop');
+['dragenter','dragover'].forEach(n=>d.addEventListener(n,e=>{e.preventDefault();d.classList.add('over')}));
+['dragleave','drop'].forEach(n=>d.addEventListener(n,e=>{e.preventDefault();d.classList.remove('over')}));
+d.addEventListener('drop',e=>load(e.dataTransfer.files[0]));
+const ease=x=>1-Math.pow(1-x,3);
+function draw(){
+  requestAnimationFrame(draw);
+  if(v.readyState<2||!v.videoWidth)return;
+  const W=cv.width,H=cv.height,t=v.currentTime,c=t%4;
+  const z=1+.15*(c<.35?ease(c/.35):c<2?1:c<2.35?1-ease((c-2)/.35):0);
+  const s=Math.max(W/v.videoWidth,H/v.videoHeight)*z,w=v.videoWidth*s,h=v.videoHeight*s;
+  cx.fillStyle='#000';cx.fillRect(0,0,W,H);cx.drawImage(v,(W-w)/2,(H-h)/2,w,h);
+  const words=($('#hook').value.trim()||'tu subtítulo acá').toUpperCase().split(/\s+/),n=Math.ceil(words.length/3),k=Math.floor(t/1.6)%n;
+  const chunk=words.slice(k*3,k*3+3),p=(t%1.6)/1.6;
+  let fs=78;cx.font='900 '+fs+'px Inter,system-ui,sans-serif';
+  while(cx.measureText(chunk.join(' ')).width>W*.86&&fs>30){fs-=4;cx.font='900 '+fs+'px Inter,system-ui,sans-serif'}
+  const sc=p<.08?.6+.4*ease(p/.08)*1.1:1;
+  cx.save();cx.translate(W/2,H*.72);cx.scale(sc,sc);cx.textAlign='center';cx.textBaseline='middle';
+  cx.lineJoin='round';cx.lineWidth=fs*.18;cx.strokeStyle='#000';
+  let x=-cx.measureText(chunk.join(' ')).width/2;cx.textAlign='left';
+  chunk.forEach((wd,i)=>{cx.strokeText(wd,x,0);cx.fillStyle=i===chunk.length-1?'#facc15':'#fff';cx.fillText(wd,x,0);x+=cx.measureText(wd+' ').width});
+  cx.restore();
+  if(busy&&v.duration)$('#prog').style.width=(100*t/v.duration)+'%';
+}
+draw();
+$('#go').onclick=async()=>{
+  if(busy||!v.src)return;
+  if(!window.MediaRecorder||!cv.captureStream){msg('Tu navegador no permite exportar. Probá con Chrome o Safari actualizado.');return}
+  busy=true;$('#go').disabled=true;$('#dl').hidden=true;
+  try{
+    if(!ac){ac=new(window.AudioContext||window.webkitAudioContext)();dest=ac.createMediaStreamDestination();ac.createMediaElementSource(v).connect(dest)}
+    await ac.resume();
+  }catch(e){}
+  const st=cv.captureStream(30);if(dest)dest.stream.getAudioTracks().forEach(t=>st.addTrack(t));
+  const mt=['video/mp4;codecs=avc1,mp4a','video/mp4','video/webm;codecs=vp9,opus','video/webm'].find(m=>MediaRecorder.isTypeSupported(m))||'';
+  const ch=[];rec=new MediaRecorder(st,mt?{mimeType:mt,videoBitsPerSecond:6e6}:{});
+  rec.ondataavailable=e=>e.data.size&&ch.push(e.data);
+  rec.onstop=()=>{
+    if(!ch.length||!ch.reduce((n,c)=>n+c.size,0)){busy=false;$('#go').disabled=false;v.loop=true;msg('No se pudo leer este video en tu navegador. Probá con Chrome o Safari, o con otro formato.');return}
+    const ext=(rec.mimeType||mt).includes('mp4')?'mp4':'webm',b=new Blob(ch,{type:rec.mimeType||mt||'video/webm'}),a=$('#dl');
+    a.href=URL.createObjectURL(b);a.download='videora-editado.'+ext;a.hidden=false;
+    busy=false;$('#go').disabled=false;$('#prog').style.width='100%';v.loop=true;v.muted=true;v.play().catch(()=>{});
+    msg('¡Listo! Tocá Descargar para guardar tu video ('+ext.toUpperCase()+').');
+  };
+  v.pause();v.loop=false;v.muted=false;v.currentTime=0;
+  v.onended=()=>{if(rec&&rec.state==='recording')rec.stop()};
+  rec.start(500);
+  msg('Editando… tarda lo mismo que dura el video. No cierres la página.');
+  try{await v.play()}catch(e){rec.stop();msg('No se pudo reproducir el video. Probá con un MP4.')}
+};
 </script>
 </body>
 </html>
