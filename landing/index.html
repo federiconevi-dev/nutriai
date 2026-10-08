@@ -7,7 +7,7 @@
 <title>Videora — Edición automática con IA</title>
 <meta name="description" content="Subí tu video crudo y la IA le pone subtítulos, cortes, zooms y sonidos. Listo para TikTok, Reels y Shorts en minutos.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=Montserrat:wght@900&family=Playfair+Display:ital,wght@1,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=Montserrat:wght@900&family=Outfit:wght@600;800&family=Plus+Jakarta+Sans:wght@600;800&family=Playfair+Display:ital,wght@1,700&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#07070b;--bg2:#0f0f17;--card:#14141f;--line:#262636;--tx:#f3f3f7;--mut:#9a9ab0;--a:#a855f7;--b:#ec4899;--c:#facc15;--g:linear-gradient(135deg,var(--a),var(--b))}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -113,7 +113,7 @@ footer nav{all:unset;display:flex;gap:20px}
 #msg{color:var(--mut);font-size:14px}
 .row{display:flex;gap:10px;flex-wrap:wrap}.row .btn{border:0;font:inherit;font-weight:700;cursor:pointer;flex:1;justify-content:center}
 .btn:disabled{opacity:.5;cursor:wait}
-.opts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.opts{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
 .opts label{display:grid;gap:4px;font-size:12px;color:var(--mut)}
 .opts select{padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--tx);font:inherit;font-size:16px;min-width:0}
 .toggles{display:flex;gap:14px;flex-wrap:wrap;font-size:14px}.toggles input{accent-color:var(--b)}
@@ -151,11 +151,13 @@ section{padding:72px 0}
     </label>
     <div id="panel" class="panel" hidden>
       <div class="opts">
-        <label>Estilo<select id="style"><option value="viral">Viral</option><option value="hormozi">Hormozi</option><option value="editorial">Editorial</option><option value="minimal">Minimal</option></select></label>
+        <label>Estilo<select id="style"><option value="coral">Coral</option><option value="viral">Viral</option><option value="hormozi">Hormozi</option><option value="editorial">Editorial</option><option value="minimal">Minimal</option></select></label>
         <label>Idioma del video<select id="lang"><option value="spanish">Español</option><option value="english">Inglés</option><option value="portuguese">Portugués</option></select></label>
+        <label>Precisión<select id="quality"><option value="base">Rápida (80 MB)</option><option value="small">Alta (250 MB, mejor en compu)</option></select></label>
         <label>Subtítulos<select id="task"><option value="transcribe">Mismo idioma</option><option value="translate">Traducir al inglés</option></select></label>
       </div>
       <div class="toggles"><label><input type="checkbox" id="optCut" checked> Cortar silencios</label><label><input type="checkbox" id="optHook" checked> Hook inicial</label><label><input type="checkbox" id="optSfx" checked> Sonidos</label></div>
+      <input id="ctaWord" maxlength="20" placeholder="Palabra para comentar al final (opcional, ej: INFO)">
       <textarea id="txt" rows="3" placeholder="Acá aparece lo que decís en el video. Podés corregirlo."></textarea>
       <div class="bar"><i id="prog"></i></div>
       <p id="msg">Preparando…</p>
