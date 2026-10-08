@@ -1,0 +1,101 @@
+{
+  "hero": {
+    "src": "assets/img/hero.jpg",
+    "title": "Flatlay Spa",
+    "creator": "Healthy Living",
+    "creator_url": "https://stocksnap.io",
+    "license": "cc0",
+    "license_version": "1.0",
+    "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "foreign_landing_url": "https://stocksnap.io/photo/flatlay-spa-2HEUUNACGX",
+    "source": "stocksnap"
+  },
+  "masaje-relajante": {
+    "src": "assets/img/masaje-relajante.jpg",
+    "title": "Diamond Spas Nuevo Vallarta Mexico",
+    "creator": "Grand Velas Riviera Nayarit",
+    "creator_url": "https://www.flickr.com/photos/8209088@N07",
+    "license": "by-sa",
+    "license_version": "2.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/2.0/",
+    "foreign_landing_url": "https://www.flickr.com/photos/8209088@N07/3656686229",
+    "source": "flickr"
+  },
+  "masaje-descontracturante": {
+    "src": "assets/img/masaje-descontracturante.jpg",
+    "title": "So far, So good",
+    "creator": "Dan4th",
+    "creator_url": "https://www.flickr.com/photos/43264265@N00",
+    "license": "by",
+    "license_version": "2.0",
+    "license_url": "https://creativecommons.org/licenses/by/2.0/",
+    "foreign_landing_url": "https://www.flickr.com/photos/43264265@N00/3136014789",
+    "source": "flickr"
+  },
+  "piedras-calientes": {
+    "src": "assets/img/piedras-calientes.jpg",
+    "title": "Hot Stone Massage",
+    "creator": "Tim Reckmann | a59.de",
+    "creator_url": "https://www.flickr.com/photos/115225894@N07",
+    "license": "by",
+    "license_version": "2.0",
+    "license_url": "https://creativecommons.org/licenses/by/2.0/",
+    "foreign_landing_url": "https://www.flickr.com/photos/115225894@N07/15946238118",
+    "source": "flickr"
+  },
+  "reflexologia": {
+    "src": "assets/img/reflexologia.jpg",
+    "title": "Foot reflexology",
+    "creator": "travelwayoflife",
+    "creator_url": "https://www.flickr.com/photos/61664791@N05",
+    "license": "by-sa",
+    "license_version": "2.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/2.0/",
+    "foreign_landing_url": "https://www.flickr.com/photos/61664791@N05/7186614460",
+    "source": "flickr"
+  },
+  "facial": {
+    "src": "assets/img/facial.jpg",
+    "title": "facial",
+    "creator": "Zenspa1",
+    "creator_url": "https://www.flickr.com/photos/93609956@N05",
+    "license": "by",
+    "license_version": "2.0",
+    "license_url": "https://creativecommons.org/licenses/by/2.0/",
+    "foreign_landing_url": "https://www.flickr.com/photos/93609956@N05/9865582355",
+    "source": "flickr"
+  },
+  "espacio-1": {
+    "src": "assets/img/espacio-1.jpg",
+    "title": "Ferienvilla Cape Coral Masterbad",
+    "creator": "VillaEarlySunset",
+    "creator_url": "https://www.flickr.com/photos/64021749@N04",
+    "license": "by",
+    "license_version": "2.0",
+    "license_url": "https://creativecommons.org/licenses/by/2.0/",
+    "foreign_landing_url": "https://www.flickr.com/photos/64021749@N04/6266102768",
+    "source": "flickr"
+  },
+  "espacio-2": {
+    "src": "assets/img/espacio-2.jpg",
+    "title": "Yellow white bath bomb purple",
+    "creator": "Unknown",
+    "creator_url": null,
+    "license": "cc0",
+    "license_version": "1.0",
+    "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "foreign_landing_url": "https://www.rawpixel.com/image/5975412/yellow-and-white-bath-bomb-purple-towel",
+    "source": "rawpixel"
+  },
+  "espacio-3": {
+    "src": "assets/img/espacio-3.jpg",
+    "title": "Dầu dừa",
+    "creator": "Phú Thịnh Co",
+    "creator_url": "https://www.flickr.com/photos/81249109@N04",
+    "license": "by-sa",
+    "license_version": "2.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/2.0/",
+    "foreign_landing_url": "https://www.flickr.com/photos/81249109@N04/7651679180",
+    "source": "flickr"
+  }
+}
