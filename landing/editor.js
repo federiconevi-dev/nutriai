@@ -801,12 +801,12 @@ document.getElementById('photos').onchange = async e => {
 ['optBig', 'optPhotos', 'optEmoji'].forEach(id => { document.getElementById(id).onchange = () => { if (id === 'optBig' && on('optBig')) loadSeg(); build(); }; });
 
 
-// ================= Themes: each editing type has its own screens, transitions and music =================
+// ================= Themes: each editing type has its own screens and transitions =================
 const THEMES = {
-  coral: { a1: '#FF785C', a2: '#CE2C1A', onA: '#fff', accent: '#F0452F', soft: 'rgba(240,70,48,.18)', ink: '#181616', sub: '#928C86', card: '#fff', line: '#F0EAE2', halo: '#7A241A', night: '#34140E', ctaInk: '#fff', trans: 'blob', music: 'lofi' },
-  dark: { a1: '#FFE14D', a2: '#F59E0B', onA: '#111', accent: '#FFE14D', soft: 'rgba(255,225,77,.15)', ink: '#ffffff', sub: '#A1A1B5', card: 'rgba(255,255,255,.08)', line: 'rgba(255,255,255,.16)', halo: '#3b1d6e', night: '#07070b', ctaInk: '#fff', trans: 'zoom', music: 'trap' },
-  cine: { a1: '#E8D3A2', a2: '#B08D57', onA: '#14110d', accent: '#E8D3A2', soft: 'rgba(232,211,162,.15)', ink: '#F5F0E6', sub: '#9C9488', card: 'rgba(0,0,0,.45)', line: 'rgba(232,211,162,.25)', halo: '#2a2420', night: '#0a0908', ctaInk: '#F5F0E6', trans: 'fade', music: 'cine' },
-  clean: { a1: '#4F8BFF', a2: '#1D4ED8', onA: '#fff', accent: '#2563EB', soft: 'rgba(37,99,235,.12)', ink: '#0f172a', sub: '#64748b', card: '#fff', line: '#e2e8f0', halo: '#dbeafe', night: '#f8fafc', ctaInk: '#0f172a', trans: 'slide', music: 'lofi' }
+  coral: { a1: '#FF785C', a2: '#CE2C1A', onA: '#fff', accent: '#F0452F', soft: 'rgba(240,70,48,.18)', ink: '#181616', sub: '#928C86', card: '#fff', line: '#F0EAE2', halo: '#7A241A', night: '#34140E', ctaInk: '#fff', trans: 'blob' },
+  dark: { a1: '#FFE14D', a2: '#F59E0B', onA: '#111', accent: '#FFE14D', soft: 'rgba(255,225,77,.15)', ink: '#ffffff', sub: '#A1A1B5', card: 'rgba(255,255,255,.08)', line: 'rgba(255,255,255,.16)', halo: '#3b1d6e', night: '#07070b', ctaInk: '#fff', trans: 'zoom' },
+  cine: { a1: '#E8D3A2', a2: '#B08D57', onA: '#14110d', accent: '#E8D3A2', soft: 'rgba(232,211,162,.15)', ink: '#F5F0E6', sub: '#9C9488', card: 'rgba(0,0,0,.45)', line: 'rgba(232,211,162,.25)', halo: '#2a2420', night: '#0a0908', ctaInk: '#F5F0E6', trans: 'fade' },
+  clean: { a1: '#4F8BFF', a2: '#1D4ED8', onA: '#fff', accent: '#2563EB', soft: 'rgba(37,99,235,.12)', ink: '#0f172a', sub: '#64748b', card: '#fff', line: '#e2e8f0', halo: '#dbeafe', night: '#f8fafc', ctaInk: '#0f172a', trans: 'slide' }
 };
 const THEME_OF = { coral: 'coral', viral: 'dark', hormozi: 'dark', editorial: 'cine', minimal: 'clean' };
 const theme = () => THEMES[THEME_OF[$('#style').value] || 'coral'];
