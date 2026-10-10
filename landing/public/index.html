@@ -33,22 +33,28 @@ button,select,input,textarea{font:inherit;color:inherit}
 .hero h1{text-align:center;font-size:clamp(34px,5.6vw,64px);line-height:1.04;font-weight:900;letter-spacing:-1.5px;text-wrap:balance}
 .hero h1 em{font-family:"Instrument Serif",serif;font-weight:400;color:var(--acc)}
 .hero p.lead{text-align:center;color:var(--mut);max-width:620px;margin:16px auto 36px;font-size:17px}
-.trio{display:grid;grid-template-columns:150px minmax(0,440px) 150px;gap:28px;align-items:center;justify-content:center}
-.ph{position:relative;border-radius:18px;aspect-ratio:9/16;overflow:hidden;border:1px solid var(--line);background:#000}
-.ph small{position:absolute;top:-24px;left:0;right:0;text-align:center;font-size:11px;letter-spacing:.14em;color:var(--mut)}
-.trio>div{position:relative;padding-top:24px}
-.ph.raw{background:linear-gradient(160deg,#3a3a40,#16161a)}
-.ph.raw:after{content:"";position:absolute;left:50%;top:32%;width:58px;height:74px;transform:translateX(-50%);border-radius:50%;background:#55555d;box-shadow:0 90px 0 30px #44444b}
-.ph.res{box-shadow:var(--glow);border-color:rgba(198,244,50,.6);background:linear-gradient(170deg,#1b2a60,#0b0b25 60%,#38104a)}
-.ph.res{background:linear-gradient(170deg,#0f3b3a,#0b0d12 60%,#2a3a08)}
-.ph.res b{position:absolute;left:0;right:0;top:20%;text-align:center;font-family:Anton,sans-serif;font-weight:400;font-size:44px;line-height:.95;color:#fff;animation:slam 3s infinite}
-.ph.res em{position:absolute;left:10%;right:0;top:37%;font-family:"Instrument Serif",serif;font-size:26px;color:#ffe14d;transform:rotate(-6deg);animation:wipe 3s infinite}
-.ph.res span{position:absolute;left:0;right:0;bottom:22%;text-align:center;font-weight:800;font-size:13px;font-family:"Plus Jakarta Sans",sans-serif}
-.ph.res span u{text-decoration:none;color:#ffe14d}
-@keyframes slam{0%{transform:scale(1.6);filter:blur(8px);opacity:0}12%{transform:scale(1);filter:none;opacity:1}88%{opacity:1}100%{opacity:0}}
-@keyframes wipe{0%,15%{clip-path:inset(0 100% 0 0)}35%,90%{clip-path:inset(0 0 0 0)}100%{clip-path:inset(0 0 0 0);opacity:0}}
-.arrow{position:absolute;top:50%;font-size:20px;color:var(--acc)}
-.trio>div:first-child .arrow{right:-24px}.trio>div:last-child .arrow{left:-24px}
+.trio{display:grid;grid-template-columns:190px minmax(0,440px) 190px;gap:34px;align-items:center;justify-content:center}
+.trio>div{position:relative}
+.lbl2{display:block;text-align:center;font-size:11px;letter-spacing:.16em;margin-bottom:10px;color:var(--mut)}
+.ph{position:relative;border-radius:26px;aspect-ratio:9/16;overflow:hidden;background:#000 url(hero.jpg) center/cover;border:6px solid #1a1d24;box-shadow:0 30px 60px -20px rgba(0,0,0,.7)}
+.ph.raw{filter:saturate(.55) brightness(.85)}
+.ph .chip{position:absolute;top:12px;left:12px;display:flex;align-items:center;gap:6px;padding:4px 9px;border-radius:99px;background:rgba(0,0,0,.55);font-size:11px;font-weight:700;color:#fff}
+.ph .chip i{width:7px;height:7px;border-radius:50%;background:#ff4d4d}
+.ph .foot{position:absolute;left:0;right:0;bottom:12px;text-align:center;font-size:11px;color:rgba(255,255,255,.75)}
+.ph.res{border-color:#26300f;box-shadow:0 30px 70px -20px rgba(198,244,50,.45),0 0 0 1px rgba(198,244,50,.35)}
+.ph.res:before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.45),transparent 38%,transparent 62%,rgba(0,0,0,.55))}
+.ph.res .big{position:absolute;left:0;right:0;top:9%;text-align:center;font-family:Anton,Impact,sans-serif;font-size:50px;line-height:1;color:#fff;text-shadow:0 6px 24px rgba(0,0,0,.45);animation:slam 4s infinite}
+.ph.res .acc{position:absolute;left:0;right:0;top:calc(9% + 50px);text-align:center;font-family:"Instrument Serif",Georgia,serif;font-style:italic;font-size:24px;color:var(--acc);transform:rotate(-4deg);text-shadow:0 2px 12px rgba(0,0,0,.6);white-space:nowrap;animation:wipe 4s infinite}
+.ph.res .cap{position:absolute;left:8px;right:8px;bottom:17%;text-align:center;font-family:"Plus Jakarta Sans",sans-serif;font-weight:800;font-size:17px;line-height:1.25;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.7)}
+.ph.res .cap span{opacity:0;display:inline-block;animation:word 4s infinite}
+.ph.res .cap span:nth-child(2){animation-delay:.25s}.ph.res .cap span:nth-child(3){animation-delay:.5s}.ph.res .cap span:nth-child(4){animation-delay:.75s;color:var(--acc);text-shadow:0 0 14px rgba(198,244,50,.8)}.ph.res .cap span:nth-child(5){animation-delay:1s}
+.ph.res .bar{position:absolute;left:0;bottom:0;height:4px;background:var(--acc);animation:prog 4s linear infinite}
+@keyframes slam{0%{transform:scale(1.45);filter:blur(6px);opacity:0}10%{transform:scale(1);filter:none;opacity:1}90%{opacity:1}100%{opacity:0}}
+@keyframes wipe{0%,14%{clip-path:inset(0 100% 0 0);opacity:1}30%,90%{clip-path:inset(0 0 0 0);opacity:1}100%{clip-path:inset(0 0 0 0);opacity:0}}
+@keyframes word{0%,8%{opacity:0;transform:translateY(6px) scale(.9)}14%,90%{opacity:1;transform:none}100%{opacity:0}}
+@keyframes prog{from{width:0}to{width:100%}}
+.arrow{position:absolute;top:52%;font-size:18px;color:var(--acc);opacity:.8}
+.trio>div:first-child .arrow{right:-26px}.trio>div:last-child .arrow{left:-26px}
 .drop{position:relative;display:grid;place-items:center;text-align:center;gap:10px;padding:34px 22px;border-radius:20px;border:1px solid var(--line);background:linear-gradient(180deg,#141418,#0e0e11);cursor:pointer;transition:border-color .2s,box-shadow .2s}
 .drop:hover,.drop.over{border-color:rgba(198,244,50,.7);box-shadow:var(--glow)}
 .drop .up{width:52px;height:52px;border-radius:14px;border:1px solid var(--line);display:grid;place-items:center;font-size:22px;background:var(--p2)}
@@ -163,7 +169,7 @@ footer{border-top:1px solid var(--line);padding:30px 0;color:var(--mut);font-siz
 .dlbox{position:fixed;right:16px;bottom:110px;z-index:60;background:var(--p1);border:1px solid rgba(198,244,50,.6);box-shadow:var(--glow);border-radius:16px;padding:16px;display:grid;gap:10px;max-width:300px}
 .dlbox[hidden]{display:none}
 @media(max-width:900px){
- .trio{grid-template-columns:1fr}.trio>div:first-child,.trio>div:last-child{display:none}
+ .trio{grid-template-columns:1fr;gap:20px}.trio>div:first-child{display:none}.trio>div:last-child{order:-1;width:180px;margin:0 auto}.arrow{display:none}
  .feat{grid-template-columns:1fr 1fr}.styles{grid-template-columns:repeat(3,minmax(0,1fr))}
  .cfgg{grid-template-columns:1fr}.cards{grid-template-columns:repeat(2,minmax(0,1fr))}
  #ed.on{display:flex;flex-direction:column;overflow:auto}
@@ -188,7 +194,7 @@ footer{border-top:1px solid var(--line);padding:30px 0;color:var(--mut);font-siz
   <h1>Tu video crudo, <em>editado como un pro</em> en minutos</h1>
   <p class="lead">Subtítulos animados, hooks, motion graphics, texto detrás tuyo, b-rolls, zooms y sonidos. La IA escucha tu video y edita todo sola. Gratis, en tu navegador.</p>
   <div class="trio">
-    <div><small class="mut" style="display:block;text-align:center;font-size:11px;letter-spacing:.14em;margin-bottom:8px"><span class="dot"></span>TU VIDEO</small><div class="ph raw"></div><span class="arrow">→</span></div>
+    <div><span class="lbl2"><span class="dot"></span>TU VIDEO</span><div class="ph raw" role="img" aria-label="Video crudo"><span class="chip"><i></i>REC 0:42</span><span class="foot">Sin editar</span></div><span class="arrow">→</span></div>
     <div>
       <label class="drop" id="drop">
         <input type="file" id="file" accept="video/*" class="sr">
@@ -199,7 +205,7 @@ footer{border-top:1px solid var(--line);padding:30px 0;color:var(--mut);font-siz
       </label>
       <p class="free"><b>Gratis</b> · sin marca de agua · tu video no sale de tu dispositivo</p>
     </div>
-    <div><small class="mut" style="display:block;text-align:center;font-size:11px;letter-spacing:.14em;margin-bottom:8px"><span class="dot"></span>RESULTADO</small><div class="ph res"><b>16<br>AÑOS</b><em>guardá este video</em><span>esto te puede <u>ahorrar</u> años</span></div><span class="arrow">←</span></div>
+    <div><span class="lbl2"><span class="dot"></span>RESULTADO</span><div class="ph res" role="img" aria-label="Video editado"><span class="big">16 AÑOS</span><span class="acc">guardá este video</span><span class="cap"><span>esto&nbsp;</span><span>te&nbsp;</span><span>puede&nbsp;</span><span>ahorrar&nbsp;</span><span>años</span></span><span class="bar"></span></div><span class="arrow">←</span></div>
   </div>
   <div class="marq"><div id="mq"></div></div>
 </div></header>
