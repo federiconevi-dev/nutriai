@@ -23,7 +23,7 @@ function load(f) {
   if (!f) return;
   if (!f.type.startsWith('video/') && !/\.(mp4|mov|webm|m4v)$/i.test(f.name)) { alert('Ese archivo no es un video. Elegí un MP4, MOV o WEBM.'); return; }
   if (f.size > 1e9) { alert('El video pesa más de 1 GB. Probá con uno más corto.'); return; }
-  file = f; words = []; plan = null; lastSeg = lastChunk = -1; aiHookTitle = '';
+  file = f; words = []; plan = null; lastSeg = lastChunk = -1; aiHookTitle = ''; brollPicks = []; brollFor = null;
   v.src = URL.createObjectURL(f); v.load(); v.play().catch(() => {});
   $('#dl').hidden = true; $('#go').disabled = true; $('#txt').value = ''; prog(0);
   if (window.onLoaded) window.onLoaded(f);
@@ -148,7 +148,7 @@ function build() {
   }
   if (!segs.length) segs = [{ s: 0, e: D }];
   let acc = 0;
-  segs.forEach((g, i) => { g.o = acc; acc += g.e - g.s; g.z = i % 2 ? 1.14 : 1; g.fx = i % 2 ? .44 : .56; });
+  segs.forEach((g, i) => { g.o = acc; acc += g.e - g.s; g.z = i % 2 ? 1.07 : 1; g.fx = .5; });
 
   const chunks = []; let cur = [];
   words.forEach((w, i) => {
@@ -602,6 +602,29 @@ const AI_STYLE = {
 };
 const aiCache = new Map(), promptCache = new Map();
 let aiDown = false, aiFails = 0, aiQueue = Promise.resolve();
+let brollPicks = [], brollFor = null;
+function sentences() {
+  const out = []; let cur = [];
+  words.forEach((w, i) => { cur.push(w); if (/[.!?]$/.test(w.t) || cur.length >= 14 || (words[i + 1] && words[i + 1].s - w.e > .6)) { out.push(cur); cur = []; } });
+  if (cur.length) out.push(cur);
+  return out;
+}
+// Ask the AI where a supporting image really helps the message (once per transcript).
+async function pickBroll() {
+  const key = words.map(w => w.t).join(' ');
+  if (!key || brollFor === key || aiDown) return;
+  brollFor = key;
+  const se = sentences().filter(x => x.length >= 3);
+  const dur = words.at(-1).e - words[0].s, max = Math.max(1, Math.min(6, Math.round(dur / 8)));
+  try {
+    const r = await fetch('/api/ai-plan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mode: 'broll', max, text: key, subjects: se.map(x => x.map(w => w.t).join(' ')) }) });
+    if (!r.ok) throw new Error('broll ' + r.status);
+    const j = await r.json();
+    brollPicks = (j.picks || []).filter(pk => se[pk.i]).map(pk => ({ s: se[pk.i][0].s, e: se[pk.i].at(-1).e + .3, prompt: pk.prompt }));
+    brollPicks.forEach(pk => promptCache.set(pk.prompt, pk.prompt));
+  } catch (e) { console.warn('b-roll plan unavailable', e); brollPicks = []; }
+  if (plan) build();
+}
 // Art direction on the server: what you say → short English visual prompts (one request for all moments).
 async function planPrompts(subjects) {
   const need = [...new Set(subjects)].filter(x => !promptCache.has(x));
@@ -635,10 +658,11 @@ async function loadAiArt(P) {
     ...P.screens.map((sc, i) => ({ o: sc, s: sc.s, subj: sc.type === 'stat' ? `${sc.num} ${sc.unit} ${sc.ctx}` : sc.words.map(w => w.t).join(' '), seed: 100 + i })),
     ...(P.beats ? P.beats.photos.filter(p => !p.user).map((p, i) => ({ o: p, s: p.s, subj: p.subj, seed: 10 + i, photo: true })) : [])
   ].sort((a, b) => a.s - b.s);
-  if (!on('optAI')) { items.filter(x => x.photo).forEach(x => fetchPhoto(x.o.q).then(img => { x.o.img = img; dirty = true; })); return; }
+  if (!on('optAI')) return;
+  if (on('optPhotos')) pickBroll();
   await planPrompts(items.map(x => x.subj));
   if (P !== plan) return;
-  await Promise.all(items.map(x => aiImage(x.subj, x.seed).then(img => img || (x.photo ? fetchPhoto(x.o.q) : null)).then(img => { if (img) { x.o.img = img; dirty = true; } })));
+  await Promise.all(items.map(x => aiImage(x.subj, x.seed).then(img => { if (img) { x.o.img = img; dirty = true; } })));
 }
 function contextAround(i, n = 5) { return words.slice(Math.max(0, i - n), i + n).map(w => w.t.replace(/[.,;:!?]+$/, '')).join(' '); }
 let curScreen = null;
@@ -716,14 +740,14 @@ function makeBeats(P) {
     });
   }
   if (on('optPhotos')) {
-    let last = 1.5, ui = 0;
-    words.forEach((w, i) => {
-      const n = norm(w.t);
-      if (n.length < 5 || STOPW.has(n) || w.s - last < 4.5 || !free(w.s, w.s + 2)) return;
-      const ph = { s: w.s, e: w.s + 2, q: n, img: null, n: B.photos.length };
-      ph.subj = contextAround(i);
+    // AI-chosen moments (each with its own image idea); your own photos fill those moments first.
+    let ui = 0;
+    brollPicks.forEach(pk => {
+      const s0 = pk.s, e0 = Math.min(pk.e, pk.s + 2.4);
+      if (e0 - s0 < 1.2 || !free(s0, e0)) return;
+      const ph = { s: s0, e: e0, q: pk.prompt, subj: pk.prompt, img: null, n: B.photos.length };
       if (ui < userPhotos.length) { ph.img = userPhotos[ui++]; ph.user = true; }
-      B.photos.push(ph); busyRanges.push([ph.s, ph.e]); last = ph.e;
+      B.photos.push(ph); busyRanges.push([s0, e0]);
     });
   }
   if (on('optEmoji')) P.chunks.forEach((c, i) => {
@@ -878,13 +902,7 @@ function fxTop(t, ot, P, si) {
   if (!on('optFx')) return;
   if (on('optHook') && hookFx() === 'flash' && ot < .2) glitch(ot / .2);
   const g = si >= 0 ? P.segs[si] : null;
-  if (g && si > 0 && si % 3 === 0 && t - g.s < .15) glitch((t - g.s) / .15);
   const B = P.beats; if (!B) return;
-}
-function whip(t, si, P) {
-  if (!on('optFx') || si < 1) return 1;
-  const g = P.segs[si];
-  return si % 3 === 1 && t - g.s < .2 ? 1 + .22 * (1 - ease((t - g.s) / .2)) : 1;
 }
 // Extra synthesized sound hooks
 function sfxExtra(type, t0) {
@@ -1270,14 +1288,10 @@ function drawFrame(t, src, sw, sh) {
   const zoomOn = on('optZoom');
   let z = g && zoomOn ? (coral ? 1 + (g.z - 1) * .55 : g.z) : 1;
   const hk = hookFx();
-  if (hookOn && hk === 'flash' && ot < .7) z *= 1 + .35 * (1 - ease(ot / .7));
-  if (hookOn && hk === 'cine' && ot < 1.6) z *= 1 + .18 * (1 - ease(ot / 1.6));
-  if (hookOn && hk === 'blur' && ot < .9) z *= 1 + .1 * (1 - ease(ot / .9));
-  if (zoomOn && ch && ch.emph) z *= 1 + (coral ? .04 : .08) * ease((t - ch.s) / .22);
-  if (P && zoomOn) z *= whip(t, si, P);
-  z *= 1 + .025 * Math.sin(ot * .7);
-  let sx = 0, sy = 0;
-  if (zoomOn && !coral && ch && ch.emph && t - ch.s < .16) { sx = (Math.sin(ot * 91) - .5) * 14; sy = (Math.cos(ot * 77) - .5) * 14; }
+  // Camera: a gentle opening settle, a slow push-in inside each shot and a light reframe on cuts. No shakes, no whips.
+  if (hookOn && hk !== 'none' && ot < 1.2) z *= 1 + .08 * (1 - ease(ot / 1.2));
+  if (zoomOn && g) z *= 1 + .035 * Math.min(1, (t - g.s) / Math.max(2, g.e - g.s));
+  const sx = 0, sy = 0;
 
   const framed = on('optFrame');
   let x, y, w, h;
@@ -1437,7 +1451,7 @@ async function fastExport() {
   // Everything the frames need must be ready before we start.
   msg('Terminando las imágenes IA…');
   await Promise.race([aiQueue, new Promise(r => setTimeout(r, 30000))]);
-  if (plan.beats) await Promise.all(plan.beats.photos.map(p => p.img ? 0 : fetchPhoto(p.q).then(i => { p.img = p.img || i; })));
+
   if (on('optBig')) await loadSeg();
   await ensureFonts();
 
