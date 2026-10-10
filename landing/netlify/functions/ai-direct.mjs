@@ -7,9 +7,9 @@ const ALLOWED = {
   ovStyle: ['auto', 'glass', 'neon', 'mono', 'graph', 'femtech', 'cyber'],
   hookFx: ['flash', 'blur', 'cine', 'none'],
   grade: ['none', 'warm', 'teal', 'punch', 'film', 'bw'],
-  fBase: ['auto', 'Plus Jakarta Sans', 'Inter', 'Montserrat', 'Poppins', 'Outfit', 'Space Grotesk'],
-  fKey: ['auto', 'Anton', 'Bebas Neue', 'Archivo Black', 'Montserrat', 'Outfit'],
-  fAccent: ['auto', 'Instrument Serif', 'Playfair Display', 'DM Serif Display', 'Caveat', 'Permanent Marker', 'Great Vibes'],
+  fBase: ['auto', 'Plus Jakarta Sans', 'Inter Tight', 'Manrope', 'DM Sans', 'Sora', 'Montserrat', 'Poppins', 'Outfit', 'Space Grotesk', 'Bricolage Grotesque'],
+  fKey: ['auto', 'Anton', 'Bebas Neue', 'Oswald', 'Big Shoulders Display', 'Archivo Black', 'Unbounded', 'Syne', 'Montserrat', 'Outfit'],
+  fAccent: ['auto', 'Instrument Serif', 'Fraunces', 'Cormorant Garamond', 'Playfair Display', 'DM Serif Display', 'Caveat'],
   cKey: ['auto', '#ffe14d', '#22e06b', '#ff4d6d', '#ef233c', '#ff6046', '#38bdf8', '#a855f7', '#f472b6', '#ffffff']
 };
 const TOGGLES = ['optBig', 'optPhotos', 'optAI', 'optMG', 'optOverlay', 'optStats', 'optEmoji', 'optFx', 'optZoom', 'optFrame', 'optCut', 'optSfx', 'optHook', 'optBar'];

@@ -215,11 +215,11 @@ function findCta() {
 
 // ---------- Rendering ----------
 const STYLES = {
-  coral: { font: s => `800 ${s}px "Plus Jakarta Sans", Inter, sans-serif`, size: 46, upper: false, hi: '#FF6046', soft: true, coral: true },
-  viral: { font: s => `800 ${s}px "Plus Jakarta Sans", Inter, sans-serif`, size: 44, upper: false, hi: '#A6F94B', soft: true, glowKey: true },
-  hormozi: { font: s => `900 ${s}px Montserrat, Inter, sans-serif`, size: 72, upper: true, hi: '#22E06B', box: true },
-  editorial: { font: s => SERIF(s), size: 70, upper: false, hi: '#E8D3A2', soft: true },
-  minimal: { font: s => `700 ${s}px Inter, system-ui, sans-serif`, size: 52, upper: false, hi: '#ffffff', pill: true }
+  coral: { font: s => `800 ${s}px "Plus Jakarta Sans", Inter, sans-serif`, size: 52, upper: false, hi: '#FF6046', soft: true, coral: true },
+  viral: { font: s => `800 ${s}px "Plus Jakarta Sans", Inter, sans-serif`, size: 56, upper: false, hi: '#A6F94B', soft: true, glowKey: true },
+  hormozi: { font: s => `900 ${s}px Montserrat, Inter, sans-serif`, size: 64, upper: true, hi: '#22E06B', box: true },
+  editorial: { font: s => SERIF(s), size: 82, upper: false, hi: '#E8D3A2', soft: true },
+  minimal: { font: s => `600 ${s}px "Inter Tight", Inter, system-ui, sans-serif`, size: 52, upper: false, hi: '#ffffff', pill: true }
 };
 const C = { coral: '#F0452F', light: '#FF785C', dark: '#CE2C1A', cream: '#F4EFE6', row: '#F9F5EF', tint: '#FDE4DD', ink: '#181616', grey: '#928C86', night: '#34140E', halo: '#7A241A' };
 const HAS_FILTER = 'filter' in cx;
@@ -264,7 +264,8 @@ function drawCaption(ch, t) {
   cx.translate(W / 2, H * .69 + yOff); cx.scale(sc, sc); cx.globalAlpha = alpha;
   if (st.coral) blur(8 * (1 - ease(age / .25)));
   cx.font = st.font(L.size); cx.textBaseline = 'middle'; cx.lineJoin = 'round';
-  const lh = L.size * 1.15, y0 = -(L.lines.length - 1) * lh / 2;
+  if ('letterSpacing' in cx) cx.letterSpacing = st.upper ? '0.02em' : '-0.01em';
+  const lh = L.size * 1.12, y0 = -(L.lines.length - 1) * lh / 2;
   L.lines.forEach(([a, b], li) => {
     const lw = L.width(a, b), y = y0 + li * lh;
     if (st.pill) { cx.fillStyle = 'rgba(0,0,0,.62)'; rrect(-lw / 2 - 26, y - L.size * .8, lw + 52, L.size * 1.6, 22); cx.fill(); }
@@ -273,19 +274,23 @@ function drawCaption(ch, t) {
       const w = ch[i], active = t >= w.s && (i === ch.length - 1 || t < ch[i + 1].s), isKey = w === ch.key;
       const ww = L.ws[i], word = L.txt(w);
       cx.save(); cx.translate(x + ww / 2, y);
-      if (active && !st.soft) cx.scale(1.06, 1.06);
-      if (st.box && active) { cx.fillStyle = st.hi; rrect(-ww / 2 - 12, -L.size * .62, ww + 24, L.size * 1.24, 14); cx.fill(); }
-      if (st.soft) { cx.shadowColor = 'rgba(0,0,0,.7)'; cx.shadowBlur = st.coral ? 14 : 18; cx.shadowOffsetY = st.coral ? 2 : 0; }
-      if (st.glowKey && (active || isKey)) { cx.shadowColor = st.glowC; cx.shadowBlur = 22; cx.shadowOffsetY = 0; }
-      else if (!st.pill) { cx.lineWidth = L.size * .2; cx.strokeStyle = '#000'; cx.strokeText(word, -ww / 2, 0); }
-      cx.fillStyle = st.box ? st.base : st.coral ? ((isNum(word) || (isKey && ch.emph)) ? st.hi : st.base) : (active || (st.soft && isKey)) ? st.hi : st.base;
-      if (st.pill) cx.fillStyle = active ? '#fff' : 'rgba(255,255,255,.55)';
+      if (active && st.box) cx.scale(1.05, 1.05);
+      const boxed = st.box && active;
+      if (boxed) { cx.fillStyle = st.hi; rrect(-ww / 2 - 10, -L.size * .6, ww + 20, L.size * 1.18, L.size * .22); cx.fill(); }
+      // Legibility: soft shadow for every style; bold styles also get a thin, clean outline (never a thick blob).
+      cx.shadowColor = 'rgba(0,0,0,.6)'; cx.shadowBlur = st.pill ? 0 : L.size * .3; cx.shadowOffsetY = L.size * .04;
+      if (st.box && !boxed) { cx.lineWidth = L.size * .08; cx.strokeStyle = 'rgba(0,0,0,.85)'; cx.strokeText(word, -ww / 2, 0); }
+      const hot = st.coral ? (isNum(word) || (isKey && ch.emph)) : (active || isKey);
+      if (st.glowKey && hot) { cx.shadowColor = st.glowC; cx.shadowBlur = L.size * .45; cx.shadowOffsetY = 0; }
+      cx.fillStyle = boxed ? '#111' : st.box ? st.base : hot && !st.pill ? st.hi : st.base;
+      if (st.pill) cx.fillStyle = active ? '#fff' : 'rgba(255,255,255,.6)';
       cx.fillText(word, -ww / 2, 0);
       cx.restore();
       x += ww + L.sp;
     }
   });
   blur(0);
+  if ('letterSpacing' in cx) cx.letterSpacing = '0px';
   cx.restore();
 }
 
@@ -689,7 +694,7 @@ function makeBeats(P) {
   (P.overlays || []).forEach(o => busyRanges.push([o.s, o.e]));
   const free = (s, e) => !busyRanges.some(([a, b]) => s < b && e > a);
   // Visual hook: the strongest 1-2 words of the first sentence, giant, behind you.
-  if (on('optBig') || on('optHook')) {
+  if ((on('optBig') || on('optHook')) && $('#style').value !== 'coral') {
     const hw = []; for (const w of words) { hw.push(w); if (hw.length >= 8 || /[.!?]$/.test(w.t)) break; }
     let k = hw.findIndex(w => isNum(w.t));
     if (k < 0) k = hw.reduce((b, w, i) => clean(w.t).length > clean(hw[b].t).length ? i : b, 0);
@@ -699,7 +704,7 @@ function makeBeats(P) {
     if (text) { B.big.push({ s: words[0].s, e: Math.max(words[0].s + 1.8, pick.at(-1).e + .6), text, small, hook: true, n: 0 }); busyRanges.push([words[0].s, B.big[0].e]); }
   }
   if (on('optBig')) {
-    let last = B.big.length ? B.big[0].e : -9;
+    let last = B.big.length ? B.big[0].e : words[0].s + (P.hookDur || 0);
     P.chunks.forEach(c => {
       const k = c.key, txt = clean(k.t);
       if (!(c.emph && (isNum(k.t) || txt.length >= 6)) || k.s - last < 3.4) return;
@@ -731,6 +736,9 @@ function makeBeats(P) {
 function bigFont(size, coral) {
   const f = val('fKey', 'auto');
   if (f !== 'auto') return `${/Anton|Bebas|Archivo Black|Permanent/.test(f) ? 400 : 900} ${size}px "${f}", Impact, sans-serif`;
+  const sk = $('#style').value;
+  if (sk === 'editorial') return `italic 600 ${size}px Fraunces, "Instrument Serif", Georgia, serif`;
+  if (sk === 'minimal') return `800 ${size}px "Inter Tight", Inter, sans-serif`;
   return coral ? `800 ${size}px Outfit, Inter, sans-serif` : ANTON(size);
 }
 function bigLayout(b, coral) {
@@ -1431,6 +1439,7 @@ async function fastExport() {
   await Promise.race([aiQueue, new Promise(r => setTimeout(r, 30000))]);
   if (plan.beats) await Promise.all(plan.beats.photos.map(p => p.img ? 0 : fetchPhoto(p.q).then(i => { p.img = p.img || i; })));
   if (on('optBig')) await loadSeg();
+  await ensureFonts();
 
   fastBusy = true; busy = true; v.pause();
   let err = null;
@@ -1537,7 +1546,15 @@ $('#go').onclick = async () => {
   } catch (e) { console.warn('fast export failed, using real time', e); fastBusy = false; busy = false; }
   realtimeExport();
 };
+async function ensureFonts() {
+  if (!document.fonts) return;
+  const list = ['800 40px "Plus Jakarta Sans"', '600 40px "Plus Jakarta Sans"', '900 40px Montserrat', '400 40px Anton', 'italic 400 40px "Instrument Serif"',
+    'italic 600 40px Fraunces', '800 40px Outfit', '600 40px Outfit', '600 40px "Inter Tight"', '800 40px "Inter Tight"', '700 40px Caveat', '600 40px "JetBrains Mono"'];
+  ['fBase', 'fKey', 'fAccent'].forEach(id => { const f = val(id, 'auto'); if (f !== 'auto') list.push(`400 40px "${f}"`, `800 40px "${f}"`, `italic 400 40px "${f}"`); });
+  await Promise.race([Promise.all(list.map(f => document.fonts.load(f).catch(() => {}))), new Promise(r => setTimeout(r, 4000))]);
+}
 async function realtimeExport() {
+  await ensureFonts();
   if (!window.MediaRecorder || !cv.captureStream) { msg('Tu navegador no permite exportar video. Probá con Chrome o Safari actualizado.'); $('#go').disabled = $('#ai').disabled = false; return; }
   busy = true;
   try {

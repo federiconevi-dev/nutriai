@@ -5,7 +5,7 @@ const VE = window.VE, v = VE.video;
 const fire = el => el.dispatchEvent(new Event('change', { bubbles: true }));
 
 // ---- Fonts ----
-const FONTS = ['auto', 'Plus Jakarta Sans', 'Inter', 'Montserrat', 'Poppins', 'Outfit', 'Space Grotesk', 'Anton', 'Bebas Neue', 'Archivo Black', 'Instrument Serif', 'Playfair Display', 'DM Serif Display', 'Caveat', 'Permanent Marker', 'Great Vibes'];
+const FONTS = ['auto', 'Plus Jakarta Sans', 'Inter Tight', 'Inter', 'Manrope', 'DM Sans', 'Sora', 'Montserrat', 'Poppins', 'Outfit', 'Space Grotesk', 'Bricolage Grotesque', 'Syne', 'Unbounded', 'Anton', 'Bebas Neue', 'Oswald', 'Big Shoulders Display', 'Archivo Black', 'Instrument Serif', 'Fraunces', 'Cormorant Garamond', 'Playfair Display', 'DM Serif Display', 'Caveat', 'Permanent Marker', 'Great Vibes'];
 function fillFonts() {
   $$('.fontsel').forEach(s => {
     const cur = s.value;
