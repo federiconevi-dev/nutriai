@@ -12,7 +12,7 @@ export default async (req) => {
     headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({ prompt, steps: 6 })
   });
-  if (!res.ok) return new Response(`Cloudflare respondió ${res.status}: ${(await res.text()).slice(0, 300)}`, { status: 502 });
+  if (!res.ok) return new Response(`Cloudflare respondió ${res.status}: ${(await res.text()).slice(0, 300)}`, { status: res.status === 429 ? 429 : 502 });
   const data = await res.json();
   const b64 = data && data.result && data.result.image;
   if (!b64) return new Response('Cloudflare no devolvió imagen.', { status: 502 });

@@ -376,6 +376,9 @@ footer{border-top:1px solid var(--line);padding:30px 0;color:var(--mut);font-siz
       </div></details>
       <details class="acc"><summary><span class="on-dot"></span>Fotos de apoyo</summary><div class="in">
         <div class="row">Fotos automáticas<label class="sw"><input type="checkbox" data-mirror="optPhotos"><span></span></label></div>
+        <span class="mut">Cómo se muestran</span>
+        <div class="chips" data-sel="brollLayout"><button data-v="split">▤ Pantalla dividida</button><button data-v="card">▣ Tarjeta arriba</button><button data-v="full">▮ Pantalla completa</button></div>
+        <input type="hidden" id="brollLayout" value="split">
         <label class="fld">Tus fotos (opcional; si no subís, las busca solas)<input type="file" id="photos" accept="image/*" multiple></label>
       </div></details>
       <details class="acc"><summary><span class="on-dot"></span>Efectos visuales</summary><div class="in">
@@ -383,9 +386,12 @@ footer{border-top:1px solid var(--line);padding:30px 0;color:var(--mut);font-siz
         <div class="row">Emojis<label class="sw"><input type="checkbox" id="optEmoji" checked><span></span></label></div>
         <div class="row">Barra de progreso<label class="sw"><input type="checkbox" id="optBar" checked><span></span></label></div>
         <div class="row">Zooms automáticos<label class="sw"><input type="checkbox" data-mirror="optZoom"><span></span></label></div>
+        <div class="row">Zoom in / zoom out en frases clave<label class="sw"><input type="checkbox" id="optPunch" checked><span></span></label></div>
+        <div class="row">Final en loop (empalma con el inicio)<label class="sw"><input type="checkbox" id="optLoop"><span></span></label></div>
       </div></details>
       <details class="acc"><summary><span class="on-dot"></span>Subtítulos y sonido</summary><div class="in">
         <div class="row">Subtítulos<label class="sw"><input type="checkbox" data-mirror="optCaps"><span></span></label></div>
+        <div class="row">Subtítulos que siguen tu cabeza<label class="sw"><input type="checkbox" id="optFollow"><span></span></label></div>
         <div class="row">Efectos de sonido<label class="sw"><input type="checkbox" data-mirror="optSfx"><span></span></label></div>
         <div class="row">Cortar silencios<label class="sw"><input type="checkbox" data-mirror="optCut"><span></span></label></div>
       </div></details>

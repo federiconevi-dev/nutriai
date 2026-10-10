@@ -170,6 +170,7 @@ function build() {
     hookDur = Math.min(6, Math.max(2.6, hw.at(-1).e - hw[0].s + 1.6));
   }
   plan = { segs, chunks, total: acc, hook, hookDur, list: findList(), cta: findCta() };
+  { let lastP = -9; plan.punches = chunks.filter(c => { if (!c.emph || c.s - lastP < 3.5) return false; lastP = c.e; return true; }).map(c => ({ s: c.s, e: c.e })); }
   plan.screens = findScreens(plan);
   plan.overlays = findOverlays(plan);
 
@@ -252,6 +253,7 @@ function wordsLayout(list, st) {
 
 function rrect(x, y, w, h, r) { cx.beginPath(); cx.roundRect ? cx.roundRect(x, y, w, h, r) : cx.rect(x, y, w, h); }
 
+let capX = W / 2, capY = H * .69;
 function drawCaption(ch, t) {
   if (!ch) return;
   const st = style();
@@ -261,7 +263,7 @@ function drawCaption(ch, t) {
   const alpha = st.soft ? ease(age / .22) : 1;
   const yOff = st.soft ? 16 * (1 - ease(age / .3)) : 0;
   cx.save();
-  cx.translate(W / 2, H * .69 + yOff); cx.scale(sc, sc); cx.globalAlpha = alpha;
+  cx.translate(capX, capY + yOff); cx.scale(sc, sc); cx.globalAlpha = alpha;
   if (st.coral) blur(8 * (1 - ease(age / .25)));
   cx.font = st.font(L.size); cx.textBaseline = 'middle'; cx.lineJoin = 'round';
   if ('letterSpacing' in cx) cx.letterSpacing = st.upper ? '0.02em' : '-0.01em';
@@ -377,6 +379,33 @@ function drawHookQuestion(text, ot, dur) {
   cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.shadowColor = 'rgba(0,0,0,.6)'; cx.shadowBlur = 24;
   lines.forEach((l, i) => { cx.fillStyle = i === lines.length - 1 ? theme().accent : '#fff'; cx.fillText(l.join(' '), 0, i * lh); });
   cx.restore();
+}
+
+// Captions that follow your head: they sit just above it, read from the silhouette mask.
+let headN = 0, headX = W / 2, headTop = H * .2;
+function followHead(x, y, w, h) {
+  if (!seg) { loadSeg(); return; }
+  if (headN++ % 3 === 0 && updateMask() && maskImg) {
+    const mw = maskCv.width, mh = maskCv.height, d = maskImg.data;
+    let top = -1, sx2 = 0, n = 0;
+    for (let r = 0; r < mh && top < 0; r += 2) { let c = 0; for (let q = 0; q < mw; q += 2) if (d[(r * mw + q) * 4 + 3] > 128) c++; if (c > mw * .03) top = r; }
+    if (top >= 0) {
+      for (let r = top; r < Math.min(mh, top + mh * .12); r += 2) for (let q = 0; q < mw; q += 2) if (d[(r * mw + q) * 4 + 3] > 128) { sx2 += q; n++; }
+      const hx = x + (n ? sx2 / n : mw / 2) / mw * w, ht = y + top / mh * h;
+      headX += (hx - headX) * .35; headTop += (ht - headTop) * .35;
+    }
+  }
+  capX = Math.max(W * .3, Math.min(W * .7, headX)); capY = Math.max(H * .14, Math.min(H * .6, headTop - 70));
+}
+// Loop: the last moment dissolves into the very first frame, so the video replays seamlessly.
+const loopCv = document.createElement('canvas'); loopCv.width = W; loopCv.height = H;
+let loopReady = false;
+function loopBlend(ot, total) {
+  // Reference frame taken right after the opening effects, so the ending dissolves into a clean shot of you.
+  if (ot < .1) loopReady = false;
+  if (!loopReady && ot > 1.2 && ot < 1.6) { loopCv.getContext('2d').drawImage(cv, 0, 0); loopReady = true; return; }
+  if (!loopReady || ot < total - .45) return;
+  cx.save(); cx.globalAlpha = ease((ot - (total - .45)) / .45); cx.drawImage(loopCv, 0, 0); cx.restore();
 }
 
 // ---- Coral motion graphics ----
@@ -627,7 +656,7 @@ const AI_STYLE = {
   clean: 'clean minimal 3D illustration, white background, soft blue accents, soft shadows'
 };
 const aiCache = new Map(), promptCache = new Map();
-let aiDown = false, aiFails = 0, aiQueue = Promise.resolve();
+let aiDown = false, aiFails = 0, aiQuotaWarned = false;
 let brollPicks = [], brollFor = null;
 function sentences() {
   const out = []; let cur = [];
@@ -678,6 +707,7 @@ function aiImage(subject) {
     try {
       const r = await fetch(`/api/ai-image?p=${encodeURIComponent(prompt)}`);
       if (r.status === 503 || r.status === 404) { aiDown = true; return null; }      // not configured
+      if (r.status === 429) { aiDown = true; if (!aiQuotaWarned) { aiQuotaWarned = true; msg('Se terminó el cupo gratis de imágenes IA de hoy (se renueva a las 21 h de Argentina). El resto de la edición sigue igual.'); } return null; }
       if (!r.ok) { aiCache.delete(prompt); return null; }                            // one refused image: just skip it
       const img = new Image(); img.src = URL.createObjectURL(await r.blob()); await img.decode();
       return img;
@@ -749,9 +779,9 @@ function makeBeats(P) {
   const B = { big: [], photos: [], emoji: new Map() };
   if (!words.length) return B;
   const busyRanges = [];
-  if (P.list) busyRanges.push([P.list.s - .5, P.list.e + .5]);
-  (P.screens || []).forEach(sc => busyRanges.push([sc.s - .5, sc.e + .5]));
-  (P.overlays || []).forEach(o => busyRanges.push([o.s, o.e]));
+  if (P.list && on('optMG')) busyRanges.push([P.list.s - .5, P.list.e + .5]);
+  (P.screens || []).forEach(sc => { if (sc.type === 'stat' ? on('optStats') : on('optMG')) busyRanges.push([sc.s - .5, sc.e + .5]); });
+  const ovR = on('optOverlay') ? (P.overlays || []).map(o => [o.s, o.e]) : [];
   const free = (s, e) => !busyRanges.some(([a, b]) => s < b && e > a);
   // Visual hook: the strongest 1-2 words of the first sentence, giant, behind you.
   if (on('optHook') && hookTextType() === 'big') {
@@ -769,7 +799,7 @@ function makeBeats(P) {
       const k = c.key, txt = clean(k.t);
       if (!(c.emph && (isNum(k.t) || txt.length >= 6)) || k.s - last < 3.4) return;
       const e = Math.max(k.e + .7, k.s + 1.3);
-      if (!free(k.s - .1, e)) return;
+      if (!free(k.s - .1, e) || ovR.some(([a2, b2]) => k.s - .1 < b2 && e > a2)) return;
       const small = c.filter(w => w !== k).slice(0, 3).map(w => w.t.replace(/[.,;:!?]+$/, '')).join(' ').toLowerCase();
       B.big.push({ s: k.s - .05, e, text: txt.toUpperCase(), small, n: B.big.length });
       busyRanges.push([k.s - .1, e]); last = e;
@@ -778,14 +808,25 @@ function makeBeats(P) {
   if (on('optPhotos')) {
     // AI-chosen moments (each with its own image idea); your own photos fill those moments first.
     let ui = 0;
-    brollPicks.forEach(pk => {
-      const s0 = pk.s, e0 = Math.min(pk.e, pk.s + 2.8);
-      if (e0 - s0 < 1.2 || !free(s0, e0)) return;
+    // Without AI picks, your own photos still go on clear sentence starts.
+    // A picked moment can start at any phrase inside its sentence that is still free.
+    const lastOk = words.at(-1).e - 3;
+    const slot = (s0, e0) => { for (const c of P.chunks) { if (c.s < s0 - .05 || c.s > e0 - 1.2 || c.s > lastOk) continue; const e1 = Math.min(e0, c.s + 2.8); if (e1 - c.s >= 1.2 && free(c.s, e1)) return [c.s, e1]; } return null; };
+    let picks = brollPicks;
+    if (!picks.length && userPhotos.length) {
+      picks = []; let lastU = -9;
+      for (const c of P.chunks) { if (picks.length >= userPhotos.length) break; if (c.s - lastU < 3.5 || c.s > lastOk) continue; const e1 = c.s + 2.6; if (free(c.s, e1)) { picks.push({ s: c.s, e: e1, prompt: '', label: '' }); lastU = e1; } }
+    }
+    picks.forEach(pk => {
+      const sl = slot(pk.s, Math.max(pk.e, pk.s + 1.3));
+      if (!sl) return;
+      const [s0, e0] = sl;
       const ph = { s: s0, e: e0, q: pk.prompt, subj: pk.prompt, label: pk.label, img: null, n: B.photos.length };
       if (ui < userPhotos.length) { ph.img = userPhotos[ui++]; ph.user = true; }
       B.photos.push(ph); busyRanges.push([s0, e0]);
     });
   }
+  ovR.forEach(r => { if (!B.photos.some(ph => ph.s < r[1] && ph.e > r[0])) busyRanges.push(r); });
   if (on('optEmoji')) P.chunks.forEach((c, i) => {
     for (const w of c) { const n = norm(w.t); const hit = EMO.find(([re]) => re.test(n)); if (hit) { B.emoji.set(i, hit[1]); break; } }
   });
@@ -887,7 +928,8 @@ function photoCard(img, x, y, maxW, maxH, rot, k, age, cover) {
 function drawPhoto(ph, t) {
   if (!ph.img) return false;
   const age = t - ph.s, left = ph.e - t, k = Math.min(ease(age / .3), ease(left / .3));
-  photoCard(ph.img, W / 2, H * .2, W * .8, H * .3, (ph.n % 2 ? -1 : 1) * .03, k, age, false);
+  if (val('brollLayout', 'split') === 'full') { cx.save(); cx.globalAlpha = k; cx.fillStyle = '#000'; cx.fillRect(0, 0, W, H); coverDraw(ph.img, k, 1.03 + .03 * age, 0); cx.restore(); }
+  else photoCard(ph.img, W / 2, H * .2, W * .8, H * .3, (ph.n % 2 ? -1 : 1) * .03, k, age, false);
   return false;
 }
 // Opening collage: up to three images drop in across the top while the hook text sits lower.
@@ -895,7 +937,7 @@ let galleryOn = false;
 function drawGallery(P, ot) {
   const imgs = (P.beats ? P.beats.photos : []).map(p => p.img).concat(P.screens.map(s2 => s2.img), P.list ? P.list.items.map(it => it.img) : []).filter(Boolean).slice(0, 3);
   if (imgs.length < 2) return false;
-  const out = ot > P.hookDur - .3 ? ease((ot - P.hookDur + .3) / .3) : 0;
+  const gEnd = Math.min(P.hookDur, 3), out = ot > gEnd - .3 ? ease((ot - gEnd + .3) / .3) : 0;
   const n = imgs.length, cw = W * (n === 3 ? .28 : .4), chh = cw * 16 / 11, gap = W * .03, x0 = W / 2 - ((n - 1) * (cw + gap)) / 2;
   imgs.forEach((img, i) => photoCard(img, x0 + i * (cw + gap), H * .05 + chh / 2, cw, chh, (i - (n - 1) / 2) * .04, 1 - out, ot - i * .12, true));
   return true;
@@ -937,7 +979,7 @@ function fxLayer(t, ot, P, x, y, w, h, coral) {
   const big = B.big.find(b => t >= b.s && t <= b.e);
   const photo = B.photos.find(p => t >= p.s && t <= p.e && p.img);
   let doubleExp = false;
-  if (photo) doubleExp = drawPhoto(photo, t, coral);
+  if (photo && val('brollLayout', 'split') !== 'split') doubleExp = drawPhoto(photo, t, coral);
   if (big) drawBig(big, t, coral);
   if ((big || doubleExp) && on('optBig')) {
     if (!seg) loadSeg();
@@ -1024,7 +1066,7 @@ document.getElementById('photos').onchange = async e => {
   for (const f of e.target.files) { try { const img = new Image(); img.src = URL.createObjectURL(f); await img.decode(); userPhotos.push(img); } catch (er) { /* skip */ } }
   if (plan) build();
 };
-['optBig', 'optPhotos', 'optEmoji', 'optAI'].forEach(id => { document.getElementById(id).onchange = () => { if (id === 'optBig' && on('optBig')) loadSeg(); build(); }; });
+['optBig', 'optPhotos', 'optEmoji', 'optAI', 'optMG', 'optStats', 'optOverlay'].forEach(id => { document.getElementById(id).onchange = () => { if (id === 'optBig' && on('optBig')) loadSeg(); build(); }; });
 let rebuildT = 0;
 ['mg', 'style', 'hookText'].forEach(id => document.getElementById(id).addEventListener('change', () => { clearTimeout(rebuildT); rebuildT = setTimeout(() => { if (plan) build(); }, 400); }));
 
@@ -1372,9 +1414,13 @@ function drawFrame(t, src, sw, sh) {
   if (hookOn && hk === 'zoom' && ot < .7) z *= 1 + .28 * (1 - ease(ot / .7));
   else if (hookOn && hk !== 'none' && ot < 1.2) z *= 1 + .08 * (1 - ease(ot / 1.2));
   if (zoomOn && g) z *= 1 + .035 * Math.min(1, (t - g.s) / Math.max(2, g.e - g.s));
+  if (P && on('optPunch')) { const pu = P.punches.find(q => t >= q.s && t <= q.e + .4); if (pu) z *= 1 + .14 * ease((t - pu.s) / .35) * (1 - ease((t - pu.e) / .4)); }
   const sx = 0, sy = 0;
 
   const framed = on('optFrame');
+  const brollLayout = val('brollLayout', 'split');
+  const splitPh = P && P.beats && !framed && brollLayout === 'split' ? P.beats.photos.find(q => q.img && t >= q.s && t <= q.e) : null;
+  capX = W / 2; capY = splitPh ? H * .5 : H * .69;
   let x, y, w, h;
   cx.fillStyle = '#000'; cx.fillRect(0, 0, W, H);
   if (framed) {
@@ -1388,6 +1434,16 @@ function drawFrame(t, src, sw, sh) {
     cx.save(); cx.shadowColor = 'rgba(0,0,0,.5)'; cx.shadowBlur = 40; rrect(fx0, fy0, fw, fh, 34); cx.fillStyle = '#000'; cx.fill(); cx.restore();
     cx.save(); rrect(fx0, fy0, fw, fh, 34); cx.clip(); cx.drawImage(src, x, y, w, h); cx.restore();
     if (P && P.hook) drawFrameTitle(P.hook, ot);
+  } else if (splitPh) {
+    const k = Math.min(ease((t - splitPh.s) / .35), ease((splitPh.e - t) / .35)), top = H * .5 * k;
+    const s = Math.max(W / sw, (H - top) / sh) * z; w = sw * s; h = sh * s;
+    x = (W - w) / 2; y = top + Math.min(0, Math.max(H - top - h, (H - top) / 2 - h * .42));
+    cx.save(); cx.beginPath(); cx.rect(0, top, W, H - top); cx.clip(); cx.drawImage(src, x, y, w, h); cx.restore();
+    if (top > 1) {
+      const img = splitPh.img, iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height, s3 = Math.max(W / iw, top / ih) * (1.03 + .03 * (t - splitPh.s));
+      cx.save(); cx.beginPath(); cx.rect(0, 0, W, top); cx.clip(); cx.drawImage(img, (W - iw * s3) / 2, (top - ih * s3) / 2, iw * s3, ih * s3); cx.restore();
+      cx.fillStyle = '#000'; cx.fillRect(0, top - 2, W, 4);
+    }
   } else {
     const s = Math.max(W / sw, H / sh) * z; w = sw * s; h = sh * s;
     const fx = g ? g.fx : .5;
@@ -1401,7 +1457,7 @@ function drawFrame(t, src, sw, sh) {
     cx.fillStyle = gr; cx.fillRect(0, 0, W, H);
   }
   if (hookOn && hk === 'flash' && !coral && ot < .22) { cx.fillStyle = `rgba(255,255,255,${.9 * (1 - ot / .22)})`; cx.fillRect(0, 0, W, H); }
-  galleryOn = !!(P && hookOn && on('optGallery') && ot < P.hookDur);
+  galleryOn = !!(P && hookOn && on('optGallery') && !splitPh && ot < Math.min(P.hookDur, 3));
   if (galleryOn) galleryOn = drawGallery(P, ot);
   const fxs = P && !framed ? fxLayer(t, ot, P, x, y, w, h, coral) : { hide: false };
   let covered = false;
@@ -1416,9 +1472,10 @@ function drawFrame(t, src, sw, sh) {
     if (screenTrans(t, sc.s, sc.e, tt => { curScreen = sc; sc.type === 'stat' ? statScreen(sc, tt) : quoteScreen(sc, tt); curScreen = null; }, 11 + i, 'sc' + sc.s)) covered = true;
     if (busy && sc.type === 'stat' && t >= sc.s + .4 && !fired.has('d' + sc.s)) { fired.add('d' + sc.s); sfx('ding'); }
   });
-  if (P && !covered && on('optOverlay')) drawOverlays(t, P);
+  if (P && !covered && on('optOverlay') && !(P.beats && P.beats.photos.some(q => q.img && t >= q.s && t <= q.e))) drawOverlays(t, P);
   const ctaS = P ? P.total - 2.4 : 0;
   const inCta = P && P.cta && on('optMG') && ot >= ctaS - .35;
+  if (on('optFollow') && !splitPh && !framed) followHead(x, y, w, h);
   if (P && !covered && !fxs.hide && !(inCta && ot >= ctaS) && on('optCaps')) { drawCaption(ch, t); drawEmoji(ci, ch, t); }
   if (hookOn && P && P.hook && !covered && !framed && hookTextType() === 'card') drawHookCard(P.hook, ot, P.hookDur);
   if (hookOn && P && P.hook && !covered && hookTextType() === 'question') drawHookQuestion(P.hook, ot, P.hookDur);
@@ -1436,6 +1493,7 @@ function drawFrame(t, src, sw, sh) {
   if (hookOn && hk === 'swipe' && ot < .5) { const off = H * (1 - ease(ot / .5)); const sc = scrCv.getContext('2d'); sc.clearRect(0, 0, W, H); sc.drawImage(cv, 0, 0); cx.fillStyle = '#000'; cx.fillRect(0, 0, W, H); cx.drawImage(scrCv, 0, off); }
   if (hookOn && hk === 'glitch' && ot < .45) glitch(ot / .45);
   if (hookOn && hk === 'blackout' && P && P.hook && ot < 1.1) drawBlackout(P.hook, ot);
+  if (P && on('optLoop')) loopBlend(ot, P.total);
   if (!busy && on('optSafe')) drawSafeZones();
   if (busy && P) prog(ot / P.total);
   return ot;
