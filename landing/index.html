@@ -3,270 +3,382 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#07070b">
+<meta name="theme-color" content="#0a0a0c">
 <title>Videora — Edición automática con IA</title>
-<meta name="description" content="Subí tu video crudo y la IA le pone subtítulos, cortes, zooms y sonidos. Listo para TikTok, Reels y Shorts en minutos.">
+<meta name="description" content="Subí tu video vertical y la IA lo edita: subtítulos, hooks, motion graphics, b-rolls, texto detrás tuyo, zooms y sonidos. Gratis y en tu navegador.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=Montserrat:wght@900&family=Anton&family=Instrument+Serif:ital@1&family=Outfit:wght@600;800&family=Plus+Jakarta+Sans:wght@600;800&family=Playfair+Display:ital,wght@1,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=Plus+Jakarta+Sans:wght@600;800&family=Outfit:wght@600;800&family=Montserrat:wght@800;900&family=Anton&family=Bebas+Neue&family=Archivo+Black&family=Poppins:wght@800&family=Space+Grotesk:wght@700&family=Instrument+Serif:ital@1&family=Playfair+Display:ital,wght@1,700&family=DM+Serif+Display:ital@1&family=Caveat:wght@700&family=Permanent+Marker&family=Great+Vibes&family=JetBrains+Mono:wght@600&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#07070b;--bg2:#0f0f17;--card:#14141f;--line:#262636;--tx:#f3f3f7;--mut:#9a9ab0;--a:#a855f7;--b:#ec4899;--c:#facc15;--g:linear-gradient(135deg,var(--a),var(--b))}
+:root{--bg:#0b0d12;--p1:#11141b;--p2:#171b24;--line:#252b38;--tx:#f2f5f9;--mut:#8b93a7;--acc:#c6f432;--acc2:#5eead4;--ink:#0b0d12;--ok:#5eead4;--glow:0 0 60px -12px rgba(198,244,50,.55)}
 *{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth;overflow-x:hidden}
+html{scroll-behavior:smooth}
 body{background:var(--bg);color:var(--tx);font-family:Inter,system-ui,sans-serif;line-height:1.5;overflow-x:hidden}
 a{color:inherit;text-decoration:none}
-.w{max-width:1120px;margin:0 auto;padding:0 16px}
-.grad{background:var(--g);-webkit-background-clip:text;background-clip:text;color:transparent}
-.btn{display:inline-flex;align-items:center;gap:8px;padding:14px 26px;border-radius:999px;font-weight:700;background:var(--g);color:#fff;box-shadow:0 10px 40px -10px var(--b);transition:transform .2s}
-.btn:hover{transform:translateY(-2px) scale(1.02)}
-.btn.ghost{background:transparent;border:1px solid var(--line);box-shadow:none}
-nav{position:sticky;top:0;z-index:10;backdrop-filter:blur(14px);background:rgba(7,7,11,.7);border-bottom:1px solid var(--line)}
-nav .w{display:flex;align-items:center;justify-content:space-between;height:64px}
-.logo{font-weight:900;font-size:22px;letter-spacing:-.5px}
-.links{display:flex;gap:28px;color:var(--mut);font-size:15px}
-.links a:hover{color:var(--tx)}
-nav .btn{padding:10px 18px;font-size:14px}
-section{padding:96px 0}
-h1{font-size:clamp(38px,6.5vw,72px);line-height:1.02;font-weight:900;letter-spacing:-2px}
-h2{font-size:clamp(30px,4.5vw,48px);font-weight:900;letter-spacing:-1.2px;line-height:1.1;margin-bottom:14px}
-.sub{color:var(--mut);font-size:18px;max-width:560px}
-.center{text-align:center}.center .sub{margin:0 auto}
-.hero{position:relative;padding-top:72px;overflow:hidden;padding-bottom:40px}
-.hero:before{content:"";position:absolute;inset:-200px 0 auto;height:700px;background:radial-gradient(ellipse at center,rgba(168,85,247,.35),transparent 60%);z-index:-1}
-.hero .w{display:grid;grid-template-columns:1.1fr .9fr;gap:48px;align-items:center}
-.pill{display:inline-block;padding:6px 14px;border:1px solid var(--line);border-radius:999px;font-size:13px;color:var(--mut);margin-bottom:22px;background:var(--bg2)}
-.hero p.sub{margin:22px 0 32px}
-.drop{border:2px dashed var(--line);border-radius:20px;padding:22px;display:flex;gap:16px;align-items:center;background:var(--bg2);cursor:pointer;transition:border-color .2s}
-.drop:hover{border-color:var(--a)}
-.drop small{color:var(--mut);display:block}
-.proof{display:flex;align-items:center;gap:12px;margin-top:22px;color:var(--mut);font-size:14px}
-.av{display:flex}.av i{width:32px;height:32px;border-radius:50%;border:2px solid var(--bg);margin-left:-8px;background:var(--g)}
-.av i:nth-child(2){background:linear-gradient(135deg,#22d3ee,#a855f7)}.av i:nth-child(3){background:linear-gradient(135deg,#facc15,#ec4899)}
-.phone{width:290px;height:580px;margin:auto;border-radius:44px;border:10px solid #1d1d29;background:linear-gradient(160deg,#2a1b3d,#130d1f 60%,#3b1530);position:relative;overflow:hidden;box-shadow:0 40px 120px -30px rgba(236,72,153,.5)}
-.face{position:absolute;left:50%;top:30%;width:150px;height:190px;transform:translateX(-50%);border-radius:50% 50% 45% 45%;background:radial-gradient(circle at 50% 35%,#5b4670,#2a2038 70%);animation:zoom 4s ease-in-out infinite}
-.face:after{content:"";position:absolute;left:-40px;right:-40px;top:170px;height:260px;border-radius:50% 50% 0 0;background:#2a2038}
-@keyframes zoom{0%,40%{transform:translateX(-50%) scale(1)}50%,80%{transform:translateX(-50%) scale(1.18)}100%{transform:translateX(-50%) scale(1)}}
-.cap{position:absolute;left:0;right:0;bottom:120px;text-align:center;font-weight:900;font-size:30px;text-transform:uppercase;text-shadow:0 4px 0 #000,0 0 20px #000;letter-spacing:-.5px}
-.cap span{display:inline-block;opacity:0;animation:pop 4s infinite}
-.cap span:nth-child(2){animation-delay:.35s}.cap span:nth-child(3){animation-delay:.7s;color:var(--c)}
-@keyframes pop{0%{opacity:0;transform:scale(.5)}8%{opacity:1;transform:scale(1.15)}12%,85%{opacity:1;transform:scale(1)}100%{opacity:0}}
-.ui{position:absolute;right:12px;bottom:150px;display:grid;gap:18px;color:#fff;font-size:12px;text-align:center}
-.ui b{display:block;width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.15);margin-bottom:4px}
-.tag{position:absolute;padding:8px 14px;border-radius:12px;background:var(--card);border:1px solid var(--line);font-size:13px;font-weight:700;box-shadow:0 10px 30px rgba(0,0,0,.5);animation:float 5s ease-in-out infinite}
-@keyframes float{50%{transform:translateY(-10px)}}
-.mock{position:relative}
-.t1{top:60px;left:0}.t2{top:260px;right:-10px;animation-delay:1s}.t3{bottom:60px;left:20px;animation-delay:2s}
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:52px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:28px;transition:transform .25s,border-color .25s}
-.card:hover{transform:translateY(-4px);border-color:#3a3a52}
-.card .ic{width:46px;height:46px;border-radius:14px;background:var(--g);display:grid;place-items:center;font-size:22px;margin-bottom:18px}
-.card h3{font-size:19px;margin-bottom:8px}
-.card p{color:var(--mut);font-size:15px}
-.steps{counter-reset:s}
-.steps .card:before{counter-increment:s;content:"0" counter(s);font-weight:900;font-size:44px;display:block;margin-bottom:8px}
-.steps .card:nth-child(1):before{color:var(--a)}.steps .card:nth-child(2):before{color:var(--b)}.steps .card:nth-child(3):before{color:var(--c)}
-.tbl{margin-top:48px;border:1px solid var(--line);border-radius:22px;overflow:hidden;overflow-x:auto}
-table{width:100%;border-collapse:collapse;min-width:560px}
-th,td{padding:16px 20px;text-align:left;border-bottom:1px solid var(--line);font-size:15px}
-th{color:var(--mut);font-weight:500}
-td:nth-child(2),th:nth-child(2){background:rgba(168,85,247,.08);color:var(--tx);font-weight:700}
-tr:last-child td{border:0}
-.tpl{display:flex;gap:16px;overflow-x:auto;padding:48px 0 8px;scroll-snap-type:x mandatory}
-.tpl div{flex:0 0 190px;height:320px;border-radius:22px;scroll-snap-align:start;display:flex;align-items:flex-end;padding:18px;font-weight:900;font-size:20px;line-height:1.1;border:1px solid var(--line)}
-.tpl div:nth-child(1){background:linear-gradient(180deg,#1a1a26,#7c3aed)}
-.tpl div:nth-child(2){background:linear-gradient(180deg,#1a1a26,#0f766e);font-family:Georgia,serif;font-style:italic;font-weight:400}
-.tpl div:nth-child(3){background:linear-gradient(180deg,#1a1a26,#dc2626);text-transform:uppercase}
-.tpl div:nth-child(4){background:linear-gradient(180deg,#1a1a26,#ca8a04);font-family:Georgia,serif}
-.tpl div:nth-child(5){background:linear-gradient(180deg,#1a1a26,#334155);font-weight:500}
-.quotes{columns:3 280px;gap:18px;margin-top:48px}
-.quotes .card{break-inside:avoid;margin-bottom:18px}
-.quotes b{display:block;margin-top:14px;font-size:14px}
-.stars{color:var(--c);letter-spacing:2px}
-.price{grid-template-columns:repeat(3,1fr);align-items:stretch}
-.price .card{display:flex;flex-direction:column}
-.price .hot{border:2px solid transparent;background:linear-gradient(var(--card),var(--card)) padding-box,var(--g) border-box;transform:scale(1.03)}
-.amt{font-size:46px;font-weight:900;margin:12px 0 2px}
-.amt s{font-size:18px;color:var(--mut);font-weight:500;margin-left:6px}
-.price ul{list-style:none;margin:20px 0 26px;color:var(--mut);display:grid;gap:10px;font-size:15px}
-.price li:before{content:"✓ ";color:var(--a);font-weight:900}
-.price .btn{margin-top:auto;justify-content:center}
-.badge{align-self:flex-start;font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;background:var(--g)}
-details{border-bottom:1px solid var(--line);padding:22px 0}
-summary{cursor:pointer;font-weight:700;font-size:17px;list-style:none;display:flex;justify-content:space-between}
-summary:after{content:"+";color:var(--a);font-size:22px}
-details[open] summary:after{content:"−"}
-details p{color:var(--mut);margin-top:12px}
-.faq{max-width:760px;margin:40px auto 0}
-.cta{border-radius:32px;padding:72px 24px;background:radial-gradient(circle at 30% 0,rgba(236,72,153,.4),transparent 60%),var(--card);border:1px solid var(--line)}
-footer{border-top:1px solid var(--line);padding:40px 0;color:var(--mut);font-size:14px}
-footer .w{display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px}
-footer nav{all:unset;display:flex;gap:20px}
-.rev{opacity:0;transform:translateY(24px);transition:opacity .7s,transform .7s}
-.rev.on{opacity:1;transform:none}
+button,select,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--acc2);outline-offset:2px}
+.w{max-width:1160px;margin:0 auto;padding:0 16px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 22px;border-radius:999px;font-weight:800;background:var(--acc);color:var(--ink);border:0;cursor:pointer;transition:transform .15s,filter .15s}
+.btn:hover{filter:brightness(1.1)}.btn:active{transform:scale(.97)}
+.btn.ghost{background:var(--p2);border:1px solid var(--line);color:var(--tx)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.sm{padding:8px 14px;font-size:13px;border-radius:10px}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--acc2);margin-right:8px;box-shadow:0 0 10px var(--acc2)}
+.mut{color:var(--mut)}
+/* ---------- landing ---------- */
+.top{position:sticky;top:0;z-index:5;background:rgba(10,10,12,.75);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.top .w{height:60px;display:flex;align-items:center;justify-content:space-between}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:19px}
+.logo i{width:28px;height:28px;border-radius:50%;background:conic-gradient(var(--acc),var(--acc2),var(--acc));color:var(--ink);display:grid;place-items:center;font-style:normal;font-size:14px;box-shadow:var(--glow)}
+.hero{padding:56px 0 30px;background:radial-gradient(ellipse at 30% -10%,rgba(198,244,50,.16),transparent 55%),radial-gradient(ellipse at 80% 0,rgba(94,234,212,.14),transparent 50%)}
+.hero h1{text-align:center;font-size:clamp(34px,5.6vw,64px);line-height:1.04;font-weight:900;letter-spacing:-1.5px;text-wrap:balance}
+.hero h1 em{font-family:"Instrument Serif",serif;font-weight:400;color:var(--acc)}
+.hero p.lead{text-align:center;color:var(--mut);max-width:620px;margin:16px auto 36px;font-size:17px}
+.trio{display:grid;grid-template-columns:150px minmax(0,440px) 150px;gap:28px;align-items:center;justify-content:center}
+.ph{position:relative;border-radius:18px;aspect-ratio:9/16;overflow:hidden;border:1px solid var(--line);background:#000}
+.ph small{position:absolute;top:-24px;left:0;right:0;text-align:center;font-size:11px;letter-spacing:.14em;color:var(--mut)}
+.trio>div{position:relative;padding-top:24px}
+.ph.raw{background:linear-gradient(160deg,#3a3a40,#16161a)}
+.ph.raw:after{content:"";position:absolute;left:50%;top:32%;width:58px;height:74px;transform:translateX(-50%);border-radius:50%;background:#55555d;box-shadow:0 90px 0 30px #44444b}
+.ph.res{box-shadow:var(--glow);border-color:rgba(198,244,50,.6);background:linear-gradient(170deg,#1b2a60,#0b0b25 60%,#38104a)}
+.ph.res{background:linear-gradient(170deg,#0f3b3a,#0b0d12 60%,#2a3a08)}
+.ph.res b{position:absolute;left:0;right:0;top:20%;text-align:center;font-family:Anton,sans-serif;font-weight:400;font-size:44px;line-height:.95;color:#fff;animation:slam 3s infinite}
+.ph.res em{position:absolute;left:10%;right:0;top:37%;font-family:"Instrument Serif",serif;font-size:26px;color:#ffe14d;transform:rotate(-6deg);animation:wipe 3s infinite}
+.ph.res span{position:absolute;left:0;right:0;bottom:22%;text-align:center;font-weight:800;font-size:13px;font-family:"Plus Jakarta Sans",sans-serif}
+.ph.res span u{text-decoration:none;color:#ffe14d}
+@keyframes slam{0%{transform:scale(1.6);filter:blur(8px);opacity:0}12%{transform:scale(1);filter:none;opacity:1}88%{opacity:1}100%{opacity:0}}
+@keyframes wipe{0%,15%{clip-path:inset(0 100% 0 0)}35%,90%{clip-path:inset(0 0 0 0)}100%{clip-path:inset(0 0 0 0);opacity:0}}
+.arrow{position:absolute;top:50%;font-size:20px;color:var(--acc)}
+.trio>div:first-child .arrow{right:-24px}.trio>div:last-child .arrow{left:-24px}
+.drop{position:relative;display:grid;place-items:center;text-align:center;gap:10px;padding:34px 22px;border-radius:20px;border:1px solid var(--line);background:linear-gradient(180deg,#141418,#0e0e11);cursor:pointer;transition:border-color .2s,box-shadow .2s}
+.drop:hover,.drop.over{border-color:rgba(198,244,50,.7);box-shadow:var(--glow)}
+.drop .up{width:52px;height:52px;border-radius:14px;border:1px solid var(--line);display:grid;place-items:center;font-size:22px;background:var(--p2)}
+.drop strong{font-size:18px}
+.drop .chips{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;font-size:12px;color:var(--mut)}
 .sr{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;z-index:2;font-size:0}
-.drop{position:relative}.drop.over{border-color:var(--b);background:#1a1426}
-#cv{position:absolute;inset:0;width:100%;height:100%;z-index:3;display:none;background:#000}
-.phone.has #cv{display:block}.phone.has~.tag{display:none}
-.panel{margin-top:16px;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:18px;display:grid;gap:12px}
-.panel[hidden]{display:none}
-.panel input:not([type=checkbox]):not([type=file]){width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--tx);font:inherit;font-size:16px}
-.bar{height:8px;border-radius:9px;background:var(--line);overflow:hidden}.bar i{display:block;height:100%;width:0;background:var(--g);transition:width .2s}
-#msg{color:var(--mut);font-size:14px}
-.row{display:flex;gap:10px;flex-wrap:wrap}.row .btn{border:0;font:inherit;font-weight:700;cursor:pointer;flex:1;justify-content:center}
-.btn:disabled{opacity:.5;cursor:wait}
-.opts{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-.opts label{display:grid;gap:4px;font-size:12px;color:var(--mut)}
-.opts select{padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--tx);font:inherit;font-size:16px;min-width:0}
-.toggles{display:flex;gap:14px;flex-wrap:wrap;font-size:14px}.toggles input{accent-color:var(--b)}
-.panel textarea{width:100%;padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--tx);font:inherit;font-size:16px;resize:vertical}
-#dl{justify-content:center}
-.photos{display:grid;gap:6px;font-size:13px;color:var(--mut)}.photos input{font-size:14px;color:var(--tx)}
-@media(max-width:520px){.opts{grid-template-columns:1fr}}
-@media(max-width:880px){
-.hero .w,.grid,.price{grid-template-columns:1fr}
-.links{display:none}
-.mock{margin-top:24px}.t2{right:0}
-.price .hot{transform:none}
-section{padding:72px 0}
+.free{text-align:center;margin-top:12px;font-size:14px;color:var(--mut)}.free b{color:var(--tx)}
+.marq{overflow:hidden;margin-top:44px;mask-image:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent)}
+.marq>div{display:flex;gap:16px;width:max-content;animation:mq 40s linear infinite}
+.cm{background:#fff;color:#111;border-radius:14px;padding:12px 16px;min-width:240px;font-size:14px}
+.cm small{display:block;color:#888;font-size:12px}.cm b{font-weight:700}
+@keyframes mq{to{transform:translateX(-50%)}}
+section.blk{padding:84px 0}
+.blk h2{font-size:clamp(28px,4vw,44px);font-weight:900;letter-spacing:-1px;line-height:1.08;text-wrap:balance;margin-bottom:12px}
+.blk h2 em{font-family:"Instrument Serif",serif;font-weight:400;color:var(--acc)}
+.blk .sub{color:var(--mut);max-width:620px}
+.feat{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:40px}
+.feat div{background:var(--p1);border:1px solid var(--line);border-radius:16px;padding:20px}
+.feat b{display:block;margin:10px 0 6px}.feat p{color:var(--mut);font-size:14px}
+.feat i{font-style:normal;font-size:20px}
+.styles{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-top:36px}
+.styles canvas{width:100%;aspect-ratio:9/16;border-radius:14px;border:1px solid var(--line);display:block;background:#000}
+.styles span{display:block;font-size:13px;margin-top:8px;color:var(--mut)}
+details{border-bottom:1px solid var(--line);padding:18px 0}
+summary{cursor:pointer;font-weight:700;list-style:none;display:flex;justify-content:space-between}
+summary:after{content:"+";color:var(--acc)}details[open] summary:after{content:"−"}
+details p{color:var(--mut);margin-top:10px}
+footer{border-top:1px solid var(--line);padding:30px 0;color:var(--mut);font-size:13px}
+/* ---------- app ---------- */
+#app{position:fixed;inset:0;z-index:50;background:var(--bg);display:none;flex-direction:column}
+#app.on{display:flex}
+.bar{height:54px;flex:none;display:flex;align-items:center;gap:8px;padding:0 12px;border-bottom:1px solid var(--line);background:#0c0c0f;overflow-x:auto}
+.bar .sp{flex:1}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:9px;background:var(--p2);border:1px solid var(--line);font-size:13px;white-space:nowrap;cursor:pointer}
+.pill.on{border-color:rgba(198,244,50,.6);color:#fff;background:rgba(198,244,50,.12)}
+.pill.save{color:#fbbf24;cursor:default}
+#status{display:flex;align-items:center;gap:10px;min-width:0}
+#status .track{width:120px;height:6px;border-radius:9px;background:var(--line);overflow:hidden;flex:none}
+#status .track i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--acc2),var(--acc));transition:width .25s}
+#msg{font-size:13px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:46vw}
+/* config view */
+#cfg{flex:1;overflow:auto;padding:28px 16px}
+.cfgc{max-width:1060px;margin:0 auto;background:var(--p1);border:1px solid var(--line);border-radius:20px;padding:24px}
+.cfgc h2{font-size:22px}.cfgc>p{color:var(--mut);font-size:14px;margin-bottom:20px}
+.cfgg{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.4fr);gap:20px}
+.tg{display:flex;align-items:center;gap:12px;padding:12px;border-radius:12px;background:var(--p2);border:1px solid var(--line);margin-bottom:8px}
+.tg i{font-style:normal;width:30px;height:30px;border-radius:8px;display:grid;place-items:center;background:#1f1f26;flex:none}
+.tg div{flex:1;min-width:0}.tg b{display:block;font-size:14px}.tg small{color:var(--mut);font-size:12px}
+.sw{position:relative;width:42px;height:24px;flex:none}
+.sw input{position:absolute;inset:0;opacity:0;cursor:pointer;z-index:1;margin:0}
+.sw span{position:absolute;inset:0;border-radius:99px;background:#33333d;transition:background .2s}
+.sw span:after{content:"";position:absolute;left:3px;top:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .2s}
+.sw input:checked+span{background:var(--acc)}.sw input:checked+span:after{background:var(--ink)}.sw input:checked+span:after{transform:translateX(18px)}
+.box{background:var(--p2);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:14px}
+.box h3{font-size:15px;display:flex;align-items:center;gap:8px;justify-content:space-between}
+.box h3 small{font-weight:400;color:var(--mut);font-size:12px}
+.tag{font-size:11px;padding:2px 8px;border-radius:99px;background:rgba(198,244,50,.15);color:var(--acc)}
+.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:12px}
+.cards.ov{grid-template-columns:repeat(3,minmax(0,1fr))}
+.card{position:relative;border-radius:12px;overflow:hidden;border:2px solid transparent;cursor:pointer;background:#000;padding:0}
+.card canvas{display:block;width:100%;aspect-ratio:9/16}
+.cards.ov canvas{aspect-ratio:16/10}
+.card span{position:absolute;left:0;right:0;bottom:0;padding:18px 8px 7px;font-size:12px;font-weight:700;background:linear-gradient(transparent,rgba(0,0,0,.85));text-align:left;color:#fff}
+.card.sel{border-color:var(--acc);box-shadow:var(--glow)}
+.card.sel:after{content:"✓";position:absolute;top:6px;right:6px;width:20px;height:20px;border-radius:6px;background:var(--acc);display:grid;place-items:center;font-size:12px;color:var(--ink)}
+.cfgf{display:flex;align-items:center;gap:16px;margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
+.cfgf .grow{flex:1;min-width:0}
+.cfgf .bigtrack{height:6px;border-radius:9px;background:var(--line);overflow:hidden;margin-top:6px}
+.cfgf .bigtrack i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--acc2),var(--acc));transition:width .25s}
+/* editor view */
+#ed{flex:1;min-height:0;display:none;grid-template-columns:minmax(0,1fr) 380px;grid-template-rows:minmax(0,1fr) 92px}
+.panel{display:flex;flex-direction:column;min-height:0;border-left:1px solid var(--line);background:#0d1016}
+.ptabs{display:flex;gap:6px;padding:10px;border-bottom:1px solid var(--line)}
+.ptabs button{flex:1;padding:10px;border-radius:999px;border:1px solid var(--line);background:var(--p2);font-weight:700;cursor:pointer}
+.ptabs button.sel{background:var(--acc);color:var(--ink);border-color:var(--acc)}
+#ed.on{display:grid}
+.side{flex:1;overflow:auto;padding:14px}
+.side.hide{display:none}
+.side h4{font-size:15px;display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.side h5{font-size:11px;letter-spacing:.12em;color:var(--mut);margin:14px 0 8px}
+.vs{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.vs button{text-align:left;padding:10px;border-radius:10px;background:var(--p2);border:1px solid var(--line);cursor:pointer}
+.vs button b{display:block;font-size:13px}.vs button small{font-size:11px;color:var(--mut)}
+.vs button.sel{border-color:var(--acc);background:rgba(198,244,50,.1)}
+.fld{display:grid;gap:5px;margin-bottom:10px;font-size:12px;color:var(--mut)}
+.fld select,.fld input[type=text],.fld textarea,.fld input:not([type]){width:100%;padding:9px 10px;border-radius:9px;border:1px solid var(--line);background:var(--p2);font-size:14px;color:var(--tx)}
+.fld textarea{resize:vertical;min-height:84px}
+.fld input[type=range]{accent-color:var(--acc);width:100%}
+.sws{display:flex;gap:6px;flex-wrap:wrap}
+.sws button{width:26px;height:26px;border-radius:8px;border:2px solid var(--line);cursor:pointer}
+.sws button.sel{border-color:#fff}
+.acc{border-bottom:1px solid var(--line)}
+.acc>summary{padding:11px 2px;font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px}
+.acc>summary .on-dot{width:7px;height:7px;border-radius:50%;background:var(--ok);display:none}
+.acc.live>summary .on-dot{display:inline-block}
+.acc>summary:after{margin-left:auto}
+.acc .in{padding:4px 2px 14px;font-size:13px;color:var(--mut);display:grid;gap:10px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px;color:var(--tx)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chips button{padding:8px 10px;border-radius:9px;border:1px solid var(--line);background:var(--p2);cursor:pointer;font-size:12px;color:var(--tx)}
+.chips button.sel{border-color:var(--acc);background:rgba(198,244,50,.14)}
+.stage{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:14px;min-width:0;min-height:0;background:radial-gradient(ellipse at 50% 40%,rgba(198,244,50,.08),transparent 65%)}
+#cv{height:min(100%,calc(100vh - 230px));max-height:100%;max-width:100%;aspect-ratio:9/16;border-radius:16px;box-shadow:0 30px 80px -20px rgba(0,0,0,.8),0 0 0 1px var(--line);background:#000}
+.ctl{display:flex;gap:10px;align-items:center}
+.round{width:48px;height:48px;border-radius:50%;border:0;background:var(--acc);color:var(--ink);font-size:18px;cursor:pointer;box-shadow:var(--glow)}
+.round.g{background:var(--p2);box-shadow:none;border:1px solid var(--line);width:40px;height:40px;font-size:15px}
+.tlw{grid-column:1/-1;border-top:1px solid var(--line);background:#0c0c0f;padding:8px 12px;display:flex;gap:10px;align-items:stretch}
+.tlw .lbl{display:grid;grid-template-rows:1fr 1fr;font-size:11px;color:var(--mut);align-items:center}
+#tl{flex:1;min-width:0;height:100%;cursor:pointer;border-radius:8px}
+.dlbox{position:fixed;right:16px;bottom:110px;z-index:60;background:var(--p1);border:1px solid rgba(198,244,50,.6);box-shadow:var(--glow);border-radius:16px;padding:16px;display:grid;gap:10px;max-width:300px}
+.dlbox[hidden]{display:none}
+@media(max-width:900px){
+ .trio{grid-template-columns:1fr}.trio>div:first-child,.trio>div:last-child{display:none}
+ .feat{grid-template-columns:1fr 1fr}.styles{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .cfgg{grid-template-columns:1fr}.cards{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #ed.on{display:flex;flex-direction:column;overflow:auto}
+ .stage{order:1;padding:10px}#cv{height:auto;width:min(100%,360px)}
+ .panel{order:2;border:0}.ptabs{position:sticky;top:0;background:var(--bg);z-index:2}
+ .tlw{order:3;height:84px;flex:none}
+ #msg{max-width:40vw}
 }
-@media(max-width:520px){.phone{width:250px;height:500px}.cap{font-size:26px;bottom:100px}.drop{flex-direction:column;text-align:center}.drop .btn{width:100%;justify-content:center}.tag{font-size:12px;padding:6px 10px}nav .btn{padding:9px 14px}}
-@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.rev{opacity:1;transform:none}.cap span{opacity:1}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
 
-<nav><div class="w">
-  <a class="logo" href="#">Videora<span class="grad">.</span></a>
-  <div class="links"><a href="#funciones">Funciones</a><a href="#como">Cómo funciona</a><a href="#precios">Gratis</a><a href="#faq">FAQ</a></div>
-  <a class="btn" href="#precios">Usar gratis</a>
-</div></nav>
+<div class="top"><div class="w">
+  <a class="logo" href="#"><i>▶</i>Videora</a>
+  <label class="btn sm" style="position:relative">Subir video<input type="file" accept="video/*" class="sr" id="file2"></label>
+</div></div>
 
 <header class="hero"><div class="w">
-  <div>
-    <span class="pill">✨ +12.000 videos editados este mes</span>
-    <h1>Tu video crudo,<br><span class="grad">editado y viral</span><br>en minutos.</h1>
-    <p class="sub">Subí lo que grabaste con el celu. La IA le pone subtítulos animados, corta los silencios, agrega zooms y sonidos. Vos solo publicás.</p>
-    <label class="drop" id="drop">
-      <input type="file" id="file" accept="video/*" class="sr">
-      <span class="btn">⬆ Subir video</span>
-      <span><strong id="fname">Tocá o arrastrá tu video acá</strong><small>MP4 o MOV · hasta 3 min · gratis</small></span>
-    </label>
-    <div id="panel" class="panel" hidden>
-      <div class="opts">
-        <label>Tipo de edición<select id="style"><option value="viral">Viral Pro</option><option value="coral">Coral</option><option value="editorial">Cinemático</option><option value="hormozi">Hormozi</option><option value="minimal">Minimal limpio</option></select></label>
-        <label>Idioma del video<select id="lang"><option value="spanish">Español</option><option value="english">Inglés</option><option value="portuguese">Portugués</option></select></label>
-        <label>Precisión<select id="quality"><option value="base">Rápida (80 MB)</option><option value="small">Alta (250 MB, mejor en compu)</option></select></label>
-        <label>Subtítulos<select id="task"><option value="transcribe">Mismo idioma</option><option value="translate">Traducir al inglés</option></select></label>
-      </div>
-      <div class="toggles"><label><input type="checkbox" id="optCut" checked> Cortar silencios</label><label><input type="checkbox" id="optHook" checked> Hook inicial</label><label><input type="checkbox" id="optSfx" checked> Sonidos</label><label><input type="checkbox" id="optBig" checked> Texto gigante detrás tuyo</label><label><input type="checkbox" id="optPhotos" checked> Fotos (b-roll)</label><label><input type="checkbox" id="optFx" checked> Efectos (glitch, destellos, zoom)</label><label><input type="checkbox" id="optEmoji" checked> Emojis</label></div>
-      <label class="photos">Tus fotos para el b-roll (opcional; si no subís, las busca solas)<input type="file" id="photos" accept="image/*" multiple></label>
-      <input id="ctaWord" maxlength="20" placeholder="Palabra para comentar al final (opcional, ej: INFO)">
-      <textarea id="txt" rows="3" placeholder="Acá aparece lo que decís en el video. Podés corregirlo."></textarea>
-      <div class="bar"><i id="prog"></i></div>
-      <p id="msg">Preparando…</p>
-      <div class="row"><button class="btn ghost" id="ai">↻ Transcribir de nuevo</button><button class="btn" id="go" disabled>⬇ Exportar video</button></div>
-      <a class="btn" id="dl" hidden>Descargar video</a>
+  <h1>Tu video crudo, <em>editado como un pro</em> en minutos</h1>
+  <p class="lead">Subtítulos animados, hooks, motion graphics, texto detrás tuyo, b-rolls, zooms y sonidos. La IA escucha tu video y edita todo sola. Gratis, en tu navegador.</p>
+  <div class="trio">
+    <div><small class="mut" style="display:block;text-align:center;font-size:11px;letter-spacing:.14em;margin-bottom:8px"><span class="dot"></span>TU VIDEO</small><div class="ph raw"></div><span class="arrow">→</span></div>
+    <div>
+      <label class="drop" id="drop">
+        <input type="file" id="file" accept="video/*" class="sr">
+        <span class="up">⇪</span>
+        <strong>Arrastrá tu video vertical (9:16)</strong>
+        <span class="mut" style="font-size:14px">o tocá para elegirlo</span>
+        <span class="chips"><span>⏱ Máx. 3 min</span><span>▯ 9:16</span><span>⛁ Máx. 1 GB</span><span>MP4 recomendado</span></span>
+      </label>
+      <p class="free"><b>Gratis</b> · sin marca de agua · tu video no sale de tu dispositivo</p>
     </div>
-    <div class="proof"><div class="av"><i></i><i></i><i></i></div><span><span class="stars">★★★★★</span> 4.9 · creadores de toda Latinoamérica</span></div>
+    <div><small class="mut" style="display:block;text-align:center;font-size:11px;letter-spacing:.14em;margin-bottom:8px"><span class="dot"></span>RESULTADO</small><div class="ph res"><b>16<br>AÑOS</b><em>guardá este video</em><span>esto te puede <u>ahorrar</u> años</span></div><span class="arrow">←</span></div>
   </div>
-  <div class="mock">
-    <div class="phone" id="phone"><canvas id="cv" width="720" height="1280"></canvas>
-      <div class="face"></div>
-      <div class="cap"><span>esto&nbsp;</span><span>cambió&nbsp;</span><span>todo</span></div>
-      <div class="ui"><div><b></b>48K</div><div><b></b>1.2K</div><div><b></b>Share</div></div>
-    </div>
-    <div class="tag t1">🎯 Subtítulos automáticos</div>
-    <div class="tag t2">🔍 Zoom en el momento clave</div>
-    <div class="tag t3">✂️ −23 silencios cortados</div>
-  </div>
+  <div class="marq"><div id="mq"></div></div>
 </div></header>
 
-<section id="funciones"><div class="w center">
-  <h2 class="rev">Todo lo que hace un editor pro.<br><span class="grad">Sin abrir un editor.</span></h2>
-  <p class="sub rev">La IA entiende lo que decís y edita como lo haría un editor de TikTok con años de experiencia.</p>
-  <div class="grid" style="text-align:left">
-    <div class="card rev"><div class="ic">💬</div><h3>Subtítulos magnéticos</h3><p>Palabra por palabra, con animación y colores en las palabras clave. Nunca te tapan la cara.</p></div>
-    <div class="card rev"><div class="ic">✂️</div><h3>Cortes invisibles</h3><p>Eliminamos silencios, "eeh" y repeticiones en un clic. Ritmo rápido de principio a fin.</p></div>
-    <div class="card rev"><div class="ic">🔍</div><h3>Zooms inteligentes</h3><p>Detectamos las frases importantes y hacemos zoom justo ahí para mantener la atención.</p></div>
-    <div class="card rev"><div class="ic">🙂</div><h3>Seguimiento de cara</h3><p>Siempre quedás centrado en el cuadro, aunque te muevas mientras grabás.</p></div>
-    <div class="card rev"><div class="ic">🔊</div><h3>Sonidos y transiciones</h3><p>Whooshes, pops y transiciones virales sincronizadas con lo que decís.</p></div>
-    <div class="card rev"><div class="ic">🚀</div><h3>Listo para publicar</h3><p>Exportá en 9:16 sin marca de agua, optimizado para TikTok, Reels y Shorts.</p></div>
+<section class="blk"><div class="w">
+  <h2>Todo lo que hace un editor. <em>Automático.</em></h2>
+  <p class="sub">Si no tocás nada, la IA decide sola: qué palabra va gigante, dónde va cada pantalla, qué fotos usar y qué sonido poner.</p>
+  <div class="feat">
+    <div><i>💬</i><b>Subtítulos animados</b><p>Palabra por palabra, con la palabra clave destacada.</p></div>
+    <div><i>🅰</i><b>Texto detrás de ti</b><p>Letras gigantes detrás de tu silueta y una cursiva cruzando adelante.</p></div>
+    <div><i>🎬</i><b>Motion graphics</b><p>Listas, números y frases clave en pantallas animadas.</p></div>
+    <div><i>🪪</i><b>Smart overlays</b><p>Tarjetas con datos e insights sobre tu video.</p></div>
+    <div><i>🖼</i><b>B-rolls automáticos</b><p>Fotos relacionadas con lo que decís, semitransparentes.</p></div>
+    <div><i>🪝</i><b>Hooks</b><p>Flash, blur o modo cine, con texto y sonido de impacto.</p></div>
+    <div><i>✂️</i><b>Cortes y zooms</b><p>Saca silencios y hace zooms en los momentos clave.</p></div>
+    <div><i>⚡</i><b>Export rápido</b><p>Arma el video cuadro por cuadro, sin esperar en tiempo real.</p></div>
   </div>
 </div></section>
 
-<section id="como" style="background:var(--bg2)"><div class="w center">
-  <h2 class="rev">Tres pasos. <span class="grad">Cero estrés.</span></h2>
-  <div class="grid steps" style="text-align:left">
-    <div class="card rev"><h3>Subí tu video</h3><p>Grabado con el celular, sin editar. Hasta 3 minutos.</p></div>
-    <div class="card rev"><h3>La IA lo edita</h3><p>Subtítulos, cortes, zooms y sonidos en menos de 2 minutos.</p></div>
-    <div class="card rev"><h3>Publicá</h3><p>Descargá en alta calidad y subilo a TikTok, Reels o Shorts.</p></div>
+<section class="blk" style="padding-top:0"><div class="w">
+  <h2>Pantallas animadas <em>con estilo</em></h2>
+  <p class="sub">Elegí el look de las pantallas animadas o dejá que la IA elija según tu estilo.</p>
+  <div class="styles" id="lgStyles"></div>
+</div></section>
+
+<section class="blk" style="padding-top:0"><div class="w" style="max-width:760px">
+  <h2>Preguntas frecuentes</h2>
+  <details><summary>¿Tengo que instalar algo?</summary><p>No. Funciona en Chrome o Safari, en la compu o el celu. Para la mejor calidad usá la compu.</p></details>
+  <details><summary>¿Mi video se sube a algún servidor?</summary><p>No. Todo se procesa en tu dispositivo. Solo se descargan los modelos de IA la primera vez.</p></details>
+  <details><summary>¿Cuánto tarda?</summary><p>Los cambios se ven al instante en la vista previa. Exportar en la compu suele tardar menos que la duración del video.</p></details>
+  <details><summary>¿Es gratis?</summary><p>Sí, sin marca de agua y sin límite de videos.</p></details>
+</div></section>
+
+<footer><div class="w" style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px"><span>© 2026 Videora</span><span>Hecho para creadores</span></div></footer>
+
+<!-- ======================= APP ======================= -->
+<div id="app">
+  <div class="bar">
+    <button class="pill" id="back">← Volver</button>
+    <span class="pill save" id="saved">● Guardado</span>
+    <div id="status"><span class="track"><i id="prog"></i></span><span id="msg">Preparando…</span></div>
+    <span class="sp"></span>
+    <button class="pill" id="btnCut">✂ Recortar silencios</button>
+    <button class="btn sm" id="go" disabled>⬇ Exportar</button>
   </div>
-</div></section>
 
-<section><div class="w center">
-  <h2 class="rev">¿Por qué <span class="grad">Videora</span>?</h2>
-  <div class="tbl rev"><table>
-    <tr><th></th><th>Videora</th><th>Editar vos mismo</th><th>Editor freelance</th></tr>
-    <tr><td>Tiempo por video</td><td>2 minutos</td><td>1–3 horas</td><td>1–3 días</td></tr>
-    <tr><td>Costo por video</td><td>Gratis</td><td>Tu tiempo</td><td>$15–50</td></tr>
-    <tr><td>Subtítulos animados</td><td>✓ Automáticos</td><td>A mano</td><td>✓</td></tr>
-    <tr><td>Sin marca de agua</td><td>✓</td><td>Depende de la app</td><td>✓</td></tr>
-  </table></div>
-</div></section>
-
-<section style="background:var(--bg2)"><div class="w">
-  <div class="center"><h2 class="rev">Estilos que <span class="grad">ya son virales</span></h2><p class="sub rev">Elegí un estilo y la IA lo aplica a todo el video.</p></div>
-  <div class="tpl"><div>Viral<br>Instagram</div><div>Editorial<br>Story</div><div>Motiva<br>cional</div><div>Magazine</div><div>Texto<br>básico</div></div>
-</div></section>
-
-<section><div class="w center">
-  <h2 class="rev">Lo que dicen <span class="grad">los creadores</span></h2>
-  <div class="quotes" style="text-align:left">
-    <div class="card rev"><span class="stars">★★★★★</span><p>Pasé de subir 2 videos por semana a 1 por día. Mis views se triplicaron.</p><b>@sofi.fit · 84K seguidores</b></div>
-    <div class="card rev"><span class="stars">★★★★★</span><p>Le pagaba a un editor $200 al mes. Ahora lo hago gratis en el colectivo.</p><b>@mateo.negocios</b></div>
-    <div class="card rev"><span class="stars">★★★★★</span><p>Los subtítulos quedan iguales a los de los creadores grandes. Una locura.</p><b>@cami.cocina</b></div>
-    <div class="card rev"><span class="stars">★★★★★</span><p>Edito para 6 clientes con esto. Me cambió el negocio.</p><b>@lucas.social · Community manager</b></div>
-    <div class="card rev"><span class="stars">★★★★★</span><p>No puedo creer que sea gratis. Ya edité más de 50 videos.</p><b>@vale.viajes</b></div>
-    <div class="card rev"><span class="stars">★★★★★</span><p>Los cortes de silencio solos ya valen la pena.</p><b>@nico.tech</b></div>
+  <!-- step 1: configure -->
+  <div id="cfg">
+    <div class="cfgc">
+      <h2>Armá tu edición</h2>
+      <p>Ajustá lo que quieras mientras preparamos tu video. Todo se puede cambiar después.</p>
+      <div class="cfgg">
+        <div>
+          <div class="tg"><i>💬</i><div><b>Subtítulos animados</b><small>Palabra por palabra con énfasis automático.</small></div><label class="sw"><input type="checkbox" id="optCaps" checked><span></span></label></div>
+          <div class="tg"><i>🅰</i><div><b>Énfasis de texto</b><small>Palabras gigantes, detrás tuyo, con cursiva cruzando.</small></div><label class="sw"><input type="checkbox" id="optBig" checked><span></span></label></div>
+          <div class="tg"><i>🎞</i><div><b>B-Rolls automáticos</b><small>Fotos de apoyo en los momentos que lo piden.</small></div><label class="sw"><input type="checkbox" id="optPhotos" checked><span></span></label></div>
+          <div class="tg"><i>🪝</i><div><b>Hook textual</b><small>Frase de gancho inicial para frenar el scroll.</small></div><label class="sw"><input type="checkbox" id="optHook" checked><span></span></label></div>
+          <div class="tg"><i>🔍</i><div><b>Zooms automáticos</b><small>Acercamientos dinámicos a lo largo del video.</small></div><label class="sw"><input type="checkbox" id="optZoom" checked><span></span></label></div>
+          <div class="tg"><i>🔊</i><div><b>Efectos de sonido</b><small>Sincronizados con transiciones y énfasis.</small></div><label class="sw"><input type="checkbox" id="optSfx" checked><span></span></label></div>
+          <div class="tg"><i>✂️</i><div><b>Cortar silencios</b><small>Ritmo rápido sin pausas muertas.</small></div><label class="sw"><input type="checkbox" id="optCut" checked><span></span></label></div>
+        </div>
+        <div>
+          <div class="box">
+            <h3><span>🎬 Pantallas animadas <span class="tag">Recomendado</span></span><label class="sw"><input type="checkbox" id="optMG" checked><span></span></label></h3>
+            <small class="mut">Pantallas animadas sobre el tema de tu video: listas, números y frases clave.</small>
+            <div class="cards" id="mgCards"></div>
+          </div>
+          <div class="box">
+            <h3><span>🪪 Tarjetas de ideas</span><label class="sw"><input type="checkbox" id="optOverlay" checked><span></span></label></h3>
+            <small class="mut">Tarjetas con datos, citas e insights generadas desde lo que decís.</small>
+            <div class="cards ov" id="ovCards"></div>
+          </div>
+        </div>
+      </div>
+      <div class="cfgf">
+        <div class="grow"><span id="cfgMsg" class="mut" style="font-size:13px">Detectando los momentos clave…</span><div class="bigtrack"><i id="cfgProg"></i></div></div>
+        <button class="btn" id="cont">Continuar →</button>
+      </div>
+    </div>
   </div>
-</div></section>
 
-<section id="precios" style="background:var(--bg2)"><div class="w center">
-  <h2 class="rev">100% <span class="grad">gratis</span></h2>
-  <p class="sub rev">Sin planes, sin tarjeta, sin marca de agua. Subí, editá y publicá.</p>
-  <div class="grid price" style="grid-template-columns:1fr;max-width:420px;margin:52px auto 0;text-align:left">
-    <div class="card hot rev"><span class="badge">Gratis para siempre</span><h3 style="margin-top:10px">Todo incluido</h3><div class="amt">$0</div><span style="color:var(--mut)">sin vueltas</span>
-      <ul><li>Videos ilimitados</li><li>Todos los estilos</li><li>Zooms, sonidos y seguimiento de cara</li><li>Sin marca de agua</li></ul><a class="btn" href="#">Empezar gratis</a></div>
+  <!-- step 2: editor -->
+  <div id="ed">
+    <div class="stage">
+      <canvas id="cv" width="720" height="1280"></canvas>
+      <div class="ctl"><button class="round g" id="rw" aria-label="Volver al inicio">⏮</button><button class="round" id="pp" aria-label="Pausa">❚❚</button><button class="round g" id="mute" aria-label="Sonido">🔇</button></div>
+    </div>
+
+    <div class="panel">
+    <div class="ptabs"><button data-tab="r" class="sel">✦ Capas</button><button data-tab="l">Aa Estilo y texto</button></div>
+    <aside class="side hide" id="sideL">
+      <h4>Estilo y texto</h4>
+      <h5>LOOK DE SUBTÍTULOS</h5>
+      <div class="vs" id="vs">
+        <button data-v="hormozi"><b>Impacto</b><small>Fuerte, con recuadro</small></button>
+        <button data-v="editorial"><b>Historia</b><small>Cursiva narrativa</small></button>
+        <button data-v="viral"><b>Creador</b><small>Limpio con palabra clave</small></button>
+        <button data-v="coral"><b>Coral</b><small>Tarjeta y tonos cálidos</small></button>
+        <button data-v="minimal"><b>Franja</b><small>Texto sobre banda oscura</small></button>
+      </div>
+      <select id="style" hidden><option value="viral">viral</option><option value="hormozi">hormozi</option><option value="editorial">editorial</option><option value="coral">coral</option><option value="minimal">minimal</option></select>
+
+      <h5>TIPOGRAFÍA Y COLOR</h5>
+      <label class="fld">Texto base<select id="fBase" class="fontsel"></select></label>
+      <label class="fld">Tamaño del texto base<input type="range" id="sBase" min=".7" max="1.5" step=".05" value="1"></label>
+      <label class="fld">Palabra destacada (texto gigante)<select id="fKey" class="fontsel"></select></label>
+      <label class="fld">Tamaño de la palabra destacada<input type="range" id="sKey" min=".6" max="1.4" step=".05" value="1"></label>
+      <label class="fld">Acento cursivo<select id="fAccent" class="fontsel"></select></label>
+      <label class="fld">Tamaño del acento<input type="range" id="sAccent" min=".6" max="1.5" step=".05" value="1"></label>
+      <div class="fld">Color del texto<div class="sws" data-for="cBase"></div></div>
+      <div class="fld">Color de la palabra clave<div class="sws" data-for="cKey"></div></div>
+      <input type="hidden" id="cBase" value="auto"><input type="hidden" id="cKey" value="auto">
+      <label class="fld">Color del video<select id="grade"><option value="none">Natural</option><option value="warm">Cálido</option><option value="teal">Cine (teal & orange)</option><option value="punch">Contraste vivo</option><option value="film">Película</option><option value="bw">Blanco y negro</option></select></label>
+      <label class="fld">Importar tu fuente (.ttf .otf .woff)<input type="file" id="fontFile" accept=".ttf,.otf,.woff,.woff2"></label>
+
+      <h5>TEXTO Y AUDIO</h5>
+      <label class="fld">Idioma del video<select id="lang"><option value="spanish">Español</option><option value="english">Inglés</option><option value="portuguese">Portugués</option></select></label>
+      <label class="fld">Precisión<select id="quality"><option value="base">Rápida (80 MB)</option><option value="small">Alta (250 MB)</option></select></label>
+      <label class="fld">Subtítulos<select id="task"><option value="transcribe">Mismo idioma</option><option value="translate">Traducir al inglés</option></select></label>
+      <label class="fld">Lo que decís (podés corregirlo)<textarea id="txt" placeholder="Acá aparece lo que decís en el video."></textarea></label>
+      <label class="fld">Palabra para comentar al final (opcional)<input id="ctaWord" maxlength="20" placeholder="Ej: INFO (si lo decís, se detecta solo)"></label>
+      <button class="btn sm ghost" id="ai">↻ Transcribir de nuevo</button>
+    </aside>
+
+    <aside class="side r" id="sideR">
+      <h4>Capas de edición</h4>
+      <details class="acc" open><summary><span class="on-dot"></span>Arranque (hook)</summary><div class="in">
+        <div class="row">Activar efecto<label class="sw"><input type="checkbox" data-mirror="optHook"><span></span></label></div>
+        <div class="chips" data-sel="hookFx"><button data-v="flash">⚡ Flash</button><button data-v="blur">◎ Blur</button><button data-v="cine">🎬 Cine</button><button data-v="none">Ninguno</button></div>
+        <input type="hidden" id="hookFx" value="flash">
+      </div></details>
+      <details class="acc"><summary><span class="on-dot"></span>Marco con título</summary><div class="in">
+        <div class="row">Video en tarjeta con título arriba<label class="sw"><input type="checkbox" id="optFrame"><span></span></label></div>
+      </div></details>
+      <details class="acc"><summary><span class="on-dot"></span>Zonas seguras</summary><div class="in">
+        <div class="row">Ver interfaz de TikTok/Reels (no se exporta)<label class="sw"><input type="checkbox" id="optSafe"><span></span></label></div>
+      </div></details>
+      <details class="acc"><summary><span class="on-dot"></span>Tarjetas de ideas</summary><div class="in">
+        <div class="row">Smart overlays<label class="sw"><input type="checkbox" data-mirror="optOverlay"><span></span></label></div>
+        <div class="chips" data-sel="ovStyle"><button data-v="glass">Vidrio</button><button data-v="neon">Neón</button><button data-v="mono">Revista</button><button data-v="graph">Cuaderno</button><button data-v="femtech">Rosa</button><button data-v="cyber">Terminal</button></div>
+        <input type="hidden" id="ovStyle" value="glass">
+      </div></details>
+      <details class="acc"><summary><span class="on-dot"></span>Texto detrás tuyo</summary><div class="in">
+        <div class="row">Palabras gigantes detrás tuyo<label class="sw"><input type="checkbox" data-mirror="optBig"><span></span></label></div>
+      </div></details>
+      <details class="acc"><summary><span class="on-dot"></span>Números animados</summary><div class="in">
+        <div class="row">Números que cuentan (ej: "30 días")<label class="sw"><input type="checkbox" id="optStats" checked><span></span></label></div>
+      </div></details>
+      <details class="acc"><summary><span class="on-dot"></span>Pantallas animadas</summary><div class="in">
+        <div class="row">Pantallas animadas<label class="sw"><input type="checkbox" data-mirror="optMG"><span></span></label></div>
+        <div class="chips" data-sel="mg"><button data-v="auto">Auto</button><button data-v="bw">Prensa</button><button data-v="cine">Noir</button><button data-v="photo">Foto real</button><button data-v="vintage">Collage</button><button data-v="coral">Coral</button><button data-v="dark">Noche</button><button data-v="neonpink">Neón rosa</button><button data-v="clean">Claro</button></div>
+        <input type="hidden" id="mg" value="auto">
+      </div></details>
+      <details class="acc"><summary><span class="on-dot"></span>Fotos de apoyo</summary><div class="in">
+        <div class="row">Fotos automáticas<label class="sw"><input type="checkbox" data-mirror="optPhotos"><span></span></label></div>
+        <label class="fld">Tus fotos (opcional; si no subís, las busca solas)<input type="file" id="photos" accept="image/*" multiple></label>
+      </div></details>
+      <details class="acc"><summary><span class="on-dot"></span>Efectos visuales</summary><div class="in">
+        <div class="row">Glitch, destellos y zoom látigo<label class="sw"><input type="checkbox" id="optFx" checked><span></span></label></div>
+        <div class="row">Emojis<label class="sw"><input type="checkbox" id="optEmoji" checked><span></span></label></div>
+        <div class="row">Barra de progreso<label class="sw"><input type="checkbox" id="optBar" checked><span></span></label></div>
+        <div class="row">Zooms automáticos<label class="sw"><input type="checkbox" data-mirror="optZoom"><span></span></label></div>
+      </div></details>
+      <details class="acc"><summary><span class="on-dot"></span>Subtítulos y sonido</summary><div class="in">
+        <div class="row">Subtítulos<label class="sw"><input type="checkbox" data-mirror="optCaps"><span></span></label></div>
+        <div class="row">Efectos de sonido<label class="sw"><input type="checkbox" data-mirror="optSfx"><span></span></label></div>
+        <div class="row">Cortar silencios<label class="sw"><input type="checkbox" data-mirror="optCut"><span></span></label></div>
+      </div></details>
+    </aside>
+
+    </div>
+    <div class="tlw"><div class="lbl"><span>Video</span><span>Subtítulos</span></div><canvas id="tl" height="76"></canvas></div>
   </div>
-</div></section>
 
-<section id="faq"><div class="w">
-  <h2 class="center rev">Preguntas frecuentes</h2>
-  <div class="faq">
-    <details><summary>¿Tengo que descargar algo?</summary><p>No. Funciona 100% en el navegador, desde la compu o el celular.</p></details>
-    <details><summary>¿Cuánto tarda en editar un video?</summary><p>En general menos de 2 minutos para un video de 60 segundos.</p></details>
-    <details><summary>¿Puedo cambiar los subtítulos después?</summary><p>Sí. Podés corregir palabras, cambiar el estilo y los colores antes de exportar.</p></details>
-    <details><summary>¿Funciona en español?</summary><p>Sí, y también en inglés y portugués. Reconoce acentos de toda Latinoamérica.</p></details>
-    <details><summary>¿Es gratis de verdad?</summary><p>Sí. Sin planes pagos, sin tarjeta y sin marca de agua.</p></details>
+  <div class="dlbox" id="dlbox" hidden>
+    <b>¡Tu video está listo!</b>
+    <span class="mut" style="font-size:13px">Descargalo y subilo a TikTok, Reels o Shorts.</span>
+    <a class="btn" id="dl" hidden>⬇ Descargar video</a>
+    <button class="btn sm ghost" id="dlx">Cerrar</button>
   </div>
-</div></section>
+</div>
 
-<section style="padding-top:0"><div class="w">
-  <div class="cta center rev">
-    <h2>Tu próximo viral<br><span class="grad">está a un clic.</span></h2>
-    <p class="sub" style="margin-bottom:30px">100% gratis. Sin tarjeta. Sin marca de agua.</p>
-    <a class="btn" href="#">Editar mi primer video →</a>
-  </div>
-</div></section>
-
-<footer><div class="w">
-  <span>© 2026 Videora</span>
-  <nav><a href="#">Términos</a><a href="#">Privacidad</a><a href="#">Reembolsos</a><a href="#">Soporte</a></nav>
-</div></footer>
-
-<script>
-const io=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting){x.target.classList.add('on');io.unobserve(x.target)}}),{threshold:.15});
-document.querySelectorAll('.rev').forEach(el=>io.observe(el));
-</script>
 <script type="module" src="editor.js"></script>
+<script type="module" src="ui.js"></script>
 </body>
 </html>
