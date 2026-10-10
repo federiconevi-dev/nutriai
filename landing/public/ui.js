@@ -63,7 +63,7 @@ function syncAll() {
 $('#btnCut').onclick = () => { const c = $('#optCut'); c.checked = !c.checked; c.dispatchEvent(new Event('change')); syncAll(); };
 
 // ---- Autosave settings (this browser only) ----
-const KEY = 'videora-settings';
+const KEY = 'videora-settings-v2';
 const saveable = () => $$('#app input[id], #app select[id]').filter(el => el.type !== 'file' && el.id !== 'ctaWord');
 function restore() {
   let s = null; try { s = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { /* storage blocked */ }
@@ -185,7 +185,8 @@ async function direct(request = '') {
     const r = await fetch('/api/ai-direct', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: $('#txt').value, request, current: currentSettings() }) });
     const j = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(j.error || 'La IA no respondió.');
-    for (const [k, val] of Object.entries(j.settings || {})) { const el = $('#' + k); if (el && el.value !== val) { el.value = val; fire(el); } }
+    // In automatic mode keep our curated typography and colors; fonts/colors change only when asked.
+    for (const [k, val] of Object.entries(j.settings || {})) { if (!request && /^(fBase|fKey|fAccent|cKey|grade)$/.test(k)) continue; const el = $('#' + k); if (el && el.value !== val) { el.value = val; fire(el); } }
     // In automatic mode the AI can only switch extra features on (the full edit stays); turning things off needs a request.
     for (const [k, val] of Object.entries(j.toggles || {})) { if (!request && !val && k !== 'optFrame') continue; const el = $('#' + k); if (el && el.checked !== val) { el.checked = val; el.dispatchEvent(new Event('change', { bubbles: true })); } }
     if (j.hookTitle) VE.setHook(j.hookTitle);

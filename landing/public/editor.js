@@ -408,11 +408,21 @@ function creamBg(t) {
 }
 function listScreen(L, t) {
   const TH = theme(); screenBg(t);
-  const cardW = W * .92, cardH = 128, x0 = (W - cardW) / 2, top = 280;
+  const cardW = W * .92, cardH = 128, x0 = (W - cardW) / 2, n = L.items.length;
+  const top = Math.max(250, (H - n * 156) / 2 + 60);
+  // Heading: "3 claves" — giant number + italic word, fades in with the screen.
+  const hk = ease((t - L.s) / .5);
+  cx.save(); cx.globalAlpha = hk; cx.textBaseline = 'alphabetic'; cx.textAlign = 'left';
+  cx.font = ANTON(150); const nw = cx.measureText(String(n)).width;
+  cx.font = SERIF(84); const ww = cx.measureText('claves').width;
+  const hx = (W - nw - 18 - ww) / 2, hy = top - 60 + 20 * (1 - hk);
+  cx.font = ANTON(150); cx.fillStyle = TH.accent; cx.fillText(String(n), hx, hy);
+  cx.font = SERIF(84); cx.fillStyle = TH.ink; cx.fillText('claves', hx + nw + 18, hy - 8);
+  cx.restore();
   L.items.forEach((it, k) => {
     const lt = t - it.at, y = top + k * 156;
     // big number pop before the card lands
-    if (lt > -.05 && lt < .75) {
+    if (lt > 0 && lt < .75) {
       const a = back(lt / .28), o = lt > .5 ? 1 - ease((lt - .5) / .25) : 1, cy = y + cardH / 2 + 60;
       cx.save(); cx.globalAlpha = Math.max(0, o);
       for (let p = 0; p < 22; p++) {
@@ -544,6 +554,20 @@ function updateMask() {
     return (maskReady = true);
   } catch (e) { console.warn(e); return false; }
 }
+let bigRect = { x0: 0, y0: 0, w: 0, h: 0 };
+// Share of the giant word's box hidden by the person (0..1), read from the last silhouette mask.
+function maskCoverage(r, x, y, w, h) {
+  if (!maskImg || !r.w) return 0;
+  const mw = maskCv.width, mh = maskCv.height, d = maskImg.data;
+  let hit = 0, n = 0;
+  for (let i = 0; i < 12; i++) for (let j = 0; j < 4; j++) {
+    const u = (r.x0 + r.w * (i + .5) / 12 - x) / w, q = (r.y0 + r.h * (j + .5) / 4 - y) / h;
+    n++;
+    if (u < 0 || u >= 1 || q < 0 || q >= 1) continue;
+    if (d[(Math.floor(q * mh) * mw + Math.floor(u * mw)) * 4 + 3] > 128) hit++;
+  }
+  return hit / n;
+}
 function drawPerson(x, y, w, h) {
   pcx.globalCompositeOperation = 'source-over'; pcx.clearRect(0, 0, W, H);
   pcx.drawImage(curSrc, x, y, w, h);
@@ -572,7 +596,7 @@ const AI_STYLE = {
   clean: 'clean minimal 3D illustration, white background, soft blue accents, soft shadows'
 };
 const aiCache = new Map(), promptCache = new Map();
-let aiDown = false, aiQueue = Promise.resolve();
+let aiDown = false, aiFails = 0, aiQueue = Promise.resolve();
 // Art direction on the server: what you say → short English visual prompts (one request for all moments).
 async function planPrompts(subjects) {
   const need = [...new Set(subjects)].filter(x => !promptCache.has(x));
@@ -594,7 +618,7 @@ function aiImage(subject, seed = 1) {
     img.src = `/api/ai-image?p=${encodeURIComponent(prompt)}&s=${seed}`;
     await Promise.race([img.decode(), new Promise((_, ko) => setTimeout(() => ko(new Error('timeout')), 40000))]);
     return img;
-  }).catch(e => { aiDown = true; console.warn('ai image unavailable, using photos', e); return null; });
+  }).catch(e => { if (++aiFails >= 3) aiDown = true; aiCache.delete(prompt); console.warn('ai image failed', e); return null; });
   aiQueue = job.then(() => {}, () => {});
   aiCache.set(prompt, job);
   return job;
@@ -671,7 +695,7 @@ function makeBeats(P) {
     if (k < 0) k = hw.reduce((b, w, i) => clean(w.t).length > clean(hw[b].t).length ? i : b, 0);
     const pick = hw.slice(k, k + (isNum(hw[k].t) && hw[k + 1] ? 2 : 1));
     const text = pick.map(w => clean(w.t)).join(' ').toUpperCase();
-    const small = hw.filter(w => !pick.includes(w)).slice(0, 5).map(w => w.t.replace(/[.,;:!?]+$/, '')).join(' ').toLowerCase();
+    const small = aiHookTitle ? aiHookTitle.toLowerCase() : hw.filter(w => !pick.includes(w)).slice(0, 5).map(w => w.t.replace(/[.,;:!?]+$/, '')).join(' ').toLowerCase();
     if (text) { B.big.push({ s: words[0].s, e: Math.max(words[0].s + 1.8, pick.at(-1).e + .6), text, small, hook: true, n: 0 }); busyRanges.push([words[0].s, B.big[0].e]); }
   }
   if (on('optBig')) {
@@ -711,7 +735,7 @@ function bigFont(size, coral) {
 }
 function bigLayout(b, coral) {
   let size = Math.round((coral ? 250 : 330) * +val('sKey', 1)); cx.font = bigFont(size, coral);
-  while (cx.measureText(b.text).width > W * .92 && size > 90) { size -= 10; cx.font = bigFont(size, coral); }
+  while (cx.measureText(b.text).width > W * .88 && size > 70) { size -= 10; cx.font = bigFont(size, coral); }
   return size;
 }
 // Back layer: giant word (behind the person when the cutout is available).
@@ -721,6 +745,7 @@ function drawBig(b, t, coral) {
   const first = text.split(' ')[0], num = /^\d+$/.test(first) ? +first : null;
   if (num !== null && num > 1 && num < 100000) text = [Math.round(num * ease(age / .6)), ...text.split(' ').slice(1)].join(' ');
   const size = bigLayout(b, coral);
+  bigRect = { x0: W / 2 - cx.measureText(b.text).width / 2, y0: H * .19 - size * .45, w: cx.measureText(b.text).width, h: size * .9 };
   const mode = b.hook ? 'slam' : ['slam', 'track', 'rise', 'outline'][b.n % 4];
   const fill = coral && b.n % 2 ? '#F0452F' : '#ffffff';
   cx.save();
@@ -729,11 +754,11 @@ function drawBig(b, t, coral) {
   cx.textAlign = 'center'; cx.textBaseline = 'middle';
   cx.shadowColor = 'rgba(0,0,0,.3)'; cx.shadowBlur = 40;
   if (mode === 'slam') {
-    const k = back(age / .3), sh = age > .28 && age < .45 ? (Math.random() - .5) * 16 : 0;
-    cx.scale(1.7 - .7 * k, 1.7 - .7 * k); cx.translate(sh, sh * .5); blur(14 * (1 - ease(age / .25)));
+    const k = back(age / .3), sh = age > .28 && age < .45 ? (Math.random() - .5) * 10 : 0;
+    const sc0 = Math.min(1.35, W * .98 / Math.max(1, cx.measureText(text).width)); cx.scale(sc0 - (sc0 - 1) * k, sc0 - (sc0 - 1) * k); cx.translate(sh, sh * .5); blur(14 * (1 - ease(age / .25)));
     cx.fillStyle = fill; cx.fillText(text, 0, 0);
   } else if (mode === 'track') {
-    const k = ease(age / .7), sp = size * (.45 - .43 * k), letters = [...text];
+    const k = ease(age / .5), sp = size * (.12 - .1 * k), letters = [...text];
     const ws = letters.map(l => cx.measureText(l).width), tot = ws.reduce((a, b2) => a + b2, 0) + sp * (letters.length - 1);
     let x = -tot / 2; cx.textAlign = 'left'; cx.globalAlpha *= Math.min(1, age / .25); cx.fillStyle = fill;
     letters.forEach((l, i) => { cx.fillText(l, x, 0); x += ws[i] + sp; });
@@ -759,10 +784,11 @@ function drawBigSmall(b, t, coral) {
   if (age <= 0) return;
   const size = bigLayout(b, coral), TH = theme();
   let fs = Math.max(56, size * .42) * +val('sAccent', 1); cx.font = SERIF(fs);
-  while (cx.measureText(b.small).width > W * .86 && fs > 36) { fs -= 4; cx.font = SERIF(fs); }
+  while (cx.measureText(b.small).width > W * .84 && fs > 30) { fs -= 4; cx.font = SERIF(fs); }
   const k = ease(age / .45), tw = cx.measureText(b.small).width;
   cx.save();
-  cx.translate(W / 2 + W * .05, H * .19 + size * .36 - 10 * (1 - k)); cx.rotate(-.07);
+  const cxp = Math.min(W - 24 - tw / 2, Math.max(24 + tw / 2, W / 2 + W * .05));
+  cx.translate(cxp, H * .19 + size * .36 - 10 * (1 - k)); cx.rotate(-.05);
   cx.globalAlpha = 1 - outK; cx.textAlign = 'center'; cx.textBaseline = 'middle';
   cx.beginPath(); cx.rect(-tw / 2 - 20, -fs, (tw + 40) * k, fs * 2); cx.clip();
   cx.shadowColor = 'rgba(0,0,0,.45)'; cx.shadowBlur = 18; cx.shadowOffsetY = 3;
@@ -775,35 +801,25 @@ function coverDraw(img, alpha, zoom, dx) {
   const s = Math.max(W / iw, H / ih) * zoom, w = iw * s, h = ih * s;
   cx.globalAlpha = alpha; cx.drawImage(img, (W - w) / 2 + dx, (H - h) / 2, w, h); cx.globalAlpha = 1;
 }
-function drawPhoto(ph, t, coral) {
+// B-roll: clean full-screen cutaway with a slow push-in (no filters over the face).
+function drawPhoto(ph, t) {
   if (!ph.img) return false;
-  const age = t - ph.s, left = ph.e - t, k = Math.min(ease(age / .35), ease(left / .35));
-  if (ph.n % 2 === 0) {
-    // Double exposure: photo semi-transparent over the whole frame, you stay on top (if cutout available)
-    blur(8 * (1 - k)); coverDraw(ph.img, .55 * k, 1.05 + .1 * (age / 2), -20 + 40 * (age / 2)); blur(0);
-    const g = cx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, `rgba(0,0,0,${.25 * k})`); g.addColorStop(.6, 'rgba(0,0,0,0)');
-    cx.fillStyle = g; cx.fillRect(0, 0, W, H);
-    return true;
-  }
-  // Floating card: tilted photo that slides in, slightly transparent
-  const iw = ph.img.naturalWidth, ih = ph.img.naturalHeight, cw = W * .62, chh = Math.min(H * .32, cw * ih / iw);
-  cx.save();
-  cx.translate(W / 2 + 160 * (1 - k) * (ph.n % 4 === 1 ? -1 : 1), H * .26); cx.rotate((ph.n % 4 === 1 ? -1 : 1) * (.06 + .03 * (1 - k)));
-  cx.scale(.85 + .15 * back(age / .4), .85 + .15 * back(age / .4)); cx.globalAlpha = .92 * k;
-  cx.shadowColor = 'rgba(0,0,0,.4)'; cx.shadowBlur = 40; cx.shadowOffsetY = 16;
-  rrect(-cw / 2 - 12, -chh / 2 - 12, cw + 24, chh + 24, 22); cx.fillStyle = coral ? '#F4EFE6' : '#fff'; cx.fill(); cx.shadowColor = 'transparent';
-  cx.save(); rrect(-cw / 2, -chh / 2, cw, chh, 14); cx.clip();
-  const s = Math.max(cw / iw, chh / ih) * (1.05 + .08 * age / 2); cx.drawImage(ph.img, -iw * s / 2, -ih * s / 2, iw * s, ih * s);
-  cx.restore(); cx.restore();
+  const age = t - ph.s, left = ph.e - t, k = Math.min(ease(age / .25), ease(left / .25));
+  cx.save(); cx.globalAlpha = k;
+  cx.fillStyle = '#000'; cx.fillRect(0, 0, W, H);
+  coverDraw(ph.img, k, 1.04 + .06 * (age / 2), 0);
+  const g = cx.createLinearGradient(0, H * .55, 0, H); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, `rgba(0,0,0,${.55 * k})`);
+  cx.fillStyle = g; cx.fillRect(0, 0, W, H);
+  cx.restore();
   return false;
 }
 function drawEmoji(ci, ch, t) {
   const e = plan && plan.beats && plan.beats.emoji.get(ci);
   if (!e || !ch) return;
   const age = t - ch.s, k = back(age / .3);
-  cx.save(); cx.translate(W / 2, H * .6 - 10 * Math.sin(age * 5) * Math.exp(-age * 2));
+  cx.save(); cx.translate(W * .84, H * .6 - 10 * Math.sin(age * 5) * Math.exp(-age * 2));
   cx.rotate(.25 * Math.sin(age * 8) * Math.exp(-age * 3)); cx.scale(k, k);
-  cx.font = '84px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; cx.textAlign = 'center'; cx.textBaseline = 'middle';
+  cx.font = '64px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; cx.textAlign = 'center'; cx.textBaseline = 'middle';
   cx.fillText(e, 0, 0); cx.restore();
 }
 const rgba = (hex, a) => { const n = parseInt(hex.slice(1), 16); return `rgba(${n >> 16 & 255},${n >> 8 & 255},${n & 255},${a})`; };
@@ -836,7 +852,10 @@ function fxLayer(t, ot, P, x, y, w, h, coral) {
   let doubleExp = false;
   if (photo) doubleExp = drawPhoto(photo, t, coral);
   if (big) drawBig(big, t, coral);
-  if ((big || doubleExp) && on('optBig')) { if (!seg) loadSeg(); else if (updateMask()) drawPerson(x, y, w, h); }
+  if ((big || doubleExp) && on('optBig')) {
+    if (!seg) loadSeg();
+    else if (updateMask() && (!big || maskCoverage(bigRect, x, y, w, h) < .4)) drawPerson(x, y, w, h);
+  }
   if (big) drawBigSmall(big, t, coral);
   if (busy) {
     const nb = B.big.find(b => !b.hook && t >= b.s - .55 && t < b.s);
@@ -849,12 +868,10 @@ function fxLayer(t, ot, P, x, y, w, h, coral) {
 // Called last: transitions on top of everything.
 function fxTop(t, ot, P, si) {
   if (!on('optFx')) return;
-  if (on('optHook') && ot < .3) glitch(ot / .3);
+  if (on('optHook') && hookFx() === 'flash' && ot < .2) glitch(ot / .2);
   const g = si >= 0 ? P.segs[si] : null;
   if (g && si > 0 && si % 3 === 0 && t - g.s < .15) glitch((t - g.s) / .15);
   const B = P.beats; if (!B) return;
-  for (const b of B.big) if (t >= b.s && t < b.s + .7) lightLeak((t - b.s) / .7, b.s);
-  if (ot < .9) lightLeak(ot / .9, 1);
 }
 function whip(t, si, P) {
   if (!on('optFx') || si < 1) return 1;
