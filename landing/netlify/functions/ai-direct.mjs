@@ -37,6 +37,7 @@ ${GUIDE}
 Also write "hookTitle": a short, punchy on-screen hook (max 8 words) in the SAME language as the transcript, based on its real content (no clickbait lies), and "reason": one sentence in Spanish (rioplatense) explaining the choice to the creator.
 Reply with ONLY one JSON object: {"style":..,"mg":..,"ovStyle":..,"hookFx":..,"grade":..,"fBase":..,"fKey":..,"fAccent":..,"cKey":..,"toggles":{..},"hookTitle":..,"reason":..}`;
   const user = `Transcript: ${text || '(no speech)'}\nCurrent settings: ${current}${request ? `\nUser request: ${request}` : ''}`;
+  let last = '';
   for (const model of ['@cf/meta/llama-3.3-70b-instruct-fp8-fast', '@cf/meta/llama-3.1-8b-instruct']) {
     try {
       const res = await fetch(`https://api.cloudflare.com/client/v4/accounts/${account}/ai/run/${model}`, {
@@ -44,9 +45,11 @@ Reply with ONLY one JSON object: {"style":..,"mg":..,"ovStyle":..,"hookFx":..,"g
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ messages: [{ role: 'system', content: system }, { role: 'user', content: user }], max_tokens: 700, temperature: 0.4 })
       });
-      if (!res.ok) continue;
+      if (!res.ok) { last = `${model} ${res.status} ${(await res.text()).slice(0, 200)}`; continue; }
       const data = await res.json();
-      const out = String((data.result && data.result.response) || '');
+      const r0 = data.result && data.result.response;
+      const out = typeof r0 === 'string' ? r0 : JSON.stringify(r0 || '');
+      last = `${model}: ${out.slice(0, 300)}`;
       const m = out.match(/\{[\s\S]*\}/);
       if (!m) continue;
       const raw = JSON.parse(m[0]);
@@ -55,9 +58,10 @@ Reply with ONLY one JSON object: {"style":..,"mg":..,"ovStyle":..,"hookFx":..,"g
       const toggles = {};
       if (raw.toggles && typeof raw.toggles === 'object') for (const k of TOGGLES) if (typeof raw.toggles[k] === 'boolean') toggles[k] = raw.toggles[k];
       return Response.json({ settings, toggles, hookTitle: String(raw.hookTitle || '').slice(0, 70), reason: String(raw.reason || '').slice(0, 300), model });
-    } catch { /* try the next model */ }
+    } catch (e) { last += ` | ${e.message}`; }
   }
-  return Response.json({ error: 'La IA no respondió. Probá de nuevo.' }, { status: 502 });
+  console.log('ai-direct failed', last);
+  return Response.json({ error: 'La IA no respondió. Probá de nuevo.', detail: last.slice(0, 400) }, { status: 502 });
 };
 
 export const config = { path: '/api/ai-direct', method: 'POST' };
