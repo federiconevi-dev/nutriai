@@ -662,19 +662,29 @@ async function planPrompts(subjects) {
     need.forEach((x, i) => promptCache.set(x, (j.prompts && j.prompts[i]) || x));
   } catch (e) { console.warn('ai plan unavailable', e); need.forEach(x => promptCache.set(x, x)); }
 }
-// One image from FLUX on Cloudflare (via our server). Same prompt = cached, never paid twice.
-function aiImage(subject, seed = 1) {
-  const prompt = `${promptCache.get(subject) || subject}, ${AI_STYLE[themeKey()] || AI_STYLE.photo}, no text, no letters`;
+// One image from FLUX on Cloudflare (via our server). Same prompt = cached; 3 requests at a time.
+// The look is the same for every editing style, so switching styles never throws the images away.
+const AI_LOOK = 'cinematic photorealistic, dramatic soft lighting, rich detail, shallow depth of field';
+const aiPending = new Set();
+let aiActive = 0; const aiWait = [];
+const aiSlot = () => aiActive < 3 ? (aiActive++, Promise.resolve()) : new Promise(r => aiWait.push(r)).then(() => { aiActive++; });
+const aiFree = () => { aiActive--; const n = aiWait.shift(); if (n) n(); };
+function aiImage(subject) {
+  const prompt = `${promptCache.get(subject) || subject}, ${AI_LOOK}, no text, no letters`;
   if (aiCache.has(prompt)) return aiCache.get(prompt);
-  const job = aiQueue.then(async () => {
+  const job = (async () => {
     if (aiDown) return null;
-    const img = new Image();
-    img.src = `/api/ai-image?p=${encodeURIComponent(prompt)}&s=${seed}`;
-    await Promise.race([img.decode(), new Promise((_, ko) => setTimeout(() => ko(new Error('timeout')), 40000))]);
-    return img;
-  }).catch(e => { if (++aiFails >= 3) aiDown = true; aiCache.delete(prompt); console.warn('ai image failed', e); return null; });
-  aiQueue = job.then(() => {}, () => {});
-  aiCache.set(prompt, job);
+    await aiSlot();
+    try {
+      const r = await fetch(`/api/ai-image?p=${encodeURIComponent(prompt)}`);
+      if (r.status === 503 || r.status === 404) { aiDown = true; return null; }      // not configured
+      if (!r.ok) { aiCache.delete(prompt); return null; }                            // one refused image: just skip it
+      const img = new Image(); img.src = URL.createObjectURL(await r.blob()); await img.decode();
+      return img;
+    } catch (e) { if (++aiFails >= 5) aiDown = true; aiCache.delete(prompt); return null; }
+    finally { aiFree(); }
+  })();
+  aiCache.set(prompt, job); aiPending.add(job); job.finally(() => aiPending.delete(job));
   return job;
 }
 // Fetches art for every screen and b-roll of the current plan (prompts first, then images in order of appearance).
@@ -688,7 +698,7 @@ async function loadAiArt(P) {
   if (on('optPhotos')) pickBroll();
   await planPrompts(items.map(x => x.subj));
   if (P !== plan) return;
-  await Promise.all(items.map(x => aiImage(x.subj, x.seed).then(img => { if (img) { x.o.img = img; dirty = true; } })));
+  await Promise.all(items.map(x => aiImage(x.subj).then(img => { if (img) { x.o.img = img; dirty = true; } })));
 }
 function contextAround(i, n = 5) { return words.slice(Math.max(0, i - n), i + n).map(w => w.t.replace(/[.,;:!?]+$/, '')).join(' '); }
 let curScreen = null;
@@ -1533,7 +1543,9 @@ async function fastExport() {
 
   // Everything the frames need must be ready before we start.
   msg('Terminando las imágenes IA…');
-  await Promise.race([aiQueue, new Promise(r => setTimeout(r, 30000))]);
+  if (brollFor === null && on('optAI') && on('optPhotos')) await pickBroll();
+  const t0w = performance.now();
+  while (aiPending.size && performance.now() - t0w < 45000) { msg(`Terminando las imágenes IA… (${aiPending.size})`); await Promise.race([...aiPending, new Promise(r => setTimeout(r, 1500))]); }
 
   if (on('optBig')) await loadSeg();
   await ensureFonts();
