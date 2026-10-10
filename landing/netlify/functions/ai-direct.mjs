@@ -1,3 +1,4 @@
+import { ollamaChat } from '../lib/ollama.mjs';
 // AI director: reads what the person says and picks the whole edit (or applies a change asked in plain words).
 // POST /api/ai-direct { text, request?, current? } → { settings, hookTitle, reason }
 const ALLOWED = {
@@ -59,6 +60,18 @@ Reply with ONLY one JSON object: {"style":..,"mg":..,"ovStyle":..,"hookFx":..,"g
       if (raw.toggles && typeof raw.toggles === 'object') for (const k of TOGGLES) if (typeof raw.toggles[k] === 'boolean') toggles[k] = raw.toggles[k];
       return Response.json({ settings, toggles, hookTitle: String(raw.hookTitle || '').slice(0, 70), reason: String(raw.reason || '').slice(0, 300), model });
     } catch (e) { last += ` | ${e.message}`; }
+  }
+  const alt = await ollamaChat(system, user);
+  const m2 = alt.match(/\{[\s\S]*\}/);
+  if (m2) {
+    try {
+      const raw = JSON.parse(m2[0]);
+      const settings = {};
+      for (const [k, list] of Object.entries(ALLOWED)) if (list.includes(raw[k])) settings[k] = raw[k];
+      const toggles = {};
+      if (raw.toggles && typeof raw.toggles === 'object') for (const k of TOGGLES) if (typeof raw.toggles[k] === 'boolean') toggles[k] = raw.toggles[k];
+      return Response.json({ settings, toggles, hookTitle: String(raw.hookTitle || '').slice(0, 70), reason: String(raw.reason || '').slice(0, 300), model: 'ollama' });
+    } catch (e) { last += ` | ollama ${e.message}`; }
   }
   console.log('ai-direct failed', last);
   return Response.json({ error: 'La IA no respondió. Probá de nuevo.', detail: last.slice(0, 400) }, { status: 502 });

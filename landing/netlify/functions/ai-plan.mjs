@@ -1,3 +1,4 @@
+import { ollamaChat } from '../lib/ollama.mjs';
 // Art direction: turns what the person says (usually Spanish) into short English image prompts, one per moment.
 // POST /api/ai-plan  { text, subjects: string[] }  →  { prompts: string[] }
 const MODELS = ['@cf/meta/llama-3.3-70b-instruct-fp8-fast', '@cf/meta/llama-3.1-8b-instruct'];
@@ -29,6 +30,11 @@ export default async (req) => {
       });
       return Response.json({ prompts, model });
     } catch { /* try next model */ }
+  }
+  const alt = await ollamaChat(system, user);
+  if (alt) {
+    const prompts = subjects.map((s2, i) => { const m = alt.match(new RegExp(`^\\s*${i + 1}\\s*[:.)-]\\s*(.+)$`, 'm')); return m ? m[1].replace(/^["']|["']$/g, '').trim() : s2; });
+    return Response.json({ prompts, model: 'ollama' });
   }
   return Response.json({ prompts: subjects, fallback: true });
 };
