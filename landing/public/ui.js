@@ -167,3 +167,36 @@ tl.onclick = e => { const r = tl.getBoundingClientRect(); v.currentTime = (e.cli
 // ---- Export result ----
 window.onExported = () => { $('#dlbox').hidden = false; };
 $('#dlx').onclick = () => { $('#dlbox').hidden = true; };
+
+// ---- AI director: picks the whole edit after transcription, and applies changes asked in plain words ----
+const recEls = [$('#aiRec'), $('#aiRec2')];
+const setRec = t => recEls.forEach(el => { el.textContent = t; });
+function currentSettings() {
+  const s = {};
+  saveable().forEach(el => { s[el.id] = el.type === 'checkbox' ? el.checked : el.value; });
+  return s;
+}
+let directing = false;
+async function direct(request = '') {
+  if (directing) return;
+  directing = true; $('#aiGo').disabled = $('#aiAuto').disabled = true;
+  setRec(request ? '✨ Aplicando tu pedido…' : '✨ La IA está eligiendo la mejor edición para tu video…');
+  try {
+    const r = await fetch('/api/ai-direct', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: $('#txt').value, request, current: currentSettings() }) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j.error || 'La IA no respondió.');
+    for (const [k, val] of Object.entries(j.settings || {})) { const el = $('#' + k); if (el && el.value !== val) { el.value = val; fire(el); } }
+    for (const [k, val] of Object.entries(j.toggles || {})) { const el = $('#' + k); if (el && el.checked !== val) { el.checked = val; el.dispatchEvent(new Event('change', { bubbles: true })); } }
+    if (j.hookTitle) VE.setHook(j.hookTitle);
+    syncAll(); vsSync(); setTimeout(repaint, 100);
+    setRec('✨ ' + (j.reason || 'Listo, apliqué la edición.'));
+    if (request) $('#aiAsk').value = '';
+  } catch (e) {
+    setRec('La IA no pudo responder ahora (' + e.message + '). Tu edición automática sigue lista.');
+  }
+  directing = false; $('#aiGo').disabled = $('#aiAuto').disabled = false;
+}
+window.onTranscribed = () => direct();
+$('#aiGo').onclick = () => { const q = $('#aiAsk').value.trim(); if (q) direct(q); };
+$('#aiAsk').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('#aiGo').click(); } });
+$('#aiAuto').onclick = () => direct();

@@ -8,7 +8,7 @@ let cx = cv.getContext('2d');
 const v = document.createElement('video');
 v.playsInline = true; v.muted = true; v.loop = true; v.setAttribute('playsinline', '');
 
-let asrKey = '', file = null, words = [], speech = null, plan = null, asr = null, busy = false, aiRunning = false;
+let aiHookTitle = '', asrKey = '', file = null, words = [], speech = null, plan = null, asr = null, busy = false, aiRunning = false;
 let ac = null, dest = null, noiseBuf = null, rec = null, lastSeg = -1, lastChunk = -1;
 
 const msg = t => { $('#msg').textContent = t; };
@@ -23,7 +23,7 @@ function load(f) {
   if (!f) return;
   if (!f.type.startsWith('video/') && !/\.(mp4|mov|webm|m4v)$/i.test(f.name)) { alert('Ese archivo no es un video. Elegí un MP4, MOV o WEBM.'); return; }
   if (f.size > 1e9) { alert('El video pesa más de 1 GB. Probá con uno más corto.'); return; }
-  file = f; words = []; plan = null; lastSeg = lastChunk = -1;
+  file = f; words = []; plan = null; lastSeg = lastChunk = -1; aiHookTitle = '';
   v.src = URL.createObjectURL(f); v.load(); v.play().catch(() => {});
   $('#dl').hidden = true; $('#go').disabled = true; $('#txt').value = ''; prog(0);
   if (window.onLoaded) window.onLoaded(f);
@@ -90,6 +90,7 @@ async function runAI() {
     $('#txt').value = words.map(w => w.t).join(' ');
     build();
     prog(1);
+    if (words.length && window.onTranscribed) window.onTranscribed();
     msg(words.length
       ? `¡Listo! ${words.length} palabras, ${plan.segs.length - 1} cortes. Mirá la vista previa y tocá Exportar.`
       : 'No escuché voz en el video. Escribí el texto abajo y exportá igual.');
@@ -165,17 +166,15 @@ function build() {
   if (words.length) {
     const hw = [];
     for (const w of words) { hw.push(w); if (hw.length >= 8 || /[.!?]$/.test(w.t)) break; }
-    hook = hw.map(w => w.t).join(' ').replace(/[.,;:]$/, '');
+    hook = aiHookTitle || hw.map(w => w.t).join(' ').replace(/[.,;:]$/, '');
     hookDur = Math.min(6, Math.max(2.6, hw.at(-1).e - hw[0].s + 1.6));
   }
   plan = { segs, chunks, total: acc, hook, hookDur, list: findList(), cta: findCta() };
   plan.screens = findScreens(plan);
   plan.overlays = findOverlays(plan);
-  if (on('optAI')) plan.screens.forEach((sc, i) => {
-    const subj = sc.type === 'stat' ? `${sc.num} ${sc.unit} ${sc.ctx}` : sc.words.map(w => w.t).join(' ');
-    aiImage(subj, 100 + i).then(img => { sc.img = img; });
-  });
+
   plan.beats = makeBeats(plan);
+  loadAiArt(plan);
   $('#go').disabled = aiRunning;
 }
 
@@ -441,17 +440,23 @@ function listScreen(L, t) {
     cx.fillStyle = TH.onA; cx.font = '800 46px Outfit, Inter, sans-serif'; cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillText(it.n, x0 + 59, y + 61);
     cx.textAlign = 'left';
     let fs = 38; cx.font = `800 ${fs}px "Plus Jakarta Sans", Inter, sans-serif`;
-    while (cx.measureText(it.title.join(' ')).width > cardW - 190 && fs > 22) { fs -= 2; cx.font = `800 ${fs}px "Plus Jakarta Sans", Inter, sans-serif`; }
+    while (cx.measureText(it.title.join(' ')).width > cardW - (it.img ? 270 : 190) && fs > 22) { fs -= 2; cx.font = `800 ${fs}px "Plus Jakarta Sans", Inter, sans-serif`; }
     let tx = x0 + 120; const ty = it.sub ? y + 46 : y + 60;
     it.title.forEach((w, i) => { cx.fillStyle = i === it.title.length - 1 && it.title.length > 1 ? TH.accent : TH.ink; cx.fillText(w, tx, ty); tx += cx.measureText(w + ' ').width; });
     if (it.sub) {
       const st = ease((ct - .25) / .4);
       cx.globalAlpha *= st; cx.font = '600 25px "Plus Jakarta Sans", Inter, sans-serif'; cx.fillStyle = TH.sub;
-      let sub = it.sub; while (cx.measureText(sub).width > cardW - 190 && sub.includes(' ')) sub = sub.slice(0, sub.lastIndexOf(' ')) + '…';
+      let sub = it.sub; while (cx.measureText(sub).width > cardW - (it.img ? 270 : 190) && sub.includes(' ')) sub = sub.slice(0, sub.lastIndexOf(' ')) + '…';
       cx.fillText(sub, x0 + 120, y + 84);
     }
-    cx.strokeStyle = TH.accent; cx.lineWidth = 4; cx.lineCap = 'round'; cx.globalAlpha = 1;
-    cx.beginPath(); cx.moveTo(x0 + cardW - 58, y + 70); cx.lineTo(x0 + cardW - 46, y + 56); cx.lineTo(x0 + cardW - 38, y + 64); cx.lineTo(x0 + cardW - 26, y + 50); cx.stroke();
+    cx.globalAlpha = 1;
+    if (it.img) {
+      const sz = cardH - 28, ix = x0 + cardW - sz - 14, iy = y + 14, iw = it.img.width, ih = it.img.height, sc2 = Math.max(sz / iw, sz / ih);
+      cx.save(); rrect(ix, iy, sz, sz, 16); cx.clip(); cx.drawImage(it.img, ix + (sz - iw * sc2) / 2, iy + (sz - ih * sc2) / 2, iw * sc2, ih * sc2); cx.restore();
+    } else {
+      cx.strokeStyle = TH.accent; cx.lineWidth = 4; cx.lineCap = 'round';
+      cx.beginPath(); cx.moveTo(x0 + cardW - 58, y + 70); cx.lineTo(x0 + cardW - 46, y + 56); cx.lineTo(x0 + cardW - 38, y + 64); cx.lineTo(x0 + cardW - 26, y + 50); cx.stroke();
+    }
     blur(0); cx.restore();
   });
 }
@@ -566,24 +571,45 @@ const AI_STYLE = {
   neonpink: 'neon pink and purple glow, dark background, futuristic, glossy 3D',
   clean: 'clean minimal 3D illustration, white background, soft blue accents, soft shadows'
 };
-const aiCache = new Map();
-let aiDown = false;
-let aiQueue = Promise.resolve();
+const aiCache = new Map(), promptCache = new Map();
+let aiDown = false, aiQueue = Promise.resolve();
+// Art direction on the server: what you say → short English visual prompts (one request for all moments).
+async function planPrompts(subjects) {
+  const need = [...new Set(subjects)].filter(x => !promptCache.has(x));
+  if (!need.length || aiDown) return;
+  try {
+    const r = await fetch('/api/ai-plan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: words.map(w => w.t).join(' '), subjects: need }) });
+    if (!r.ok) throw new Error('plan ' + r.status);
+    const j = await r.json();
+    need.forEach((x, i) => promptCache.set(x, (j.prompts && j.prompts[i]) || x));
+  } catch (e) { console.warn('ai plan unavailable', e); need.forEach(x => promptCache.set(x, x)); }
+}
+// One image from FLUX on Cloudflare (via our server). Same prompt = cached, never paid twice.
 function aiImage(subject, seed = 1) {
-  const prompt = `${subject}, ${AI_STYLE[themeKey()] || AI_STYLE.photo}, no text, vertical`;
+  const prompt = `${promptCache.get(subject) || subject}, ${AI_STYLE[themeKey()] || AI_STYLE.photo}, no text, no letters`;
   if (aiCache.has(prompt)) return aiCache.get(prompt);
   const job = aiQueue.then(async () => {
     if (aiDown) return null;
-    const img = new Image(); img.crossOrigin = 'anonymous';
-    img.src = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=720&height=1280&nologo=true&model=flux&seed=${seed}`;
-    await Promise.race([img.decode(), new Promise((_, ko) => setTimeout(() => ko(new Error('timeout')), 45000))]);
-    const c = document.createElement('canvas'); c.width = img.naturalWidth; c.height = Math.round(img.naturalHeight * .93);
-    c.getContext('2d').drawImage(img, 0, 0);
-    return c;
+    const img = new Image();
+    img.src = `/api/ai-image?p=${encodeURIComponent(prompt)}&s=${seed}`;
+    await Promise.race([img.decode(), new Promise((_, ko) => setTimeout(() => ko(new Error('timeout')), 40000))]);
+    return img;
   }).catch(e => { aiDown = true; console.warn('ai image unavailable, using photos', e); return null; });
   aiQueue = job.then(() => {}, () => {});
   aiCache.set(prompt, job);
   return job;
+}
+// Fetches art for every screen and b-roll of the current plan (prompts first, then images in order of appearance).
+async function loadAiArt(P) {
+  const items = [
+    ...(P.list ? P.list.items.map((it, i) => ({ o: it, s: it.at, subj: `${it.title.join(' ')} ${it.sub}`, seed: 200 + i })) : []),
+    ...P.screens.map((sc, i) => ({ o: sc, s: sc.s, subj: sc.type === 'stat' ? `${sc.num} ${sc.unit} ${sc.ctx}` : sc.words.map(w => w.t).join(' '), seed: 100 + i })),
+    ...(P.beats ? P.beats.photos.filter(p => !p.user).map((p, i) => ({ o: p, s: p.s, subj: p.subj, seed: 10 + i, photo: true })) : [])
+  ].sort((a, b) => a.s - b.s);
+  if (!on('optAI')) { items.filter(x => x.photo).forEach(x => fetchPhoto(x.o.q).then(img => { x.o.img = img; dirty = true; })); return; }
+  await planPrompts(items.map(x => x.subj));
+  if (P !== plan) return;
+  await Promise.all(items.map(x => aiImage(x.subj, x.seed).then(img => img || (x.photo ? fetchPhoto(x.o.q) : null)).then(img => { if (img) { x.o.img = img; dirty = true; } })));
 }
 function contextAround(i, n = 5) { return words.slice(Math.max(0, i - n), i + n).map(w => w.t.replace(/[.,;:!?]+$/, '')).join(' '); }
 let curScreen = null;
@@ -592,7 +618,7 @@ function drawScreenArt(sc, t) {
   const img = sc.img, k = themeKey(); if (!img || k === 'photo') return false;
   const age = t - sc.s, e = ease(age / .6), iw = img.width, ih = img.height;
   cx.save(); cx.globalAlpha = e;
-  if (k === 'cine' || k === 'dark' || k === 'neonpink') {
+  if (k === 'cine' || k === 'dark' || k === 'neonpink' || k === 'noir') {
     const s = Math.max(W / iw, H * .62 / ih) * (1.06 + .04 * age); cx.drawImage(img, (W - iw * s) / 2, H * .3 - ih * s / 2, iw * s, ih * s);
     const g = cx.createLinearGradient(0, H * .36, 0, H * .62); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, theme().night);
     cx.fillStyle = g; cx.fillRect(0, H * .3, W, H * .33);
@@ -666,9 +692,8 @@ function makeBeats(P) {
       const n = norm(w.t);
       if (n.length < 5 || STOPW.has(n) || w.s - last < 4.5 || !free(w.s, w.s + 2)) return;
       const ph = { s: w.s, e: w.s + 2, q: n, img: null, n: B.photos.length };
-      if (ui < userPhotos.length) ph.img = userPhotos[ui++];
-      else if (on('optAI')) aiImage(contextAround(i), i).then(img => img || fetchPhoto(n)).then(img => { ph.img = img; });
-      else fetchPhoto(n).then(img => { ph.img = img; });
+      ph.subj = contextAround(i);
+      if (ui < userPhotos.length) { ph.img = userPhotos[ui++]; ph.user = true; }
       B.photos.push(ph); busyRanges.push([ph.s, ph.e]); last = ph.e;
     });
   }
@@ -1386,7 +1411,8 @@ async function fastExport() {
 
   // Everything the frames need must be ready before we start.
   msg('Terminando las imágenes IA…');
-  await Promise.race([Promise.all([...(plan.beats ? plan.beats.photos.map(p => p.img ? 0 : (on('optAI') ? aiImage(p.q, 1) : fetchPhoto(p.q)).then(i => { p.img = p.img || i; })) : []), ...plan.screens.map(sc => sc.img || !on('optAI') ? 0 : aiImage(sc.type === 'stat' ? `${sc.num} ${sc.unit} ${sc.ctx}` : sc.words.map(w => w.t).join(' '), 0).then(i => { sc.img = sc.img || i; }))]), new Promise(r => setTimeout(r, 30000))]);
+  await Promise.race([aiQueue, new Promise(r => setTimeout(r, 30000))]);
+  if (plan.beats) await Promise.all(plan.beats.photos.map(p => p.img ? 0 : fetchPhoto(p.q).then(i => { p.img = p.img || i; })));
   if (on('optBig')) await loadSeg();
 
   fastBusy = true; busy = true; v.pause();
@@ -1537,6 +1563,7 @@ if (!matchMedia('(pointer: coarse)').matches) $('#quality').value = 'small';
 const SAMPLE = 'Lo que nadie te dice sobre crecer en redes'.split(' ').map((t, i) => ({ t, s: i * .2, e: i * .2 + .18 }));
 window.VE = {
   load, build, video: v,
+  setHook(t) { aiHookTitle = t; build(); },
   get plan() { return plan; },
   // Draws a preview of a motion-graphics look ('mg') or an overlay style ('ov') into a small canvas.
   thumb(c, kind, key, i = 0) {
