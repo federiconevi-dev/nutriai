@@ -44,7 +44,7 @@ export const config = { path: '/api/ai-plan', method: 'POST' };
 
 // B-roll planning: pick only the sentences where a supporting image makes the message clearer.
 async function broll(account, token, sentences, text, max) {
-  const system = `You are the editor of a viral short video. From the numbered sentences, choose AT MOST ${max} where a supporting cutaway image makes the idea clearer: concrete objects, places, actions or a strong visual metaphor of exactly what is said. Never pick greetings, calls to action ("comment", "follow"), or vague sentences. For each pick write a vivid English image prompt (max 22 words, one clear subject, photorealistic, no text, no people's faces talking). Reply ONLY with lines "N: prompt". If nothing deserves an image, reply "NONE".`;
+  const system = `You are the editor of a viral short video. From the numbered sentences, choose the ${max} best ones to illustrate with a short cutaway image (b-roll) that shows exactly what is being said: a concrete object, place, action, or a clear visual metaphor of the idea. Skip greetings and calls to action ("comment", "follow", "save this video"). For each pick write a vivid English image prompt (max 22 words, one clear subject, cinematic photorealistic, no text, no logos). Reply ONLY with lines "N: prompt", nothing else.`;
   const user = `Context: ${text.slice(0, 3000)}\n\nSentences:\n${sentences.map((s, i) => `${i + 1}: ${s}`).join('\n')}`;
   let out = '';
   for (const model of MODELS) {
