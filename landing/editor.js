@@ -217,7 +217,7 @@ function findCta() {
 // ---------- Rendering ----------
 const STYLES = {
   coral: { font: s => `800 ${s}px "Plus Jakarta Sans", Inter, sans-serif`, size: 46, upper: false, hi: '#FF6046', soft: true, coral: true },
-  viral: { font: s => `800 ${s}px "Plus Jakarta Sans", Inter, sans-serif`, size: 52, upper: false, hi: '#FFE14D', soft: true },
+  viral: { font: s => `800 ${s}px "Plus Jakarta Sans", Inter, sans-serif`, size: 44, upper: false, hi: '#A6F94B', soft: true, glowKey: true },
   hormozi: { font: s => `900 ${s}px Montserrat, Inter, sans-serif`, size: 72, upper: true, hi: '#22E06B', box: true },
   editorial: { font: s => SERIF(s), size: 70, upper: false, hi: '#E8D3A2', soft: true },
   minimal: { font: s => `700 ${s}px Inter, system-ui, sans-serif`, size: 52, upper: false, hi: '#ffffff', pill: true }
@@ -229,7 +229,8 @@ const isNum = s => /\d/.test(s);
 const style = () => {
   const st = fontOverride(STYLES[$('#style').value] || STYLES.viral);
   const k = val('cKey', 'auto'), b = val('cBase', 'auto');
-  return { ...st, size: st.size * +val('sBase', 1), hi: k === 'auto' ? st.hi : k, base: b === 'auto' ? '#fff' : b };
+  const th = THEMES[themeKey()];
+  return { ...st, size: st.size * +val('sBase', 1), hi: k !== 'auto' ? k : st.pill ? st.hi : th.accent, glowC: th.glow || th.accent, base: b === 'auto' ? '#fff' : b };
 };
 
 function wordsLayout(list, st) {
@@ -276,6 +277,7 @@ function drawCaption(ch, t) {
       if (active && !st.soft) cx.scale(1.06, 1.06);
       if (st.box && active) { cx.fillStyle = st.hi; rrect(-ww / 2 - 12, -L.size * .62, ww + 24, L.size * 1.24, 14); cx.fill(); }
       if (st.soft) { cx.shadowColor = 'rgba(0,0,0,.7)'; cx.shadowBlur = st.coral ? 14 : 18; cx.shadowOffsetY = st.coral ? 2 : 0; }
+      if (st.glowKey && (active || isKey)) { cx.shadowColor = st.glowC; cx.shadowBlur = 22; cx.shadowOffsetY = 0; }
       else if (!st.pill) { cx.lineWidth = L.size * .2; cx.strokeStyle = '#000'; cx.strokeText(word, -ww / 2, 0); }
       cx.fillStyle = st.box ? st.base : st.coral ? ((isNum(word) || (isKey && ch.emph)) ? st.hi : st.base) : (active || (st.soft && isKey)) ? st.hi : st.base;
       if (st.pill) cx.fillStyle = active ? '#fff' : 'rgba(255,255,255,.55)';
@@ -565,18 +567,20 @@ const AI_STYLE = {
   clean: 'clean minimal 3D illustration, white background, soft blue accents, soft shadows'
 };
 const aiCache = new Map();
+let aiDown = false;
 let aiQueue = Promise.resolve();
 function aiImage(subject, seed = 1) {
   const prompt = `${subject}, ${AI_STYLE[themeKey()] || AI_STYLE.photo}, no text, vertical`;
   if (aiCache.has(prompt)) return aiCache.get(prompt);
   const job = aiQueue.then(async () => {
+    if (aiDown) return null;
     const img = new Image(); img.crossOrigin = 'anonymous';
     img.src = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=720&height=1280&nologo=true&model=flux&seed=${seed}`;
     await Promise.race([img.decode(), new Promise((_, ko) => setTimeout(() => ko(new Error('timeout')), 45000))]);
     const c = document.createElement('canvas'); c.width = img.naturalWidth; c.height = Math.round(img.naturalHeight * .93);
     c.getContext('2d').drawImage(img, 0, 0);
     return c;
-  }).catch(e => { console.warn('ai image', e); return null; });
+  }).catch(e => { aiDown = true; console.warn('ai image unavailable, using photos', e); return null; });
   aiQueue = job.then(() => {}, () => {});
   aiCache.set(prompt, job);
   return job;
@@ -777,13 +781,14 @@ function drawEmoji(ci, ch, t) {
   cx.font = '84px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; cx.textAlign = 'center'; cx.textBaseline = 'middle';
   cx.fillText(e, 0, 0); cx.restore();
 }
+const rgba = (hex, a) => { const n = parseInt(hex.slice(1), 16); return `rgba(${n >> 16 & 255},${n >> 8 & 255},${n & 255},${a})`; };
 function lightLeak(k, seed) {
   if (k <= 0 || k >= 1) return;
   const a = Math.sin(k * Math.PI);
   cx.save(); cx.globalCompositeOperation = 'screen';
   const x = W * (-.2 + 1.4 * k), y = H * (.2 + .3 * Math.sin(seed));
   const g = cx.createRadialGradient(x, y, 10, x, y, H * .6);
-  g.addColorStop(0, `rgba(255,170,90,${.75 * a})`); g.addColorStop(.4, `rgba(255,80,120,${.35 * a})`); g.addColorStop(1, 'rgba(0,0,0,0)');
+  const TH = theme(); g.addColorStop(0, rgba(TH.a1, .7 * a)); g.addColorStop(.4, rgba(TH.a2, .3 * a)); g.addColorStop(1, 'rgba(0,0,0,0)');
   cx.fillStyle = g; cx.fillRect(0, 0, W, H); cx.restore();
 }
 function glitch(k) {
@@ -794,7 +799,7 @@ function glitch(k) {
     cx.drawImage(cv, 0, sy, W, sh, dx, sy, W, sh);
   }
   cx.save(); cx.globalCompositeOperation = 'screen'; cx.globalAlpha = .35 * (1 - k);
-  cx.drawImage(cv, -10 * (1 - k), 0); cx.fillStyle = 'rgba(255,0,60,.25)'; cx.fillRect(0, 0, W, H);
+  cx.drawImage(cv, -10 * (1 - k), 0); cx.fillStyle = rgba(theme().a2, .22); cx.fillRect(0, 0, W, H);
   cx.globalCompositeOperation = 'source-over'; cx.restore();
 }
 
@@ -882,7 +887,8 @@ let rebuildT = 0;
 // ================= Themes: each editing type has its own screens and transitions =================
 const THEMES = {
   coral: { a1: '#FF785C', a2: '#CE2C1A', onA: '#fff', accent: '#F0452F', soft: 'rgba(240,70,48,.18)', ink: '#181616', sub: '#928C86', card: '#fff', line: '#F0EAE2', halo: '#7A241A', night: '#34140E', ctaInk: '#fff', trans: 'blob' },
-  dark: { a1: '#FFE14D', a2: '#F59E0B', onA: '#111', accent: '#FFE14D', soft: 'rgba(255,225,77,.15)', ink: '#ffffff', sub: '#A1A1B5', card: 'rgba(255,255,255,.08)', line: 'rgba(255,255,255,.16)', halo: '#3b1d6e', night: '#07070b', ctaInk: '#fff', trans: 'zoom' },
+  noir: { a1: '#C4FF6B', a2: '#6BD62E', onA: '#0a0a0a', accent: '#A6F94B', soft: 'rgba(166,249,75,.16)', ink: '#ffffff', sub: '#9BA1A8', card: 'rgba(255,255,255,.06)', line: 'rgba(255,255,255,.14)', halo: '#16230d', night: '#060606', ctaInk: '#fff', trans: 'zoom', glow: '#7CFF3A' },
+  dark: { a1: '#FFE14D', a2: '#F5B70B', onA: '#111', accent: '#FFD60A', soft: 'rgba(255,214,10,.15)', ink: '#ffffff', sub: '#A6A6A6', card: 'rgba(255,255,255,.07)', line: 'rgba(255,255,255,.15)', halo: '#2a2306', night: '#080807', ctaInk: '#fff', trans: 'zoom', glow: '#FFC400' },
   cine: { a1: '#E8D3A2', a2: '#B08D57', onA: '#14110d', accent: '#E8D3A2', soft: 'rgba(232,211,162,.15)', ink: '#F5F0E6', sub: '#9C9488', card: 'rgba(0,0,0,.45)', line: 'rgba(232,211,162,.25)', halo: '#2a2420', night: '#0a0908', ctaInk: '#F5F0E6', trans: 'fade' },
   bw: { a1: '#ff4d5e', a2: '#c3121f', onA: '#fff', accent: '#E11D2E', soft: 'rgba(225,29,46,.15)', ink: '#111111', sub: '#6b6b6b', card: '#ffffff', line: '#dddddd', halo: '#d9d9d9', night: '#f1f1f1', ctaInk: '#111', trans: 'slide', keyStyle: 'box' },
   vintage: { a1: '#d9443a', a2: '#a61f17', onA: '#fff', accent: '#C8261E', soft: 'rgba(200,38,30,.15)', ink: '#1d1a16', sub: '#6e6457', card: '#f7f0e1', line: '#d8ccb4', halo: '#e9dcc0', night: '#efe6d2', ctaInk: '#1d1a16', trans: 'fade', keyStyle: 'circle' },
@@ -890,7 +896,7 @@ const THEMES = {
   neonpink: { a1: '#ff4fd8', a2: '#9d1ee8', onA: '#fff', accent: '#ff4fd8', soft: 'rgba(255,79,216,.15)', ink: '#ffffff', sub: '#c4b5fd', card: 'rgba(255,255,255,.07)', line: 'rgba(255,79,216,.35)', halo: '#4a0e5c', night: '#0a0412', ctaInk: '#fff', trans: 'zoom' },
   clean: { a1: '#4F8BFF', a2: '#1D4ED8', onA: '#fff', accent: '#2563EB', soft: 'rgba(37,99,235,.12)', ink: '#0f172a', sub: '#64748b', card: '#fff', line: '#e2e8f0', halo: '#dbeafe', night: '#f8fafc', ctaInk: '#0f172a', trans: 'slide' }
 };
-const THEME_OF = { coral: 'coral', viral: 'dark', hormozi: 'dark', editorial: 'cine', minimal: 'clean' };
+const THEME_OF = { coral: 'coral', viral: 'noir', hormozi: 'dark', editorial: 'cine', minimal: 'clean' };
 const themeKey = () => { const m = val('mg', 'auto'); return m !== 'auto' && THEMES[m] ? m : THEME_OF[$('#style').value] || 'coral'; };
 const theme = () => THEMES[themeKey()];
 const SERIF = s => { const f = val('fAccent', 'auto'); return f === 'auto' ? `italic 400 ${s}px "Instrument Serif", "Playfair Display", Georgia, serif` : `${/Caveat|Marker|Vibes|Pacifico|Dancing/.test(f) ? '' : 'italic '}400 ${s}px "${f}", Georgia, serif`; };
@@ -948,17 +954,18 @@ function screenBg(t) {
   if (k === 'coral') return creamBg(t);
   if (k === 'bw' || k === 'vintage') return paperBg(t, k);
   if (k === 'photo') return photoBg(t);
-  if (k === 'dark' || k === 'neonpink') {
-    const g = cx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#07070b'); g.addColorStop(1, '#1a0f2e'); cx.fillStyle = g; cx.fillRect(0, 0, W, H);
-    cx.save(); cx.strokeStyle = 'rgba(168,85,247,.25)'; cx.lineWidth = 1.5;
+  if (k === 'dark' || k === 'neonpink' || k === 'noir') {
+    const g = cx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, TH.night); g.addColorStop(1, TH.halo); cx.fillStyle = g; cx.fillRect(0, 0, W, H);
+    cx.save(); cx.strokeStyle = TH.soft; cx.lineWidth = 1.5;
     for (let i = 0; i < 14; i++) { const y = H * .62 + Math.pow((i + (t * .8) % 1) / 14, 2) * H * .5; cx.beginPath(); cx.moveTo(0, y); cx.lineTo(W, y); cx.stroke(); }
     for (let i = -8; i <= 8; i++) { cx.beginPath(); cx.moveTo(W / 2 + i * 30, H * .62); cx.lineTo(W / 2 + i * 160, H); cx.stroke(); }
     cx.restore();
-    [[W * .2, H * .2, '#a855f7'], [W * .85, H * .45, '#ec4899'], [W * .5, H * .85, TH.accent]].forEach(([x, y, c], i) => {
-      const r = 220 + 30 * Math.sin(t + i), gr = cx.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, c + '55'); gr.addColorStop(1, c + '00');
+    [[W * .5, -H * .05, TH.accent], [W * .9, H * .9, TH.a2]].forEach(([x, y, c], i) => {
+      const r = H * (.45 + .03 * Math.sin(t * .6 + i)), gr = cx.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, c + (i ? '14' : '24')); gr.addColorStop(1, c + '00');
       cx.fillStyle = gr; cx.fillRect(0, 0, W, H);
     });
-    for (let i = 0; i < 40; i++) { const x = (i * 97.3) % W, y = (i * 211.7 + t * 20 * (1 + i % 3)) % H; cx.fillStyle = `rgba(255,255,255,${.15 + .4 * Math.abs(Math.sin(t * 2 + i))})`; cx.fillRect(x, y, 2, 2); }
+    for (let i = 0; i < 40; i++) { const x = (i * 97.3) % W, y = (i * 211.7 + t * 20 * (1 + i % 3)) % H; cx.fillStyle = `rgba(255,255,255,${.1 + .3 * Math.abs(Math.sin(t * 2 + i))})`; cx.fillRect(x, y, 2, 2); }
+    grain(.35);
     return;
   }
   if (k === 'cine') {
@@ -1156,7 +1163,8 @@ const OV = {
 };
 function drawOverlays(t, P) {
   const o = (P.overlays || []).find(x => t >= x.s && t <= x.e); if (!o) return;
-  const S = OV[val('ovStyle', 'glass')] || OV.glass;
+  const ovk = val('ovStyle', 'auto'), TH = theme();
+  const S = ovk === 'auto' ? { ...OV.glass, key: TH.accent, label: TH.accent, border: TH.line === '#e2e8f0' || TH.line === '#dddddd' ? 'rgba(255,255,255,.5)' : TH.line } : OV[ovk] || OV.glass;
   const age = t - o.s, left = o.e - t, k = Math.min(ease(age / .35), ease(left / .3));
   const cw = W * .86, x0 = (W - cw) / 2, fs = 34;
   cx.save(); cx.font = S.font(fs);

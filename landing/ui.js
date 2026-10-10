@@ -83,12 +83,12 @@ document.addEventListener('change', e => {
 restore(); syncAll(); vsSync();
 
 // ---- Look previews (drawn by the same engine that renders your video) ----
-const MG = [['bw', 'Prensa'], ['cine', 'Noir'], ['photo', 'Foto real'], ['vintage', 'Collage'], ['coral', 'Coral'], ['dark', 'Noche'], ['neonpink', 'Neón rosa'], ['clean', 'Claro']];
-const OVS = [['glass', 'Vidrio'], ['neon', 'Neón'], ['mono', 'Revista'], ['graph', 'Cuaderno'], ['femtech', 'Rosa'], ['cyber', 'Terminal']];
+const MG = [['auto', 'Automático'], ['noir', 'Negro'], ['bw', 'Prensa'], ['cine', 'Noir'], ['photo', 'Foto real'], ['vintage', 'Collage'], ['coral', 'Coral'], ['dark', 'Noche'], ['neonpink', 'Neón rosa'], ['clean', 'Claro']];
+const OVS = [['auto', 'Automático'], ['glass', 'Vidrio'], ['neon', 'Neón'], ['mono', 'Revista'], ['graph', 'Cuaderno'], ['femtech', 'Rosa'], ['cyber', 'Terminal']];
 function makeCards(box, list, kind, input) {
   box.innerHTML = list.map(([k, n]) => `<button type="button" class="card" data-v="${k}"><canvas width="${kind === 'ov' ? 320 : 180}" height="${kind === 'ov' ? 200 : 320}"></canvas><span>${n}</span></button>`).join('');
   const paint = () => box.querySelectorAll('.card').forEach((c, i) => VE.thumb(c.querySelector('canvas'), kind, c.dataset.v, i));
-  const sync = () => box.querySelectorAll('.card').forEach(c => c.classList.toggle('sel', c.dataset.v === input.value || (input.value === 'auto' && false)));
+  const sync = () => box.querySelectorAll('.card').forEach(c => c.classList.toggle('sel', c.dataset.v === input.value));
   box.onclick = e => { const c = e.target.closest('.card'); if (!c) return; input.value = c.dataset.v; fire(input); sync(); };
   input.addEventListener('change', sync); sync();
   return paint;
@@ -96,7 +96,7 @@ function makeCards(box, list, kind, input) {
 const paintMG = makeCards($('#mgCards'), MG, 'mg', $('#mg'));
 const paintOV = makeCards($('#ovCards'), OVS, 'ov', $('#ovStyle'));
 const lg = $('#lgStyles');
-lg.innerHTML = MG.slice(0, 5).map(([k, n]) => `<div><canvas width="180" height="320" data-v="${k}"></canvas><span>${n}</span></div>`).join('');
+lg.innerHTML = MG.slice(1, 6).map(([k, n]) => `<div><canvas width="180" height="320" data-v="${k}"></canvas><span>${n}</span></div>`).join('');
 const paintLanding = () => lg.querySelectorAll('canvas').forEach((c, i) => VE.thumb(c, 'mg', c.dataset.v, i));
 const repaint = () => { paintMG(); paintOV(); paintLanding(); };
 (document.fonts ? document.fonts.ready : Promise.resolve()).then(() => setTimeout(repaint, 300));
