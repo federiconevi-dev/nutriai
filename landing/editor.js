@@ -40,23 +40,26 @@ const d = $('#drop');
 d.addEventListener('drop', e => load(e.dataTransfer.files[0]));
 
 // ---------- Transcription ----------
+// Returns a transcribe(audio, opts) function backed by a Web Worker (falls back to the main thread).
+let worker = null;
 async function getAsr() {
-  const key = $('#quality').value;
-  if (asr && asrKey === key) return asr;
-  asrKey = key;
-  msg('Descargando el motor de subtítulos (solo la primera vez)…');
-  const { pipeline } = await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.2');
-  const files = {};
-  asr = await pipeline('automatic-speech-recognition', MODELS[key] || MODELS.base, {
-    dtype: 'q8', device: 'wasm',
-    progress_callback: p => {
-      if (p.status !== 'progress' || !p.total) return;
-      files[p.file] = [p.loaded, p.total];
-      const [a, b] = Object.values(files).reduce((s, x) => [s[0] + x[0], s[1] + x[1]], [0, 0]);
-      prog(a / b * .5);
-      msg(`Descargando el motor de subtítulos… ${Math.round(a / 1e6)} de ${Math.round(b / 1e6)} MB (solo la primera vez)`);
-    }
+  const model = MODELS[$('#quality').value] || MODELS.base;
+  msg('Preparando el motor de subtítulos…');
+  if (!worker) { try { worker = new Worker(new URL('./asr-worker.js', import.meta.url), { type: 'module' }); } catch (e) { worker = null; } }
+  if (worker) return (audio, opts) => new Promise((ok, ko) => {
+    worker.onmessage = e => {
+      const d = e.data;
+      if (d.type === 'progress') { prog(d.a / d.b * .5); msg(`Descargando el motor de subtítulos… ${Math.round(d.a / 1e6)} de ${Math.round(d.b / 1e6)} MB (solo la primera vez)`); }
+      else if (d.type === 'transcribing') { prog(.7); msg('Escribiendo los subtítulos…'); }
+      else if (d.type === 'done') ok(d.out);
+      else if (d.type === 'error') ko(new Error(d.err));
+    };
+    worker.postMessage({ model, audio, opts }, [audio.buffer]);
   });
+  if (asr && asrKey === model) return asr;
+  asrKey = model;
+  const { pipeline } = await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.2');
+  asr = await pipeline('automatic-speech-recognition', model, { dtype: 'q8', device: 'wasm' });
   return asr;
 }
 
@@ -130,6 +133,7 @@ function detectSpeech(a) {
 
 // ---------- Edit plan ----------
 function build() {
+  dirty = true;
   const D = v.duration || 0;
   if (!D) return;
   let segs = [];
@@ -167,6 +171,10 @@ function build() {
   plan = { segs, chunks, total: acc, hook, hookDur, list: findList(), cta: findCta() };
   plan.screens = findScreens(plan);
   plan.overlays = findOverlays(plan);
+  if (on('optAI')) plan.screens.forEach((sc, i) => {
+    const subj = sc.type === 'stat' ? `${sc.num} ${sc.unit} ${sc.ctx}` : sc.words.map(w => w.t).join(' ');
+    aiImage(subj, 100 + i).then(img => { sc.img = img; });
+  });
   plan.beats = makeBeats(plan);
   $('#go').disabled = aiRunning;
 }
@@ -513,7 +521,7 @@ let maskCount = 0;
 function updateMask() {
   if (!seg) return false;
   // While exporting, the silhouette barely changes between frames: refresh it every 3rd frame.
-  if (fastBusy && maskReady && maskCount++ % 3) return true;
+  if (maskReady && maskCount++ % (fastBusy ? 3 : 2)) return true;
   try {
     segTs = Math.max(segTs + 1, performance.now());
     let srcSeg = v;
@@ -545,6 +553,59 @@ const STOPW = new Set('para pero como cuando donde porque aunque entonces tambie
 const EMO = [[/plata|dinero|money|dolar|pesos|vend|cobr|ganar|ingreso/, '💰'], [/ano|anos|tiempo|reloj|hora|minuto|dia|dias/, '⏳'], [/video|grab|camara|reel|tiktok/, '🎥'], [/gente|amig|equipo|personas|clientes/, '👥'], [/ventaja|crec|subir|escal|rapido|exito/, '🚀'], [/idea|aprend|estudi|entend|cabeza|mente/, '🧠'], [/verguenza|miedo|nervio/, '😳'], [/arranc|empez|comenz|start/, '🏁'], [/fuego|viral|explot/, '🔥'], [/amor|corazon|quiero|encanta/, '❤️'], [/trabajo|negocio|empresa|emprend/, '💼'], [/error|mal|nunca|problema/, '❌'], [/bien|perfecto|listo|correcto|si$/, '✅'], [/secreto|truco|clave/, '🔑'], [/guard|salv/, '📌'], [/coment|mensaje|escrib|chat/, '💬'], [/celu|telefono|app/, '📱'], [/comida|comer|dieta|salud/, '🥗'], [/gym|entren|musculo|fuerza/, '💪'], [/casa|hogar/, '🏠'], [/auto|viaj/, '✈️']];
 const userPhotos = [];
 const photoCache = new Map();
+// ---- Free AI images (Pollinations, no key). One request at a time; the corner logo is cropped off. ----
+const AI_STYLE = {
+  bw: 'black and white editorial photograph, high contrast, film grain, magazine cover',
+  cine: 'cinematic photo, pitch black background, dramatic rim light, moody, 35mm, high detail',
+  photo: 'photorealistic 3D render, studio lighting, dark background, ultra detailed, octane',
+  vintage: 'vintage collage, old paper texture, retro print, halftone, red accents',
+  coral: 'glossy 3D render, coral and cream colors, soft studio light, minimal, cute',
+  dark: 'neon lit scene, purple and yellow glow, dark, cinematic, high detail',
+  neonpink: 'neon pink and purple glow, dark background, futuristic, glossy 3D',
+  clean: 'clean minimal 3D illustration, white background, soft blue accents, soft shadows'
+};
+const aiCache = new Map();
+let aiQueue = Promise.resolve();
+function aiImage(subject, seed = 1) {
+  const prompt = `${subject}, ${AI_STYLE[themeKey()] || AI_STYLE.photo}, no text, vertical`;
+  if (aiCache.has(prompt)) return aiCache.get(prompt);
+  const job = aiQueue.then(async () => {
+    const img = new Image(); img.crossOrigin = 'anonymous';
+    img.src = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=720&height=1280&nologo=true&model=flux&seed=${seed}`;
+    await Promise.race([img.decode(), new Promise((_, ko) => setTimeout(() => ko(new Error('timeout')), 45000))]);
+    const c = document.createElement('canvas'); c.width = img.naturalWidth; c.height = Math.round(img.naturalHeight * .93);
+    c.getContext('2d').drawImage(img, 0, 0);
+    return c;
+  }).catch(e => { console.warn('ai image', e); return null; });
+  aiQueue = job.then(() => {}, () => {});
+  aiCache.set(prompt, job);
+  return job;
+}
+function contextAround(i, n = 5) { return words.slice(Math.max(0, i - n), i + n).map(w => w.t.replace(/[.,;:!?]+$/, '')).join(' '); }
+let curScreen = null;
+// AI artwork on top of animated screens, treated per look.
+function drawScreenArt(sc, t) {
+  const img = sc.img, k = themeKey(); if (!img || k === 'photo') return false;
+  const age = t - sc.s, e = ease(age / .6), iw = img.width, ih = img.height;
+  cx.save(); cx.globalAlpha = e;
+  if (k === 'cine' || k === 'dark' || k === 'neonpink') {
+    const s = Math.max(W / iw, H * .62 / ih) * (1.06 + .04 * age); cx.drawImage(img, (W - iw * s) / 2, H * .3 - ih * s / 2, iw * s, ih * s);
+    const g = cx.createLinearGradient(0, H * .36, 0, H * .62); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, theme().night);
+    cx.fillStyle = g; cx.fillRect(0, H * .3, W, H * .33);
+    const g2 = cx.createLinearGradient(0, 0, 0, H * .12); g2.addColorStop(0, theme().night); g2.addColorStop(1, 'rgba(0,0,0,0)'); cx.fillStyle = g2; cx.fillRect(0, 0, W, H * .12);
+  } else {
+    const cw = W * .78, chh = H * .42, cy = H * .3 + 40 * (1 - e), r = k === 'bw' ? 6 : 28;
+    cx.translate(W / 2, cy); cx.rotate(k === 'vintage' ? -.045 : 0);
+    cx.shadowColor = 'rgba(0,0,0,.35)'; cx.shadowBlur = 40; cx.shadowOffsetY = 16;
+    if (k === 'vintage') { cx.fillStyle = '#fbf6ea'; cx.fillRect(-cw / 2 - 16, -chh / 2 - 16, cw + 32, chh + 60); }
+    rrect(-cw / 2, -chh / 2, cw, chh, r); cx.fillStyle = '#000'; cx.fill(); cx.shadowColor = 'transparent'; cx.clip();
+    if (k === 'bw' && HAS_FILTER) cx.filter = 'grayscale(1) contrast(1.35)';
+    const s = Math.max(cw / iw, chh / ih) * (1.04 + .05 * age); cx.drawImage(img, -iw * s / 2, -ih * s / 2, iw * s, ih * s);
+    if (HAS_FILTER) cx.filter = 'none';
+  }
+  cx.restore();
+  return true;
+}
 function fetchPhoto(q) {
   if (photoCache.has(q)) return photoCache.get(q);
   const p = (async () => {
@@ -602,6 +663,7 @@ function makeBeats(P) {
       if (n.length < 5 || STOPW.has(n) || w.s - last < 4.5 || !free(w.s, w.s + 2)) return;
       const ph = { s: w.s, e: w.s + 2, q: n, img: null, n: B.photos.length };
       if (ui < userPhotos.length) ph.img = userPhotos[ui++];
+      else if (on('optAI')) aiImage(contextAround(i), i).then(img => img || fetchPhoto(n)).then(img => { ph.img = img; });
       else fetchPhoto(n).then(img => { ph.img = img; });
       B.photos.push(ph); busyRanges.push([ph.s, ph.e]); last = ph.e;
     });
@@ -812,7 +874,9 @@ document.getElementById('photos').onchange = async e => {
   for (const f of e.target.files) { try { const img = new Image(); img.src = URL.createObjectURL(f); await img.decode(); userPhotos.push(img); } catch (er) { /* skip */ } }
   if (plan) build();
 };
-['optBig', 'optPhotos', 'optEmoji'].forEach(id => { document.getElementById(id).onchange = () => { if (id === 'optBig' && on('optBig')) loadSeg(); build(); }; });
+['optBig', 'optPhotos', 'optEmoji', 'optAI'].forEach(id => { document.getElementById(id).onchange = () => { if (id === 'optBig' && on('optBig')) loadSeg(); build(); }; });
+let rebuildT = 0;
+['mg', 'style'].forEach(id => document.getElementById(id).addEventListener('change', () => { clearTimeout(rebuildT); rebuildT = setTimeout(() => { if (plan) build(); }, 400); }));
 
 
 // ================= Themes: each editing type has its own screens and transitions =================
@@ -833,10 +897,22 @@ const SERIF = s => { const f = val('fAccent', 'auto'); return f === 'auto' ? `it
 const ANTON = s => `400 ${s}px Anton, Impact, "Arial Narrow", sans-serif`;
 
 // Paper looks: Editorial B/N (halftone grey, red box keyword) and Collage Vintage (beige paper, red scribble).
+let grainCv = null;
+function grain(alpha) {
+  if (!grainCv) {
+    grainCv = document.createElement('canvas'); grainCv.width = 256; grainCv.height = 256;
+    const g = grainCv.getContext('2d'), d = g.createImageData(256, 256);
+    for (let i = 0; i < d.data.length; i += 4) { const v2 = Math.random() * 255; d.data[i] = d.data[i + 1] = d.data[i + 2] = v2; d.data[i + 3] = 40; }
+    g.putImageData(d, 0, 0);
+  }
+  cx.save(); cx.globalAlpha = alpha; cx.globalCompositeOperation = 'overlay';
+  const ox = Math.random() * 256, oy = Math.random() * 256;
+  cx.translate(-ox, -oy); cx.fillStyle = cx.createPattern(grainCv, 'repeat'); cx.fillRect(0, 0, W + 256, H + 256); cx.restore();
+}
 function paperBg(t, k) {
   const TH = theme();
   cx.fillStyle = TH.night; cx.fillRect(0, 0, W, H);
-  for (let i = 0; i < 900; i++) { cx.fillStyle = `rgba(0,0,0,${Math.random() * .05})`; cx.fillRect(Math.random() * W, Math.random() * H, 2, 2); }
+  grain(.6);
   if (k === 'bw') {
     cx.save(); cx.globalAlpha = .08; cx.fillStyle = '#000'; cx.font = ANTON(520); cx.textAlign = 'right'; cx.fillText('%', W + 40 + Math.sin(t * .4) * 10, H * .32); cx.restore();
     cx.fillStyle = '#111'; for (let x = 0; x < W; x += 16) for (let y = H * .82; y < H; y += 16) { const r = 1 + 5 * ((y - H * .82) / (H * .18)); cx.beginPath(); cx.arc(x, y, r, 0, 7); cx.fill(); }
@@ -849,7 +925,8 @@ function paperBg(t, k) {
 function photoBg(t) {
   const ph = plan && plan.beats && plan.beats.photos.find(p => p.img);
   cx.fillStyle = '#0c0c0c'; cx.fillRect(0, 0, W, H);
-  if (ph) { blur(2); coverDraw(ph.img, .75, 1.08 + .04 * Math.sin(t * .3), 0); blur(0); }
+  const im = (curScreen && curScreen.img) || (ph && ph.img);
+  if (im) { blur(2); coverDraw(im, .75, 1.08 + .04 * Math.sin(t * .3), 0); blur(0); }
   const g = cx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, 'rgba(0,0,0,.55)'); g.addColorStop(.5, 'rgba(0,0,0,.35)'); g.addColorStop(1, 'rgba(0,0,0,.8)');
   cx.fillStyle = g; cx.fillRect(0, 0, W, H);
 }
@@ -888,7 +965,7 @@ function screenBg(t) {
     cx.fillStyle = TH.night; cx.fillRect(0, 0, W, H);
     const g = cx.createRadialGradient(W / 2, H * .45, 10, W / 2, H * .45, H * .6); g.addColorStop(0, 'rgba(176,141,87,.35)'); g.addColorStop(1, 'rgba(0,0,0,0)');
     cx.fillStyle = g; cx.fillRect(0, 0, W, H);
-    for (let i = 0; i < 260; i++) { cx.fillStyle = `rgba(255,240,220,${Math.random() * .06})`; cx.fillRect(Math.random() * W, Math.random() * H, 2, 2); }
+    grain(.5);
     cx.strokeStyle = 'rgba(232,211,162,.25)'; cx.lineWidth = 1.5; cx.strokeRect(28, 28, W - 56, H - 56);
     return;
   }
@@ -957,6 +1034,7 @@ function findScreens(P) {
 function statScreen(sc, t) {
   const TH = theme(), age = t - sc.s;
   screenBg(t);
+  if (sc.img && themeKey() !== 'photo') { cx.save(); cx.globalAlpha = .3 * ease(age / .6); coverDraw(sc.img, .3, 1.05 + .03 * age, 0); cx.restore(); }
   const n = parseFloat(sc.num.replace(',', '.')) || 0, shown = n >= 1 ? Math.round(n * ease(age / .7)) : sc.num;
   cx.save(); cx.translate(W / 2, H * .42); cx.textAlign = 'center'; cx.textBaseline = 'middle';
   const k = back(age / .35); cx.scale(k, k);
@@ -984,12 +1062,13 @@ function statScreen(sc, t) {
 }
 function quoteScreen(sc, t) {
   const TH = theme(); screenBg(t);
+  const art = drawScreenArt(sc, t);
   const ws = sc.words, key = ws.reduce((a, w) => (KEYQ.test(norm(w.t)) ? w : clean(w.t).length > clean(a.t).length && !KEYQ.test(norm(a.t)) ? w : a), ws[0]);
   const size = 58, items = ws.map(w => ({ w, k: w === key, f: w === key ? SERIF(size * 1.45) : `800 ${size}px "Plus Jakarta Sans", Inter, sans-serif` }));
   const lines = [[]]; let lw = 0;
   items.forEach(it => { cx.font = it.f; it.wd = cx.measureText(it.w.t).width; if (lw + it.wd > W * .8 && lines.at(-1).length) { lines.push([]); lw = 0; } lines.at(-1).push(it); lw += it.wd + 16; });
   cx.save(); cx.globalAlpha = .18; cx.fillStyle = TH.accent; cx.font = SERIF(320); cx.textBaseline = 'top'; cx.fillText('“', 40, H * .12); cx.restore();
-  const lh = size * 1.5, y0 = H * .45 - (lines.length - 1) * lh / 2;
+  const lh = size * 1.5, y0 = (art ? H * .7 : H * .45) - (lines.length - 1) * lh / 2;
   cx.textBaseline = 'middle';
   lines.forEach((l, li) => {
     const tw = l.reduce((a, it) => a + it.wd, 0) + 16 * (l.length - 1); let x = (W - tw) / 2;
@@ -1015,7 +1094,7 @@ function colorGrade() {
   else if (g === 'teal') { cx.globalCompositeOperation = 'soft-light'; const gr = cx.createLinearGradient(0, 0, 0, H); gr.addColorStop(0, 'rgba(0,140,160,.45)'); gr.addColorStop(1, 'rgba(255,120,40,.35)'); cx.fillStyle = gr; cx.fillRect(0, 0, W, H); }
   else if (g === 'bw') { cx.globalCompositeOperation = 'saturation'; cx.fillStyle = '#888'; cx.fillRect(0, 0, W, H); cx.globalCompositeOperation = 'soft-light'; cx.fillStyle = 'rgba(0,0,0,.25)'; cx.fillRect(0, 0, W, H); }
   else if (g === 'punch') { cx.globalCompositeOperation = 'overlay'; cx.fillStyle = 'rgba(128,128,128,.35)'; cx.fillRect(0, 0, W, H); cx.globalCompositeOperation = 'saturation'; cx.fillStyle = 'rgba(255,0,0,.12)'; cx.fillRect(0, 0, W, H); }
-  else if (g === 'film') { cx.globalCompositeOperation = 'soft-light'; cx.fillStyle = 'rgba(255,220,170,.3)'; cx.fillRect(0, 0, W, H); cx.globalCompositeOperation = 'source-over'; for (let i = 0; i < 180; i++) { cx.fillStyle = `rgba(255,255,255,${Math.random() * .05})`; cx.fillRect(Math.random() * W, Math.random() * H, 2, 2); } }
+  else if (g === 'film') { cx.globalCompositeOperation = 'soft-light'; cx.fillStyle = 'rgba(255,220,170,.3)'; cx.fillRect(0, 0, W, H); cx.globalCompositeOperation = 'source-over'; cx.restore(); cx.save(); grain(.5); }
   cx.restore();
 }
 // Title above the framed video ("Enmarque motivacional").
@@ -1085,7 +1164,7 @@ function drawOverlays(t, P) {
   o.words.forEach(w => { const ww = cx.measureText(w.t + ' ').width; if (lw + ww > cw - 60 && lines.at(-1).length) { lines.push([]); lw = 0; } lines.at(-1).push({ w, ww }); lw += ww; });
   const chh = 70 + lines.length * fs * 1.3, y0 = H * .12;
   cx.globalAlpha = k; cx.translate(0, -30 * (1 - k));
-  if (S.blur && HAS_FILTER) { cx.save(); rrect(x0, y0, cw, chh, 26); cx.clip(); blur(S.blur); cx.drawImage(cv, 0, 0); blur(0); cx.restore(); }
+  if (S.blur && HAS_FILTER) { cx.save(); rrect(x0, y0, cw, chh, 26); cx.clip(); blur(S.blur); cx.drawImage(cv, x0 - 30, y0 - 30, cw + 60, chh + 60, x0 - 30, y0 - 30, cw + 60, chh + 60); blur(0); cx.restore(); }
   if (S.glow) { cx.shadowColor = S.glow; cx.shadowBlur = 30; }
   rrect(x0, y0, cw, chh, 26); cx.fillStyle = S.bg; cx.fill(); cx.shadowColor = 'transparent';
   cx.lineWidth = 2; cx.strokeStyle = S.border; cx.stroke();
@@ -1179,7 +1258,7 @@ function drawFrame(t, src, sw, sh) {
   if (P && P.screens) P.screens.forEach((sc, i) => {
     if (t < sc.s - .4 || t > sc.e + .4) return;
     if (sc.type === 'stat' ? !on('optStats') : !on('optMG')) return;
-    if (screenTrans(t, sc.s, sc.e, tt => sc.type === 'stat' ? statScreen(sc, tt) : quoteScreen(sc, tt), 11 + i, 'sc' + sc.s)) covered = true;
+    if (screenTrans(t, sc.s, sc.e, tt => { curScreen = sc; sc.type === 'stat' ? statScreen(sc, tt) : quoteScreen(sc, tt); curScreen = null; }, 11 + i, 'sc' + sc.s)) covered = true;
     if (busy && sc.type === 'stat' && t >= sc.s + .4 && !fired.has('d' + sc.s)) { fired.add('d' + sc.s); sfx('ding'); }
   });
   if (P && !covered && on('optOverlay')) drawOverlays(t, P);
@@ -1197,10 +1276,16 @@ function drawFrame(t, src, sw, sh) {
   return ot;
 }
 
-function render() {
+let lastDraw = 0, lastT = -1, dirty = true;
+document.addEventListener('change', () => { dirty = true; });
+document.addEventListener('input', () => { dirty = true; });
+function render(now) {
   requestAnimationFrame(render);
-  if (fastBusy || v.readyState < 2 || !v.videoWidth || v.seeking) return;
+  if (fastBusy || document.hidden || v.readyState < 2 || !v.videoWidth || v.seeking) return;
+  if (!busy && now - lastDraw < 31) return;
   const P = plan, t = v.currentTime;
+  if (!busy && v.paused && t === lastT && !dirty) return;
+  lastDraw = now; lastT = t; dirty = false;
   if (P) {
     const si = P.segs.findIndex(g => t >= g.s - .06 && t < g.e + .02);
     if (si < 0 || t >= P.segs[si].e) {
@@ -1213,7 +1298,7 @@ function render() {
   drawFrame(t, v, v.videoWidth, v.videoHeight);
   if (window.onFrame) window.onFrame(t);
 }
-render();
+requestAnimationFrame(render);
 
 // ---------- Sound effects (synthesized, no files) ----------
 let sfxLog = null;
@@ -1292,7 +1377,8 @@ async function fastExport() {
   if (!vcfg || !acfg) return null;
 
   // Everything the frames need must be ready before we start.
-  if (plan.beats) await Promise.all(plan.beats.photos.map(p => p.img ? 0 : fetchPhoto(p.q).then(i => { p.img = i; })));
+  msg('Terminando las imágenes IA…');
+  await Promise.race([Promise.all([...(plan.beats ? plan.beats.photos.map(p => p.img ? 0 : (on('optAI') ? aiImage(p.q, 1) : fetchPhoto(p.q)).then(i => { p.img = p.img || i; })) : []), ...plan.screens.map(sc => sc.img || !on('optAI') ? 0 : aiImage(sc.type === 'stat' ? `${sc.num} ${sc.unit} ${sc.ctx}` : sc.words.map(w => w.t).join(' '), 0).then(i => { sc.img = sc.img || i; }))]), new Promise(r => setTimeout(r, 30000))]);
   if (on('optBig')) await loadSeg();
 
   fastBusy = true; busy = true; v.pause();
