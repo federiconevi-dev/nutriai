@@ -5,20 +5,24 @@ const ALLOWED = {
   style: ['viral', 'hormozi', 'editorial', 'coral', 'minimal'],
   mg: ['noir', 'dark', 'bw', 'cine', 'photo', 'vintage', 'coral', 'neonpink', 'clean'],
   ovStyle: ['auto', 'glass', 'neon', 'mono', 'graph', 'femtech', 'cyber'],
-  hookFx: ['flash', 'blur', 'cine', 'none'],
+  hookFx: ['flash', 'zoom', 'iris', 'swipe', 'glitch', 'blackout', 'blur', 'cine', 'none'],
+  hookText: ['auto', 'big', 'card', 'question', 'none'],
+  hookSfx: ['auto', 'impact', 'riser', 'whoosh', 'scratch', 'notif', 'drop', 'zap', 'none'],
   grade: ['none', 'warm', 'teal', 'punch', 'film', 'bw'],
   fBase: ['auto', 'Plus Jakarta Sans', 'Inter Tight', 'Manrope', 'DM Sans', 'Sora', 'Montserrat', 'Poppins', 'Outfit', 'Space Grotesk', 'Bricolage Grotesque'],
   fKey: ['auto', 'Anton', 'Bebas Neue', 'Oswald', 'Big Shoulders Display', 'Archivo Black', 'Unbounded', 'Syne', 'Montserrat', 'Outfit'],
   fAccent: ['auto', 'Instrument Serif', 'Fraunces', 'Cormorant Garamond', 'Playfair Display', 'DM Serif Display', 'Caveat'],
   cKey: ['auto', '#ffe14d', '#22e06b', '#ff4d6d', '#ef233c', '#ff6046', '#38bdf8', '#a855f7', '#f472b6', '#ffffff']
 };
-const TOGGLES = ['optBig', 'optPhotos', 'optAI', 'optMG', 'optOverlay', 'optStats', 'optEmoji', 'optFx', 'optZoom', 'optFrame', 'optCut', 'optSfx', 'optHook', 'optBar'];
+const TOGGLES = ['optGallery', 'optBig', 'optPhotos', 'optAI', 'optMG', 'optOverlay', 'optStats', 'optEmoji', 'optFx', 'optZoom', 'optFrame', 'optCut', 'optSfx', 'optHook', 'optBar'];
 
 const GUIDE = `Options (pick exactly from these):
 style (caption look): viral=clean white captions with glowing key word (personal brand, calm, educational) | hormozi=bold captions with colored box (high energy, sales, motivation) | editorial=elegant italic serif (storytelling, emotional, reflective) | coral=warm cream/coral cards (friendly tips, lifestyle, wellness) | minimal=text on dark band (tutorials, information)
 mg (look of animated screens): noir=black + lime | dark=black + yellow | bw=black & white press, red box | cine=warm noir, gold | photo=real AI photos, dark | vintage=paper collage, red | coral=cream & coral 3D | neonpink=neon pink | clean=white & blue
 ovStyle (idea cards): auto|glass|neon|mono|graph|femtech|cyber
-hookFx (first second): flash (energetic) | blur (soft, aesthetic) | cine (dramatic letterbox) | none
+hookFx (first second): flash (energetic) | zoom (punch-in) | iris (circle opening) | swipe (TikTok swipe-up) | glitch (tech) | blackout (title on black, then cut) | blur (soft, aesthetic) | cine (dramatic letterbox) | none
+hookText: big (giant word) | card (white card on top) | question (big question over the opening) | auto
+hookSfx (sound in the first second): impact | riser (build-up + hit) | whoosh | scratch (record scratch, funny) | notif (phone notification) | drop (bass drop) | zap | auto
 grade (video color): none|warm|teal|punch|film|bw
 fBase/fKey/fAccent fonts: ${['fBase', 'fKey', 'fAccent'].map(k => `${k}: ${ALLOWED[k].join(', ')}`).join('; ')}
 cKey (key word color): ${ALLOWED.cKey.join(', ')}
@@ -36,7 +40,7 @@ export default async (req) => {
   const system = `You are a world-class short-form video editor (TikTok/Reels). ${request ? 'Apply the user\'s requested change to the current settings, changing only what is needed.' : 'Read the transcript and choose the best possible edit for this specific video: tone, topic and audience must drive every choice.'}
 ${GUIDE}
 Also write "hookTitle": a short, punchy on-screen hook (max 8 words) in the SAME language as the transcript, based on its real content (no clickbait lies), and "reason": one sentence in Spanish (rioplatense) explaining the choice to the creator.
-Reply with ONLY one JSON object: {"style":..,"mg":..,"ovStyle":..,"hookFx":..,"grade":..,"fBase":..,"fKey":..,"fAccent":..,"cKey":..,"toggles":{..},"hookTitle":..,"reason":..}`;
+Reply with ONLY one JSON object: {"style":..,"mg":..,"ovStyle":..,"hookFx":..,"hookText":..,"hookSfx":..,"grade":..,"fBase":..,"fKey":..,"fAccent":..,"cKey":..,"toggles":{..},"hookTitle":..,"reason":..}`;
   const user = `Transcript: ${text || '(no speech)'}\nCurrent settings: ${current}${request ? `\nUser request: ${request}` : ''}`;
   let last = '';
   for (const model of ['@cf/meta/llama-3.3-70b-instruct-fp8-fast', '@cf/meta/llama-3.1-8b-instruct']) {

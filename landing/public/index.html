@@ -341,7 +341,15 @@ footer{border-top:1px solid var(--line);padding:30px 0;color:var(--mut);font-siz
       </div>
       <details class="acc" open><summary><span class="on-dot"></span>Arranque (hook)</summary><div class="in">
         <div class="row">Activar efecto<label class="sw"><input type="checkbox" data-mirror="optHook"><span></span></label></div>
-        <div class="chips" data-sel="hookFx"><button data-v="flash">⚡ Flash</button><button data-v="blur">◎ Blur</button><button data-v="cine">🎬 Cine</button><button data-v="none">Ninguno</button></div>
+        <span class="mut">Efecto visual</span>
+        <div class="chips" data-sel="hookFx"><button data-v="flash">⚡ Flash</button><button data-v="zoom">🔍 Zoom</button><button data-v="iris">◯ Círculo</button><button data-v="swipe">⇡ Deslizar</button><button data-v="glitch">▦ Glitch</button><button data-v="blackout">■ Título en negro</button><button data-v="blur">◎ Blur</button><button data-v="cine">🎬 Cine</button><button data-v="none">Ninguno</button></div>
+        <div class="row">Collage de fotos al arrancar<label class="sw"><input type="checkbox" id="optGallery" checked><span></span></label></div>
+        <span class="mut">Texto del gancho</span>
+        <div class="chips" data-sel="hookText"><button data-v="auto">Auto</button><button data-v="big">Texto gigante</button><button data-v="card">Tarjeta</button><button data-v="question">Pregunta</button><button data-v="none">Sin texto</button></div>
+        <input type="hidden" id="hookText" value="auto">
+        <span class="mut">Sonido del gancho</span>
+        <div class="chips" data-sel="hookSfx"><button data-v="auto">Auto</button><button data-v="impact">💥 Golpe</button><button data-v="riser">⤴ Subida + golpe</button><button data-v="whoosh">💨 Whoosh</button><button data-v="scratch">💿 Scratch</button><button data-v="notif">🔔 Notificación</button><button data-v="drop">🔉 Caída de bajo</button><button data-v="zap">⚡ Zap</button><button data-v="none">Sin sonido</button></div>
+        <input type="hidden" id="hookSfx" value="auto">
         <input type="hidden" id="hookFx" value="flash">
       </div></details>
       <details class="acc"><summary><span class="on-dot"></span>Marco con título</summary><div class="in">

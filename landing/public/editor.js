@@ -353,6 +353,32 @@ function drawHookCard(text, ot, dur) {
   cx.restore();
 }
 
+// Opening that starts on black with the hook title, then cuts to you.
+function drawBlackout(text, ot) {
+  const k = ot < .85 ? 1 : 1 - ease((ot - .85) / .25);
+  cx.save(); cx.globalAlpha = k; cx.fillStyle = '#000'; cx.fillRect(0, 0, W, H);
+  const ws = text.toUpperCase().split(' '), lines = [[]]; let size = 92; cx.font = ANTON(size);
+  ws.forEach(w => { const tryL = [...lines.at(-1), w].join(' '); if (cx.measureText(tryL).width > W * .82 && lines.at(-1).length) lines.push([w]); else lines.at(-1).push(w); });
+  const lh = size * 1.05, y0 = H * .45 - (lines.length - 1) * lh / 2;
+  cx.textAlign = 'center'; cx.textBaseline = 'middle';
+  lines.forEach((l, i) => { const a = ease((ot - i * .12) / .3); cx.globalAlpha = k * a; cx.fillStyle = i === lines.length - 1 ? theme().accent : '#fff'; cx.fillText(l.join(' '), W / 2, y0 + i * lh + 20 * (1 - a)); });
+  cx.restore();
+}
+// Big question over a darkened opening.
+function drawHookQuestion(text, ot, dur) {
+  const out = ot > dur - .3 ? ease((ot - dur + .3) / .3) : 0; if (out >= 1) return;
+  const q = /[?¿]$/.test(text) ? text : `¿${text.replace(/[.!]+$/, '')}?`;
+  cx.save(); cx.fillStyle = `rgba(0,0,0,${.45 * (1 - out)})`; cx.fillRect(0, 0, W, H);
+  let size = 64; cx.font = `800 ${size}px "Plus Jakarta Sans", Inter, sans-serif`;
+  const ws = q.split(' '), lines = [[]];
+  ws.forEach(w => { const tryL = [...lines.at(-1), w].join(' '); if (cx.measureText(tryL).width > W * .8 && lines.at(-1).length) lines.push([w]); else lines.at(-1).push(w); });
+  const lh = size * 1.18, y0 = H * .42 - (lines.length - 1) * lh / 2, k = back(ot / .4);
+  cx.translate(W / 2, y0); cx.scale(k * (1 - out * .2), k * (1 - out * .2)); cx.globalAlpha = 1 - out;
+  cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.shadowColor = 'rgba(0,0,0,.6)'; cx.shadowBlur = 24;
+  lines.forEach((l, i) => { cx.fillStyle = i === lines.length - 1 ? theme().accent : '#fff'; cx.fillText(l.join(' '), 0, i * lh); });
+  cx.restore();
+}
+
 // ---- Coral motion graphics ----
 function organic(cxp, cyp, r, seed, t) {
   cx.beginPath();
@@ -620,7 +646,7 @@ async function pickBroll() {
     const r = await fetch('/api/ai-plan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mode: 'broll', max, text: key, subjects: se.map(x => x.map(w => w.t).join(' ')) }) });
     if (!r.ok) throw new Error('broll ' + r.status);
     const j = await r.json();
-    brollPicks = (j.picks || []).filter(pk => se[pk.i]).map(pk => ({ s: se[pk.i][0].s, e: se[pk.i].at(-1).e + .3, prompt: pk.prompt }));
+    brollPicks = (j.picks || []).filter(pk => se[pk.i]).map(pk => ({ s: se[pk.i][0].s, e: se[pk.i].at(-1).e + .3, prompt: pk.prompt, label: pk.label || se[pk.i].slice(0, 5).map(w => w.t.replace(/[.,;:!?]+$/, '')).join(' ') }));
     brollPicks.forEach(pk => promptCache.set(pk.prompt, pk.prompt));
   } catch (e) { console.warn('b-roll plan unavailable', e); brollPicks = []; }
   if (plan) build();
@@ -718,7 +744,7 @@ function makeBeats(P) {
   (P.overlays || []).forEach(o => busyRanges.push([o.s, o.e]));
   const free = (s, e) => !busyRanges.some(([a, b]) => s < b && e > a);
   // Visual hook: the strongest 1-2 words of the first sentence, giant, behind you.
-  if ((on('optBig') || on('optHook')) && $('#style').value !== 'coral') {
+  if (on('optHook') && hookTextType() === 'big') {
     const hw = []; for (const w of words) { hw.push(w); if (hw.length >= 8 || /[.!?]$/.test(w.t)) break; }
     let k = hw.findIndex(w => isNum(w.t));
     if (k < 0) k = hw.reduce((b, w, i) => clean(w.t).length > clean(hw[b].t).length ? i : b, 0);
@@ -743,9 +769,9 @@ function makeBeats(P) {
     // AI-chosen moments (each with its own image idea); your own photos fill those moments first.
     let ui = 0;
     brollPicks.forEach(pk => {
-      const s0 = pk.s, e0 = Math.min(pk.e, pk.s + 2.4);
+      const s0 = pk.s, e0 = Math.min(pk.e, pk.s + 2.8);
       if (e0 - s0 < 1.2 || !free(s0, e0)) return;
-      const ph = { s: s0, e: e0, q: pk.prompt, subj: pk.prompt, img: null, n: B.photos.length };
+      const ph = { s: s0, e: e0, q: pk.prompt, subj: pk.prompt, label: pk.label, img: null, n: B.photos.length };
       if (ui < userPhotos.length) { ph.img = userPhotos[ui++]; ph.user = true; }
       B.photos.push(ph); busyRanges.push([s0, e0]);
     });
@@ -777,11 +803,12 @@ function drawBig(b, t, coral) {
   const first = text.split(' ')[0], num = /^\d+$/.test(first) ? +first : null;
   if (num !== null && num > 1 && num < 100000) text = [Math.round(num * ease(age / .6)), ...text.split(' ').slice(1)].join(' ');
   const size = bigLayout(b, coral);
-  bigRect = { x0: W / 2 - cx.measureText(b.text).width / 2, y0: H * .19 - size * .45, w: cx.measureText(b.text).width, h: size * .9 };
+  const by = b.hook && galleryOn ? H * .6 : H * .19;
+  bigRect = { x0: W / 2 - cx.measureText(b.text).width / 2, y0: by - size * .45, w: cx.measureText(b.text).width, h: size * .9 };
   const mode = b.hook ? 'slam' : ['slam', 'track', 'rise', 'outline'][b.n % 4];
   const fill = coral && b.n % 2 ? '#F0452F' : '#ffffff';
   cx.save();
-  cx.translate(W / 2, H * .19);
+  cx.translate(W / 2, by);
   cx.globalAlpha = 1 - outK; cx.scale(1 + outK * .12, 1 + outK * .12);
   cx.textAlign = 'center'; cx.textBaseline = 'middle';
   cx.shadowColor = 'rgba(0,0,0,.3)'; cx.shadowBlur = 40;
@@ -820,7 +847,7 @@ function drawBigSmall(b, t, coral) {
   const k = ease(age / .45), tw = cx.measureText(b.small).width;
   cx.save();
   const cxp = Math.min(W - 24 - tw / 2, Math.max(24 + tw / 2, W / 2 + W * .05));
-  cx.translate(cxp, H * .19 + size * .36 - 10 * (1 - k)); cx.rotate(-.05);
+  cx.translate(cxp, (b.hook && galleryOn ? H * .6 : H * .19) + size * .36 - 10 * (1 - k)); cx.rotate(-.05);
   cx.globalAlpha = 1 - outK; cx.textAlign = 'center'; cx.textBaseline = 'middle';
   cx.beginPath(); cx.rect(-tw / 2 - 20, -fs, (tw + 40) * k, fs * 2); cx.clip();
   cx.shadowColor = 'rgba(0,0,0,.85)'; cx.shadowBlur = 26; cx.shadowOffsetY = 2;
@@ -833,17 +860,35 @@ function coverDraw(img, alpha, zoom, dx) {
   const s = Math.max(W / iw, H / ih) * zoom, w = iw * s, h = ih * s;
   cx.globalAlpha = alpha; cx.drawImage(img, (W - w) / 2 + dx, (H - h) / 2, w, h); cx.globalAlpha = 1;
 }
-// B-roll: clean full-screen cutaway with a slow push-in (no filters over the face).
+// B-roll: the whole image as a card in the top third while you stay on screen (like viral "visual hook" edits).
+function photoCard(img, x, y, maxW, maxH, rot, k, age, cover) {
+  const iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height;
+  let w, h;
+  if (cover) { w = maxW; h = maxH; } else { const s = Math.min(maxW / iw, maxH / ih); w = iw * s; h = ih * s; }
+  const pop = .8 + .2 * back(age / .45);
+  cx.save(); cx.globalAlpha = k; cx.translate(x, y - 40 * (1 - ease(age / .4))); cx.rotate(rot); cx.scale(pop, pop);
+  cx.shadowColor = 'rgba(0,0,0,.5)'; cx.shadowBlur = 40; cx.shadowOffsetY = 16;
+  rrect(-w / 2 - 7, -h / 2 - 7, w + 14, h + 14, 22); cx.fillStyle = '#fff'; cx.fill(); cx.shadowColor = 'transparent';
+  cx.save(); rrect(-w / 2, -h / 2, w, h, 16); cx.clip();
+  if (cover) { const s2 = Math.max(w / iw, h / ih); cx.drawImage(img, -iw * s2 / 2, -ih * s2 / 2, iw * s2, ih * s2); }
+  else cx.drawImage(img, -w / 2, -h / 2, w, h);
+  cx.restore(); cx.restore();
+}
 function drawPhoto(ph, t) {
   if (!ph.img) return false;
-  const age = t - ph.s, left = ph.e - t, k = Math.min(ease(age / .25), ease(left / .25));
-  cx.save(); cx.globalAlpha = k;
-  cx.fillStyle = '#000'; cx.fillRect(0, 0, W, H);
-  coverDraw(ph.img, k, 1.04 + .06 * (age / 2), 0);
-  const g = cx.createLinearGradient(0, H * .55, 0, H); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, `rgba(0,0,0,${.55 * k})`);
-  cx.fillStyle = g; cx.fillRect(0, 0, W, H);
-  cx.restore();
+  const age = t - ph.s, left = ph.e - t, k = Math.min(ease(age / .3), ease(left / .3));
+  photoCard(ph.img, W / 2, H * .2, W * .8, H * .3, (ph.n % 2 ? -1 : 1) * .03, k, age, false);
   return false;
+}
+// Opening collage: up to three images drop in across the top while the hook text sits lower.
+let galleryOn = false;
+function drawGallery(P, ot) {
+  const imgs = (P.beats ? P.beats.photos : []).map(p => p.img).concat(P.screens.map(s2 => s2.img), P.list ? P.list.items.map(it => it.img) : []).filter(Boolean).slice(0, 3);
+  if (imgs.length < 2) return false;
+  const out = ot > P.hookDur - .3 ? ease((ot - P.hookDur + .3) / .3) : 0;
+  const n = imgs.length, cw = W * (n === 3 ? .28 : .4), chh = cw * 16 / 11, gap = W * .03, x0 = W / 2 - ((n - 1) * (cw + gap)) / 2;
+  imgs.forEach((img, i) => photoCard(img, x0 + i * (cw + gap), H * .05 + chh / 2, cw, chh, (i - (n - 1) / 2) * .04, 1 - out, ot - i * .12, true));
+  return true;
 }
 function drawEmoji(ci, ch, t) {
   const e = plan && plan.beats && plan.beats.emoji.get(ci);
@@ -886,13 +931,13 @@ function fxLayer(t, ot, P, x, y, w, h, coral) {
   if (big) drawBig(big, t, coral);
   if ((big || doubleExp) && on('optBig')) {
     if (!seg) loadSeg();
-    else if (updateMask() && (!big || maskCoverage(bigRect, x, y, w, h) < .4)) drawPerson(x, y, w, h);
+    else if (updateMask() && (!big || (!(big.hook && galleryOn) && maskCoverage(bigRect, x, y, w, h) < .4))) drawPerson(x, y, w, h);
   }
   if (big) drawBigSmall(big, t, coral);
   if (busy) {
     const nb = B.big.find(b => !b.hook && t >= b.s - .55 && t < b.s);
     if (nb && on('optFx') && !fired.has('r' + nb.s)) { fired.add('r' + nb.s); sfx('riser'); }
-    if (big && !fired.has('b' + big.s)) { fired.add('b' + big.s); sfx(big.hook ? 'impact' : 'hit'); }
+    if (big && !big.hook && !fired.has('b' + big.s)) { fired.add('b' + big.s); sfx('hit'); }
     if (photo && !fired.has('p' + photo.s)) { fired.add('p' + photo.s); sfx(photo.n % 2 ? 'shutter' : 'whoosh'); }
   }
   return { hide: !!big, photoCard: photo && !doubleExp };
@@ -900,12 +945,34 @@ function fxLayer(t, ot, P, x, y, w, h, coral) {
 // Called last: transitions on top of everything.
 function fxTop(t, ot, P, si) {
   if (!on('optFx')) return;
-  if (on('optHook') && hookFx() === 'flash' && ot < .2) glitch(ot / .2);
+
   const g = si >= 0 ? P.segs[si] : null;
   const B = P.beats; if (!B) return;
 }
 // Extra synthesized sound hooks
 function sfxExtra(type, t0) {
+  if (type === 'scratch') {
+    const n = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain(); n.buffer = noiseBuf; f.type = 'bandpass'; f.Q.value = 6;
+    f.frequency.setValueAtTime(2200, t0); f.frequency.exponentialRampToValueAtTime(350, t0 + .12); f.frequency.exponentialRampToValueAtTime(1800, t0 + .3);
+    g.gain.setValueAtTime(.5, t0); g.gain.exponentialRampToValueAtTime(.001, t0 + .34);
+    n.connect(f); f.connect(g); g.connect(dest); n.start(t0); n.stop(t0 + .36); return true;
+  }
+  if (type === 'drop') {
+    const o = ac.createOscillator(), g = ac.createGain(); o.type = 'sine';
+    o.frequency.setValueAtTime(95, t0); o.frequency.exponentialRampToValueAtTime(28, t0 + 1.2);
+    g.gain.setValueAtTime(.95, t0); g.gain.exponentialRampToValueAtTime(.001, t0 + 1.3);
+    o.connect(g); g.connect(dest); o.start(t0); o.stop(t0 + 1.35); return true;
+  }
+  if (type === 'zap') {
+    const o = ac.createOscillator(), g = ac.createGain(); o.type = 'square';
+    o.frequency.setValueAtTime(1400, t0); o.frequency.exponentialRampToValueAtTime(160, t0 + .2);
+    g.gain.setValueAtTime(.1, t0); g.gain.exponentialRampToValueAtTime(.001, t0 + .22);
+    o.connect(g); g.connect(dest); o.start(t0); o.stop(t0 + .24); return true;
+  }
+  if (type === 'notif') {
+    [[880, 0], [1320, .12]].forEach(([fq, d]) => { const o = ac.createOscillator(), g = ac.createGain(); o.frequency.value = fq; g.gain.setValueAtTime(.18, t0 + d); g.gain.exponentialRampToValueAtTime(.001, t0 + d + .5); o.connect(g); g.connect(dest); o.start(t0 + d); o.stop(t0 + d + .55); });
+    return true;
+  }
   if (type === 'impact' || type === 'hit') {
     const big = type === 'impact';
     const o = ac.createOscillator(), og = ac.createGain(); o.type = 'sine';
@@ -949,7 +1016,7 @@ document.getElementById('photos').onchange = async e => {
 };
 ['optBig', 'optPhotos', 'optEmoji', 'optAI'].forEach(id => { document.getElementById(id).onchange = () => { if (id === 'optBig' && on('optBig')) loadSeg(); build(); }; });
 let rebuildT = 0;
-['mg', 'style'].forEach(id => document.getElementById(id).addEventListener('change', () => { clearTimeout(rebuildT); rebuildT = setTimeout(() => { if (plan) build(); }, 400); }));
+['mg', 'style', 'hookText'].forEach(id => document.getElementById(id).addEventListener('change', () => { clearTimeout(rebuildT); rebuildT = setTimeout(() => { if (plan) build(); }, 400); }));
 
 
 // ================= Themes: each editing type has its own screens and transitions =================
@@ -1160,6 +1227,9 @@ function quoteScreen(sc, t) {
 // ================= Editor controls, extra looks and overlays =================
 const val = (id, d) => { const el = document.getElementById(id); return el ? el.value : d; };
 const hookFx = () => val('hookFx', 'flash');
+// Text hook: giant word behind you, card on top, or a big question over the opening.
+const hookTextType = () => { const v2 = val('hookText', 'auto'); return v2 !== 'auto' ? v2 : $('#style').value === 'coral' ? 'card' : 'big'; };
+const hookSound = () => { const v2 = val('hookSfx', 'auto'); return v2 === 'auto' ? 'riser' : v2; };
 const grade = () => val('grade', 'none') !== 'none';
 // Color grading presets (cheap full-frame blends).
 function colorGrade() {
@@ -1289,7 +1359,8 @@ function drawFrame(t, src, sw, sh) {
   let z = g && zoomOn ? (coral ? 1 + (g.z - 1) * .55 : g.z) : 1;
   const hk = hookFx();
   // Camera: a gentle opening settle, a slow push-in inside each shot and a light reframe on cuts. No shakes, no whips.
-  if (hookOn && hk !== 'none' && ot < 1.2) z *= 1 + .08 * (1 - ease(ot / 1.2));
+  if (hookOn && hk === 'zoom' && ot < .7) z *= 1 + .28 * (1 - ease(ot / .7));
+  else if (hookOn && hk !== 'none' && ot < 1.2) z *= 1 + .08 * (1 - ease(ot / 1.2));
   if (zoomOn && g) z *= 1 + .035 * Math.min(1, (t - g.s) / Math.max(2, g.e - g.s));
   const sx = 0, sy = 0;
 
@@ -1320,6 +1391,8 @@ function drawFrame(t, src, sw, sh) {
     cx.fillStyle = gr; cx.fillRect(0, 0, W, H);
   }
   if (hookOn && hk === 'flash' && !coral && ot < .22) { cx.fillStyle = `rgba(255,255,255,${.9 * (1 - ot / .22)})`; cx.fillRect(0, 0, W, H); }
+  galleryOn = !!(P && hookOn && on('optGallery') && ot < P.hookDur);
+  if (galleryOn) galleryOn = drawGallery(P, ot);
   const fxs = P && !framed ? fxLayer(t, ot, P, x, y, w, h, coral) : { hide: false };
   let covered = false;
   if (P && P.list && on('optMG')) {
@@ -1337,12 +1410,22 @@ function drawFrame(t, src, sw, sh) {
   const ctaS = P ? P.total - 2.4 : 0;
   const inCta = P && P.cta && on('optMG') && ot >= ctaS - .35;
   if (P && !covered && !fxs.hide && !(inCta && ot >= ctaS) && on('optCaps')) { drawCaption(ch, t); drawEmoji(ci, ch, t); }
-  if (hookOn && P && P.hook && !covered && coral && !framed) drawHookCard(P.hook, ot, P.hookDur);
+  if (hookOn && P && P.hook && !covered && !framed && hookTextType() === 'card') drawHookCard(P.hook, ot, P.hookDur);
+  if (hookOn && P && P.hook && !covered && hookTextType() === 'question') drawHookQuestion(P.hook, ot, P.hookDur);
   if (inCta) screenTrans(ot, ctaS, 1e9, tt => ctaScreen(P.cta, tt - ctaS), 7, 'cta');
   if (P && on('optBar')) { cx.fillStyle = 'rgba(255,255,255,.18)'; cx.fillRect(0, H - 8, W, 8); cx.fillStyle = theme().accent; cx.fillRect(0, H - 8, W * ot / P.total, 8); }
   if (P && !covered) fxTop(t, ot, P, si);
+  if (busy && hookOn && ot < .15 && !fired.has('hooksfx')) {
+    fired.add('hooksfx');
+    const hs = hookSound();
+    if (hs === 'riser') { sfx('riser'); sfx('impact', .5); } else if (hs !== 'none') sfx(hs);
+  }
   if (hookOn && hk === 'blur' && ot < .6) { const k = 1 - ease(ot / .6); cx.save(); blur(18 * k); cx.drawImage(cv, 0, 0); blur(0); cx.restore(); }
   if (hookOn && hk === 'cine' && ot < 1.4) { const k = 1 - ease(ot / 1.4), bh = H * .13 * k; cx.fillStyle = '#000'; cx.fillRect(0, 0, W, bh); cx.fillRect(0, H - bh, W, bh); }
+  if (hookOn && hk === 'iris' && ot < .8) { const r = Math.hypot(W, H) * .6 * ease(ot / .8); cx.save(); cx.beginPath(); cx.rect(0, 0, W, H); cx.arc(W / 2, H * .4, Math.max(1, r), 0, Math.PI * 2); cx.fillStyle = '#000'; cx.fill('evenodd'); cx.restore(); }
+  if (hookOn && hk === 'swipe' && ot < .5) { const off = H * (1 - ease(ot / .5)); const sc = scrCv.getContext('2d'); sc.clearRect(0, 0, W, H); sc.drawImage(cv, 0, 0); cx.fillStyle = '#000'; cx.fillRect(0, 0, W, H); cx.drawImage(scrCv, 0, off); }
+  if (hookOn && hk === 'glitch' && ot < .45) glitch(ot / .45);
+  if (hookOn && hk === 'blackout' && P && P.hook && ot < 1.1) drawBlackout(P.hook, ot);
   if (!busy && on('optSafe')) drawSafeZones();
   if (busy && P) prog(ot / P.total);
   return ot;
@@ -1374,11 +1457,11 @@ requestAnimationFrame(render);
 
 // ---------- Sound effects (synthesized, no files) ----------
 let sfxLog = null;
-function sfx(type) {
+function sfx(type, delay = 0) {
   if (!on('optSfx')) return;
-  if (sfxLog) { sfxLog.push({ type, at: curOt }); return; }
+  if (sfxLog) { sfxLog.push({ type, at: curOt + delay }); return; }
   if (!ac || !dest) return;
-  playSfx(type, ac.currentTime);
+  playSfx(type, ac.currentTime + delay);
 }
 function playSfx(type, t0) {
   if (sfxExtra(type, t0)) return;
@@ -1597,7 +1680,6 @@ async function realtimeExport() {
   v.currentTime = plan.segs[0].s;
   await new Promise(r => { v.onseeked = () => { v.onseeked = null; r(); }; setTimeout(r, 1500); });
   rec.start(500);
-  if (!(plan.beats && plan.beats.big.some(b => b.hook))) sfx('boom');
   msg('Exportando en tiempo real (este formato no permite el modo rápido). Dejá esta pestaña abierta.');
   try { await v.play(); } catch (e) { finish(); msg('No se pudo reproducir el video. Probá con un MP4.'); }
 }
