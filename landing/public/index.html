@@ -170,7 +170,9 @@ footer{border-top:1px solid var(--line);padding:30px 0;color:var(--mut);font-siz
  .stage{order:1;padding:10px}#cv{height:auto;width:min(100%,360px)}
  .panel{order:2;border:0}.ptabs{position:sticky;top:0;background:var(--bg);z-index:2}
  .tlw{order:3;height:84px;flex:none}
- #msg{max-width:40vw}
+ #msg{max-width:none}
+ .bar{flex-wrap:wrap;height:auto;padding:8px 12px;row-gap:8px;overflow:visible}
+ #status{order:9;width:100%}#status .track{flex:1;width:auto}
 }
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -327,7 +329,7 @@ footer{border-top:1px solid var(--line);padding:30px 0;color:var(--mut);font-siz
     <aside class="side r" id="sideR">
       <h4>Capas de edición</h4>
       <div class="ask">
-        <div class="rec" id="aiRec2">✨ La IA eligió esta edición para tu video.</div>
+        <div class="rec" id="aiRec2">✨ Cuando termine de escucharte, la IA elige la mejor edición para tu video.</div>
         <label class="fld">Pedile un cambio a la IA<textarea id="aiAsk" rows="2" placeholder="Ej: más elegante y en tonos rosas · más energía · estilo de película"></textarea></label>
         <div class="row"><button class="btn sm" id="aiGo">✨ Aplicar</button><button class="btn sm ghost" id="aiAuto">↻ Recomendar de nuevo</button></div>
       </div>

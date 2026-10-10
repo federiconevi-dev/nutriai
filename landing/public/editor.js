@@ -791,7 +791,7 @@ function drawBigSmall(b, t, coral) {
   cx.translate(cxp, H * .19 + size * .36 - 10 * (1 - k)); cx.rotate(-.05);
   cx.globalAlpha = 1 - outK; cx.textAlign = 'center'; cx.textBaseline = 'middle';
   cx.beginPath(); cx.rect(-tw / 2 - 20, -fs, (tw + 40) * k, fs * 2); cx.clip();
-  cx.shadowColor = 'rgba(0,0,0,.45)'; cx.shadowBlur = 18; cx.shadowOffsetY = 3;
+  cx.shadowColor = 'rgba(0,0,0,.85)'; cx.shadowBlur = 26; cx.shadowOffsetY = 2;
   cx.fillStyle = coral ? '#FFD9CF' : TH.accent === '#2563EB' ? '#FFE14D' : TH.accent;
   cx.fillText(b.small, 0, 0);
   cx.restore();
