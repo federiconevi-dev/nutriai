@@ -946,37 +946,6 @@ function quoteScreen(sc, t) {
   });
 }
 
-// ---- Background music: synthesized live (royalty-free), low volume under your voice ----
-let music = null;
-function startMusic() {
-  if (!ac || !dest || !on('optMusic')) return;
-  const kind = theme().music, now = ac.currentTime;
-  const m = ac.createGain(); m.gain.setValueAtTime(0, now); m.gain.linearRampToValueAtTime(kind === 'trap' ? .09 : .11, now + 2); m.connect(dest);
-  const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = kind === 'cine' ? 2400 : 1500; lp.connect(m);
-  const PROG = { lofi: [[53, 57, 60, 64], [52, 55, 59, 62], [50, 53, 57, 60], [48, 52, 55, 59]], trap: [[57, 60, 64], [53, 57, 60], [48, 52, 55], [55, 59, 62]], cine: [[57, 64, 69, 72], [53, 60, 65, 69], [48, 55, 60, 64], [55, 62, 67, 71]] }[kind];
-  const beat = 60 / ({ lofi: 82, trap: 140, cine: 64 }[kind]), bar = beat * 4, hz = n => 440 * Math.pow(2, (n - 69) / 12);
-  const kick = tt => { const o = ac.createOscillator(), g = ac.createGain(); o.frequency.setValueAtTime(120, tt); o.frequency.exponentialRampToValueAtTime(42, tt + .25); g.gain.setValueAtTime(.55, tt); g.gain.exponentialRampToValueAtTime(.001, tt + .3); o.connect(g); g.connect(m); o.start(tt); o.stop(tt + .32); };
-  const hat = (tt, v = .05) => { const n = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain(); n.buffer = noiseBuf; f.type = 'highpass'; f.frequency.value = 7000; g.gain.setValueAtTime(v, tt); g.gain.exponentialRampToValueAtTime(.001, tt + .05); n.connect(f); f.connect(g); g.connect(m); n.start(tt); n.stop(tt + .06); };
-  const pluck = (f0, tt) => { const o = ac.createOscillator(), g = ac.createGain(); o.type = 'triangle'; o.frequency.value = f0; g.gain.setValueAtTime(.07, tt); g.gain.exponentialRampToValueAtTime(.001, tt + beat * 1.5); o.connect(g); g.connect(lp); o.start(tt); o.stop(tt + beat * 1.6); };
-  let next = now + .05, bi = 0;
-  const tick = () => {
-    while (next < ac.currentTime + .8) {
-      const ch = PROG[bi % 4];
-      ch.forEach(n => { const o = ac.createOscillator(), g = ac.createGain(); o.type = kind === 'trap' ? 'sawtooth' : 'triangle'; o.frequency.value = hz(n); o.detune.value = (Math.random() - .5) * 10; g.gain.setValueAtTime(0, next); g.gain.linearRampToValueAtTime(kind === 'trap' ? .025 : .045, next + .4); g.gain.linearRampToValueAtTime(0, next + bar + .15); o.connect(g); g.connect(lp); o.start(next); o.stop(next + bar + .2); });
-      const b = ac.createOscillator(), bg = ac.createGain(); b.frequency.value = hz(ch[0] - 24); bg.gain.setValueAtTime(.0001, next); bg.gain.linearRampToValueAtTime(kind === 'trap' ? .3 : .16, next + .03); bg.gain.exponentialRampToValueAtTime(.001, next + bar * (kind === 'trap' ? .5 : 1)); b.connect(bg); bg.connect(m); b.start(next); b.stop(next + bar);
-      if (kind === 'cine') ch.forEach((n, k) => pluck(hz(n + 12), next + k * beat));
-      else for (let k = 0; k < 4; k++) {
-        const bt = next + k * beat;
-        if (kind === 'lofi') { if (k % 2 === 0) kick(bt); hat(bt + beat / 2); }
-        else { if (k === 0 || k === 2.5) kick(bt); if (k === 2) kick(bt + beat / 2); for (let s = 0; s < 4; s++) hat(bt + s * beat / 4, .03); }
-      }
-      next += bar; bi++;
-    }
-  };
-  tick(); const id = setInterval(tick, 200);
-  music = { stop() { clearInterval(id); const t1 = ac.currentTime; m.gain.cancelScheduledValues(t1); m.gain.setValueAtTime(m.gain.value, t1); m.gain.linearRampToValueAtTime(0, t1 + .4); } };
-}
-function stopMusic() { if (music) { music.stop(); music = null; } }
 
 function render() {
   requestAnimationFrame(render);
@@ -1107,12 +1076,11 @@ $('#go').onclick = async () => {
   v.currentTime = plan.segs[0].s;
   await new Promise(r => { v.onseeked = () => { v.onseeked = null; r(); }; setTimeout(r, 1500); });
   rec.start(500);
-  startMusic();
   if (!(plan.beats && plan.beats.big.some(b => b.hook))) sfx('boom');
   msg('Exportando… tarda lo mismo que dura el video editado. Dejá esta pestaña abierta.');
   try { await v.play(); } catch (e) { finish(); msg('No se pudo reproducir el video. Probá con un MP4.'); }
 };
-function finish() { stopMusic(); v.pause(); if (rec && rec.state === 'recording') rec.stop(); }
+function finish() { v.pause(); if (rec && rec.state === 'recording') rec.stop(); }
 v.onended = () => { if (busy) finish(); else if (plan) { v.currentTime = plan.segs[0].s; v.play().catch(() => {}); } };
 ['lang', 'task', 'quality'].forEach(id => { $('#' + id).onchange = () => { if (file) runAI(); }; });
 if (document.fonts) ['800 40px "Plus Jakarta Sans"', '600 22px "Plus Jakarta Sans"', '800 40px Outfit', '600 40px Outfit', '900 40px Montserrat', 'italic 700 40px "Playfair Display"', '400 40px Anton', 'italic 400 40px "Instrument Serif"'].forEach(f => document.fonts.load(f).catch(() => {}));
