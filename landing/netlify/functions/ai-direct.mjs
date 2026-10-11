@@ -41,8 +41,8 @@ export default async (req) => {
 
   const system = `You are a world-class short-form video editor (TikTok/Reels). ${request ? 'Apply the user\'s requested change to the current settings, changing only what is needed.' : 'Read the transcript and choose the best possible edit for this specific video: tone, topic and audience must drive every choice.'}
 ${GUIDE}
-Also write "hookTitle": a short, punchy on-screen hook (max 8 words) in the SAME language as the transcript, based on its real content (no clickbait lies), and "reason": one sentence in Spanish (rioplatense) explaining the choice to the creator.
-Reply with ONLY one JSON object: {"style":..,"mg":..,"ovStyle":..,"hookFx":..,"hookText":..,"hookSfx":..,"brollLayout":..,"grade":..,"fBase":..,"fKey":..,"fAccent":..,"cKey":..,"toggles":{..},"hookTitle":..,"reason":..}`;
+Also write "hookTitle": a short, punchy on-screen hook (max 8 words) in the SAME language as the transcript, based on its real content (no clickbait lies). It must be perfectly natural and grammatical, with correct spelling and accents, addressed to the viewer (for Spanish from Argentina use correct voseo, e.g. "¿Querés subir de nivel?", never mixed forms like "¿Subí de nivel y dominá…?"). Also write "fixes": an object mapping single words the automatic transcription clearly misheard or misspelled to the correct single word, with accents (e.g. {"desloqueas":"desbloqueás"}); only obvious errors, {} if none. And "reason": one sentence in Spanish (rioplatense) explaining the choice to the creator.
+Reply with ONLY one JSON object: {"style":..,"mg":..,"ovStyle":..,"hookFx":..,"hookText":..,"hookSfx":..,"brollLayout":..,"grade":..,"fBase":..,"fKey":..,"fAccent":..,"cKey":..,"toggles":{..},"hookTitle":..,"fixes":{..},"reason":..}`;
   const user = `Transcript: ${text || '(no speech)'}\nCurrent settings: ${current}${request ? `\nUser request: ${request}` : ''}`;
   let last = '';
   for (let attempt = 0; attempt < 2; attempt++) {
@@ -56,7 +56,7 @@ Reply with ONLY one JSON object: {"style":..,"mg":..,"ovStyle":..,"hookFx":..,"h
       for (const [k, list] of Object.entries(ALLOWED)) if (list.includes(raw[k])) settings[k] = raw[k];
       const toggles = {};
       if (raw.toggles && typeof raw.toggles === 'object') for (const k of TOGGLES) if (typeof raw.toggles[k] === 'boolean') toggles[k] = raw.toggles[k];
-      return Response.json({ settings, toggles, hookTitle: String(raw.hookTitle || '').slice(0, 70), reason: String(raw.reason || '').slice(0, 300), model });
+      return Response.json({ settings, toggles, hookTitle: String(raw.hookTitle || '').slice(0, 70), fixes: raw.fixes && typeof raw.fixes === 'object' ? Object.fromEntries(Object.entries(raw.fixes).slice(0, 40).map(([a, b]) => [String(a).slice(0, 30), String(b).slice(0, 30)])) : {}, reason: String(raw.reason || '').slice(0, 300), model });
     } catch (e) { last += ` | ${e.message}`; }
   }
   console.log('ai-direct failed', last);

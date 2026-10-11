@@ -189,6 +189,7 @@ async function direct(request = '') {
     for (const [k, val] of Object.entries(j.settings || {})) { if (!request && /^(fBase|fKey|fAccent|cKey|grade)$/.test(k)) continue; const el = $('#' + k); if (el && el.value !== val) { el.value = val; fire(el); } }
     // In automatic mode the AI can only switch extra features on (the full edit stays); turning things off needs a request.
     for (const [k, val] of Object.entries(j.toggles || {})) { if (!request && !val && k !== 'optFrame') continue; const el = $('#' + k); if (el && el.checked !== val) { el.checked = val; el.dispatchEvent(new Event('change', { bubbles: true })); } }
+    if (j.fixes) VE.fixWords(j.fixes);
     if (j.hookTitle) VE.setHook(j.hookTitle);
     syncAll(); vsSync(); setTimeout(repaint, 100);
     setRec('✨ ' + (j.reason || 'Listo, apliqué la edición.'));

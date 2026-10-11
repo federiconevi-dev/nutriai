@@ -226,11 +226,13 @@ const C = { coral: '#F0452F', light: '#FF785C', dark: '#CE2C1A', cream: '#F4EFE6
 const HAS_FILTER = 'filter' in cx;
 const blur = px => { if (HAS_FILTER) cx.filter = px > .3 ? `blur(${px.toFixed(1)}px)` : 'none'; };
 const isNum = s => /\d/.test(s);
+// Dark accents (e.g. deep blue) are hard to read over video: mix them with white until they are bright enough.
+const lift = hex => { const n = parseInt(hex.slice(1), 16); let r = n >> 16 & 255, g = n >> 8 & 255, b = n & 255; const L = (.2126 * r + .7152 * g + .0722 * b) / 255; if (L >= .5) return hex; const m = Math.min(.6, (.55 - L) / (1 - L)); r += (255 - r) * m; g += (255 - g) * m; b += (255 - b) * m; return `rgb(${r | 0},${g | 0},${b | 0})`; };
 const style = () => {
   const st = fontOverride(STYLES[$('#style').value] || STYLES.viral);
   const k = val('cKey', 'auto'), b = val('cBase', 'auto');
   const th = THEMES[themeKey()];
-  return { ...st, size: st.size * +val('sBase', 1), hi: k !== 'auto' ? k : st.pill ? st.hi : th.accent, glowC: th.glow || th.accent, base: b === 'auto' ? '#fff' : b };
+  return { ...st, size: st.size * +val('sBase', 1), hi: k !== 'auto' ? k : st.pill ? st.hi : lift(th.accent), glowC: th.glow || th.accent, base: b === 'auto' ? '#fff' : b };
 };
 
 function wordsLayout(list, st) {
@@ -790,7 +792,7 @@ function makeBeats(P) {
     if (k < 0) k = hw.reduce((b, w, i) => clean(w.t).length > clean(hw[b].t).length ? i : b, 0);
     const pick = hw.slice(k, k + (isNum(hw[k].t) && hw[k + 1] ? 2 : 1));
     const text = pick.map(w => clean(w.t)).join(' ').toUpperCase();
-    const small = aiHookTitle ? aiHookTitle.toLowerCase() : hw.filter(w => !pick.includes(w)).slice(0, 5).map(w => w.t.replace(/[.,;:!?]+$/, '')).join(' ').toLowerCase();
+    const small = aiHookTitle && aiHookTitle.split(' ').length <= 4 ? aiHookTitle.toLowerCase() : hw.filter(w => !pick.includes(w)).slice(0, 3).map(w => w.t.replace(/[.,;:!?]+$/, '')).join(' ').toLowerCase();
     if (text) { B.big.push({ s: words[0].s, e: Math.max(words[0].s + 1.8, pick.at(-1).e + .6), text, small, hook: true, n: 0 }); busyRanges.push([words[0].s, B.big[0].e]); }
   }
   if (on('optBig')) {
@@ -893,16 +895,17 @@ function drawBigSmall(b, t, coral) {
   const age = t - b.s - .25, left = b.e - t, outK = left < .25 ? ease(1 - left / .25) : 0;
   if (age <= 0) return;
   const size = bigLayout(b, coral), TH = theme();
-  let fs = Math.max(56, size * .42) * +val('sAccent', 1); cx.font = SERIF(fs);
-  while (cx.measureText(b.small).width > W * .84 && fs > 30) { fs -= 4; cx.font = SERIF(fs); }
+  let fs = Math.max(64, size * .42) * +val('sAccent', 1); cx.font = SERIF(fs);
+  while (cx.measureText(b.small).width > W * .86 && fs > 44) { fs -= 4; cx.font = SERIF(fs); }
   const k = ease(age / .45), tw = cx.measureText(b.small).width;
   cx.save();
   const cxp = Math.min(W - 24 - tw / 2, Math.max(24 + tw / 2, W / 2 + W * .05));
-  cx.translate(cxp, (b.hook && galleryOn ? H * .6 : H * .19) + size * .36 - 10 * (1 - k)); cx.rotate(-.05);
+  cx.translate(cxp, (b.hook && galleryOn ? H * .6 : H * .19) + size * .42 + fs * .45 - 10 * (1 - k)); cx.rotate(-.05);
   cx.globalAlpha = 1 - outK; cx.textAlign = 'center'; cx.textBaseline = 'middle';
   cx.beginPath(); cx.rect(-tw / 2 - 20, -fs, (tw + 40) * k, fs * 2); cx.clip();
   cx.shadowColor = 'rgba(0,0,0,.85)'; cx.shadowBlur = 26; cx.shadowOffsetY = 2;
-  cx.fillStyle = coral ? '#FFD9CF' : TH.accent === '#2563EB' ? '#FFE14D' : TH.accent;
+  cx.lineJoin = 'round'; cx.lineWidth = fs * .14; cx.strokeStyle = 'rgba(0,0,0,.75)'; cx.strokeText(b.small, 0, 0); cx.shadowColor = 'transparent';
+  cx.fillStyle = coral ? '#FFD9CF' : TH.accent === '#2563EB' ? '#FFE14D' : lift(TH.accent);
   cx.fillText(b.small, 0, 0);
   cx.restore();
 }
@@ -1344,7 +1347,7 @@ function findOverlays(P) {
   return out;
 }
 const OV = {
-  glass: { bg: 'rgba(255,255,255,.16)', border: 'rgba(255,255,255,.45)', ink: '#fff', key: '#fff', label: 'rgba(255,255,255,.7)', blur: 18, font: s => `600 ${s}px "Plus Jakarta Sans", Inter, sans-serif` },
+  glass: { bg: 'rgba(15,15,20,.5)', border: 'rgba(255,255,255,.45)', ink: '#fff', key: '#fff', label: 'rgba(255,255,255,.7)', blur: 18, font: s => `600 ${s}px "Plus Jakarta Sans", Inter, sans-serif` },
   neon: { bg: 'rgba(40,10,70,.82)', border: '#c084fc', ink: '#fff', key: '#f0abfc', label: '#c084fc', glow: '#a855f7', font: s => `700 ${s}px Outfit, Inter, sans-serif` },
   mono: { bg: '#fafafa', border: '#111', ink: '#111', key: '#111', label: '#666', font: s => `italic 400 ${s * 1.15}px "Instrument Serif", Georgia, serif`, underline: true },
   graph: { bg: '#fffdf6', border: '#cfd8e3', ink: '#1f2937', key: '#2563eb', label: '#64748b', grid: true, font: s => `700 ${s}px Caveat, "Plus Jakarta Sans", cursive` },
@@ -1356,25 +1359,25 @@ function drawOverlays(t, P) {
   const ovk = val('ovStyle', 'auto'), TH = theme();
   const S = ovk === 'auto' ? { ...OV.glass, key: TH.accent, label: TH.accent, border: TH.line === '#e2e8f0' || TH.line === '#dddddd' ? 'rgba(255,255,255,.5)' : TH.line } : OV[ovk] || OV.glass;
   const age = t - o.s, left = o.e - t, k = Math.min(ease(age / .35), ease(left / .3));
-  const cw = W * .86, x0 = (W - cw) / 2, fs = 34;
+  const cw = W * .88, x0 = (W - cw) / 2, fs = 44;
   cx.save(); cx.font = S.font(fs);
   const lines = [[]]; let lw = 0;
   o.words.forEach(w => { const ww = cx.measureText(w.t + ' ').width; if (lw + ww > cw - 60 && lines.at(-1).length) { lines.push([]); lw = 0; } lines.at(-1).push({ w, ww }); lw += ww; });
-  const chh = 70 + lines.length * fs * 1.3, y0 = H * .12;
+  const chh = 84 + lines.length * fs * 1.3, y0 = H * .1;
   cx.globalAlpha = k; cx.translate(0, -30 * (1 - k));
   if (S.blur && HAS_FILTER) { cx.save(); rrect(x0, y0, cw, chh, 26); cx.clip(); blur(S.blur); cx.drawImage(cv, x0 - 30, y0 - 30, cw + 60, chh + 60, x0 - 30, y0 - 30, cw + 60, chh + 60); blur(0); cx.restore(); }
   if (S.glow) { cx.shadowColor = S.glow; cx.shadowBlur = 30; }
   rrect(x0, y0, cw, chh, 26); cx.fillStyle = S.bg; cx.fill(); cx.shadowColor = 'transparent';
   cx.lineWidth = 2; cx.strokeStyle = S.border; cx.stroke();
   if (S.grid) { cx.save(); rrect(x0, y0, cw, chh, 26); cx.clip(); cx.strokeStyle = 'rgba(37,99,235,.12)'; cx.lineWidth = 1; for (let gx = x0; gx < x0 + cw; gx += 22) { cx.beginPath(); cx.moveTo(gx, y0); cx.lineTo(gx, y0 + chh); cx.stroke(); } for (let gy = y0; gy < y0 + chh; gy += 22) { cx.beginPath(); cx.moveTo(x0, gy); cx.lineTo(x0 + cw, gy); cx.stroke(); } cx.restore(); }
-  cx.fillStyle = S.label; cx.font = `700 18px ${S.mono ? '"JetBrains Mono", monospace' : 'Inter, sans-serif'}`; cx.textBaseline = 'middle';
-  cx.fillText((S.mono ? '> ' : '● ') + o.label.toUpperCase(), x0 + 30, y0 + 32);
+  cx.fillStyle = S.label; cx.font = `800 22px ${S.mono ? '"JetBrains Mono", monospace' : 'Inter, sans-serif'}`; cx.textBaseline = 'middle';
+  cx.fillText((S.mono ? '> ' : '● ') + o.label.toUpperCase(), x0 + 32, y0 + 36);
   cx.font = S.font(fs);
   lines.forEach((l, li) => {
-    let x = x0 + 30; const y = y0 + 72 + li * fs * 1.3;
+    let x = x0 + 32; const y = y0 + 84 + li * fs * 1.3;
     l.forEach(({ w, ww }) => {
       const a = ease((t - w.s + .1) / .2);
-      cx.globalAlpha = k * Math.max(.25, a); cx.fillStyle = w === o.key ? S.key : S.ink; cx.fillText(w.t, x, y);
+      cx.globalAlpha = k * Math.max(.55, a); cx.fillStyle = w === o.key ? S.key : S.ink; cx.fillText(w.t, x, y);
       if (w === o.key && S.underline) { cx.fillRect(x, y + fs * .55, (ww - 10) * a, 3); }
       x += ww;
     });
@@ -1391,7 +1394,10 @@ function fontOverride(base) {
 
 // Draws one output frame for source time t from any drawable (the <video> in preview, a decoded VideoFrame when exporting).
 let curSrc = v, curOt = 0, fastBusy = false;
+const flipCv = document.createElement('canvas'), flipCx = flipCv.getContext('2d');
 function drawFrame(t, src, sw, sh) {
+  // "Espejar": undo the selfie-camera mirror (text on clothes reads correctly).
+  if (on('optFlip')) { if (flipCv.width !== sw || flipCv.height !== sh) { flipCv.width = sw; flipCv.height = sh; } flipCx.setTransform(-1, 0, 0, 1, sw, 0); flipCx.drawImage(src, 0, 0, sw, sh); src = flipCv; }
   curSrc = src;
   const P = plan;
   const si = P ? P.segs.findIndex(g => t >= g.s - .06 && t < g.e + .02) : -1;
@@ -1476,7 +1482,8 @@ function drawFrame(t, src, sw, sh) {
   const ctaS = P ? P.total - 2.4 : 0;
   const inCta = P && P.cta && on('optMG') && ot >= ctaS - .35;
   if (on('optFollow') && !splitPh && !framed) followHead(x, y, w, h);
-  if (P && !covered && !fxs.hide && !(inCta && ot >= ctaS) && on('optCaps')) { drawCaption(ch, t); drawEmoji(ci, ch, t); }
+  const qHook = hookOn && P && P.hook && hookTextType() === 'question' && ot < P.hookDur;
+  if (P && !covered && !fxs.hide && !qHook && !(inCta && ot >= ctaS) && on('optCaps')) { drawCaption(ch, t); drawEmoji(ci, ch, t); }
   if (hookOn && P && P.hook && !covered && !framed && hookTextType() === 'card') drawHookCard(P.hook, ot, P.hookDur);
   if (hookOn && P && P.hook && !covered && hookTextType() === 'question') drawHookQuestion(P.hook, ot, P.hookDur);
   if (inCta) screenTrans(ot, ctaS, 1e9, tt => ctaScreen(P.cta, tt - ctaS), 7, 'cta');
@@ -1764,6 +1771,13 @@ const SAMPLE = 'Lo que nadie te dice sobre crecer en redes'.split(' ').map((t, i
 window.VE = {
   load, build, video: v,
   setHook(t) { aiHookTitle = t; build(); },
+  // Fix words the transcription got wrong (e.g. "desloqueas" → "desbloqueás"), keeping punctuation.
+  fixWords(map) {
+    const m = new Map(Object.entries(map || {}).map(([a, b]) => [norm(a), String(b)]).filter(([a, b]) => a && b && !/\s/.test(b)));
+    let n = 0;
+    words.forEach(w => { const r = m.get(norm(w.t)); if (r) { const p = w.t.match(/[.,;:!?¿¡]*$/)[0]; w.t = (/^[A-ZÁÉÍÓÚÑ]/.test(w.t) ? r[0].toUpperCase() + r.slice(1) : r) + p; n++; } });
+    if (n) build();
+  },
   get plan() { return plan; },
   // Draws a preview of a motion-graphics look ('mg') or an overlay style ('ov') into a small canvas.
   thumb(c, kind, key, i = 0) {
