@@ -7,7 +7,7 @@
 <title>Videora — Edición automática con IA</title>
 <meta name="description" content="Subí tu video vertical y la IA lo edita: subtítulos, hooks, motion graphics, b-rolls, texto detrás tuyo, zooms y sonidos. Gratis y en tu navegador.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=Plus+Jakarta+Sans:wght@600;800&family=Outfit:wght@600;800&family=Montserrat:wght@800;900&family=Anton&family=Bebas+Neue&family=Archivo+Black&family=Poppins:wght@800&family=Space+Grotesk:wght@700&family=Instrument+Serif:ital@1&family=Playfair+Display:ital,wght@1,700&family=DM+Serif+Display:ital@1&family=Caveat:wght@700&family=Permanent+Marker&family=Great+Vibes&family=JetBrains+Mono:wght@600&family=Inter+Tight:wght@600;700;800&family=Fraunces:ital,wght@1,600&family=Bricolage+Grotesque:wght@800&family=Syne:wght@800&family=Unbounded:wght@800&family=Sora:wght@700&family=Manrope:wght@800&family=DM+Sans:wght@700&family=Cormorant+Garamond:ital,wght@1,600&family=Oswald:wght@700&family=Big+Shoulders+Display:wght@900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=Nunito:wght@800;900&family=Plus+Jakarta+Sans:wght@600;800&family=Outfit:wght@600;800&family=Montserrat:wght@800;900&family=Anton&family=Bebas+Neue&family=Archivo+Black&family=Poppins:wght@800&family=Space+Grotesk:wght@700&family=Instrument+Serif:ital@1&family=Playfair+Display:ital,wght@1,700&family=DM+Serif+Display:ital@1&family=Caveat:wght@700&family=Permanent+Marker&family=Great+Vibes&family=JetBrains+Mono:wght@600&family=Inter+Tight:wght@600;700;800&family=Fraunces:ital,wght@1,600&family=Bricolage+Grotesque:wght@800&family=Syne:wght@800&family=Unbounded:wght@800&family=Sora:wght@700&family=Manrope:wght@800&family=DM+Sans:wght@700&family=Cormorant+Garamond:ital,wght@1,600&family=Oswald:wght@700&family=Big+Shoulders+Display:wght@900&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#0b0d12;--p1:#11141b;--p2:#171b24;--line:#252b38;--tx:#f2f5f9;--mut:#8b93a7;--acc:#c6f432;--acc2:#5eead4;--ink:#0b0d12;--ok:#5eead4;--glow:0 0 60px -12px rgba(198,244,50,.55)}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -262,7 +262,7 @@ footer{border-top:1px solid var(--line);padding:30px 0;color:var(--mut);font-siz
         <div>
           <div class="tg"><i>💬</i><div><b>Subtítulos animados</b><small>Palabra por palabra con énfasis automático.</small></div><label class="sw"><input type="checkbox" id="optCaps" checked><span></span></label></div>
           <div class="tg"><i>🪞</i><div><b>Espejar video</b><small>Activalo si la cámara te grabó al revés (las letras de la ropa se leen invertidas).</small></div><label class="sw"><input type="checkbox" id="optFlip"><span></span></label></div>
-          <div class="tg"><i>🅰</i><div><b>Énfasis de texto</b><small>Palabras gigantes, detrás tuyo, con cursiva cruzando.</small></div><label class="sw"><input type="checkbox" id="optBig" checked><span></span></label></div>
+          <div class="tg"><i>🅰</i><div><b>Énfasis de texto</b><small>Palabras gigantes, detrás tuyo, con cursiva cruzando.</small></div><label class="sw"><input type="checkbox" id="optBig"><span></span></label></div>
           <div class="tg"><i>🎞</i><div><b>B-Rolls automáticos</b><small>Fotos de apoyo en los momentos que lo piden.</small></div><label class="sw"><input type="checkbox" id="optPhotos" checked><span></span></label></div>
           <div class="tg"><i>🪄</i><div><b>Imágenes IA (gratis)</b><small>Genera imágenes del tema de tu video para pantallas y b-rolls.</small></div><label class="sw"><input type="checkbox" id="optAI" checked><span></span></label></div>
           <div class="tg"><i>🪝</i><div><b>Hook textual</b><small>Frase de gancho inicial para frenar el scroll.</small></div><label class="sw"><input type="checkbox" id="optHook" checked><span></span></label></div>
@@ -272,12 +272,12 @@ footer{border-top:1px solid var(--line);padding:30px 0;color:var(--mut);font-siz
         </div>
         <div>
           <div class="box">
-            <h3><span>🎬 Pantallas animadas <span class="tag">Recomendado</span></span><label class="sw"><input type="checkbox" id="optMG" checked><span></span></label></h3>
+            <h3><span>🎬 Pantallas animadas <span class="tag">Recomendado</span></span><label class="sw"><input type="checkbox" id="optMG"><span></span></label></h3>
             <small class="mut">Pantallas animadas sobre el tema de tu video: listas, números y frases clave.</small>
             <div class="cards" id="mgCards"></div>
           </div>
           <div class="box">
-            <h3><span>🪪 Tarjetas de ideas</span><label class="sw"><input type="checkbox" id="optOverlay" checked><span></span></label></h3>
+            <h3><span>🪪 Tarjetas de ideas</span><label class="sw"><input type="checkbox" id="optOverlay"><span></span></label></h3>
             <small class="mut">Tarjetas con datos, citas e insights generadas desde lo que decís.</small>
             <div class="cards ov" id="ovCards"></div>
           </div>
@@ -303,13 +303,14 @@ footer{border-top:1px solid var(--line);padding:30px 0;color:var(--mut);font-siz
       <h4>Estilo y texto</h4>
       <h5>LOOK DE SUBTÍTULOS</h5>
       <div class="vs" id="vs">
+        <button data-v="viro"><b>Pro</b><small>Como viroedit: palabra en verde con brillo</small></button>
         <button data-v="hormozi"><b>Impacto</b><small>Fuerte, con recuadro</small></button>
         <button data-v="editorial"><b>Historia</b><small>Cursiva narrativa</small></button>
         <button data-v="viral"><b>Creador</b><small>Limpio con palabra clave</small></button>
         <button data-v="coral"><b>Coral</b><small>Tarjeta y tonos cálidos</small></button>
         <button data-v="minimal"><b>Franja</b><small>Texto sobre banda oscura</small></button>
       </div>
-      <select id="style" hidden><option value="viral">viral</option><option value="hormozi">hormozi</option><option value="editorial">editorial</option><option value="coral">coral</option><option value="minimal">minimal</option></select>
+      <select id="style" hidden><option value="viro" selected>viro</option><option value="viral">viral</option><option value="hormozi">hormozi</option><option value="editorial">editorial</option><option value="coral">coral</option><option value="minimal">minimal</option></select>
 
       <h5>TIPOGRAFÍA Y COLOR</h5>
       <label class="fld">Texto base<select id="fBase" class="fontsel"></select></label>
@@ -344,14 +345,14 @@ footer{border-top:1px solid var(--line);padding:30px 0;color:var(--mut);font-siz
         <div class="row">Activar efecto<label class="sw"><input type="checkbox" data-mirror="optHook"><span></span></label></div>
         <span class="mut">Efecto visual</span>
         <div class="chips" data-sel="hookFx"><button data-v="flash">⚡ Flash</button><button data-v="zoom">🔍 Zoom</button><button data-v="iris">◯ Círculo</button><button data-v="swipe">⇡ Deslizar</button><button data-v="glitch">▦ Glitch</button><button data-v="blackout">■ Título en negro</button><button data-v="blur">◎ Blur</button><button data-v="cine">🎬 Cine</button><button data-v="none">Ninguno</button></div>
-        <div class="row">Collage de fotos al arrancar<label class="sw"><input type="checkbox" id="optGallery" checked><span></span></label></div>
+        <div class="row">Collage de fotos al arrancar<label class="sw"><input type="checkbox" id="optGallery"><span></span></label></div>
         <span class="mut">Texto del gancho</span>
         <div class="chips" data-sel="hookText"><button data-v="auto">Auto</button><button data-v="big">Texto gigante</button><button data-v="card">Tarjeta</button><button data-v="question">Pregunta</button><button data-v="none">Sin texto</button></div>
         <input type="hidden" id="hookText" value="auto">
         <span class="mut">Sonido del gancho</span>
         <div class="chips" data-sel="hookSfx"><button data-v="auto">Auto</button><button data-v="impact">💥 Golpe</button><button data-v="riser">⤴ Subida + golpe</button><button data-v="whoosh">💨 Whoosh</button><button data-v="scratch">💿 Scratch</button><button data-v="notif">🔔 Notificación</button><button data-v="drop">🔉 Caída de bajo</button><button data-v="zap">⚡ Zap</button><button data-v="none">Sin sonido</button></div>
         <input type="hidden" id="hookSfx" value="auto">
-        <input type="hidden" id="hookFx" value="flash">
+        <input type="hidden" id="hookFx" value="blur">
       </div></details>
       <details class="acc"><summary><span class="on-dot"></span>Marco con título</summary><div class="in">
         <div class="row">Video en tarjeta con título arriba<label class="sw"><input type="checkbox" id="optFrame"><span></span></label></div>
@@ -368,7 +369,7 @@ footer{border-top:1px solid var(--line);padding:30px 0;color:var(--mut);font-siz
         <div class="row">Palabras gigantes detrás tuyo<label class="sw"><input type="checkbox" data-mirror="optBig"><span></span></label></div>
       </div></details>
       <details class="acc"><summary><span class="on-dot"></span>Números animados</summary><div class="in">
-        <div class="row">Números que cuentan (ej: "30 días")<label class="sw"><input type="checkbox" id="optStats" checked><span></span></label></div>
+        <div class="row">Números que cuentan (ej: "30 días")<label class="sw"><input type="checkbox" id="optStats"><span></span></label></div>
       </div></details>
       <details class="acc"><summary><span class="on-dot"></span>Pantallas animadas</summary><div class="in">
         <div class="row">Pantallas animadas<label class="sw"><input type="checkbox" data-mirror="optMG"><span></span></label></div>
@@ -379,15 +380,15 @@ footer{border-top:1px solid var(--line);padding:30px 0;color:var(--mut);font-siz
         <div class="row">Fotos automáticas<label class="sw"><input type="checkbox" data-mirror="optPhotos"><span></span></label></div>
         <span class="mut">Cómo se muestran</span>
         <div class="chips" data-sel="brollLayout"><button data-v="split">▤ Pantalla dividida</button><button data-v="card">▣ Tarjeta arriba</button><button data-v="full">▮ Pantalla completa</button></div>
-        <input type="hidden" id="brollLayout" value="split">
+        <input type="hidden" id="brollLayout" value="full">
         <label class="fld">Tus fotos (opcional; si no subís, las busca solas)<input type="file" id="photos" accept="image/*" multiple></label>
       </div></details>
       <details class="acc"><summary><span class="on-dot"></span>Efectos visuales</summary><div class="in">
-        <div class="row">Glitch, destellos y zoom látigo<label class="sw"><input type="checkbox" id="optFx" checked><span></span></label></div>
-        <div class="row">Emojis<label class="sw"><input type="checkbox" id="optEmoji"><span></span></label></div>
-        <div class="row">Barra de progreso<label class="sw"><input type="checkbox" id="optBar" checked><span></span></label></div>
+        <div class="row">Glitch, destellos y zoom látigo<label class="sw"><input type="checkbox" id="optFx"><span></span></label></div>
+        <input type="checkbox" id="optEmoji" hidden>
+        <div class="row">Barra de progreso<label class="sw"><input type="checkbox" id="optBar"><span></span></label></div>
         <div class="row">Zooms automáticos<label class="sw"><input type="checkbox" data-mirror="optZoom"><span></span></label></div>
-        <div class="row">Zoom in / zoom out en frases clave<label class="sw"><input type="checkbox" id="optPunch" checked><span></span></label></div>
+        <div class="row">Zoom in / zoom out en frases clave<label class="sw"><input type="checkbox" id="optPunch"><span></span></label></div>
         <div class="row">Final en loop (empalma con el inicio)<label class="sw"><input type="checkbox" id="optLoop"><span></span></label></div>
       </div></details>
       <details class="acc"><summary><span class="on-dot"></span>Subtítulos y sonido</summary><div class="in">

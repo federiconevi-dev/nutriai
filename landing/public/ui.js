@@ -186,9 +186,9 @@ async function direct(request = '') {
     const j = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(j.error || 'La IA no respondió.');
     // In automatic mode keep our curated typography and colors; fonts/colors change only when asked.
-    for (const [k, val] of Object.entries(j.settings || {})) { if (!request && /^(fBase|fKey|fAccent|cKey|grade)$/.test(k)) continue; const el = $('#' + k); if (el && el.value !== val) { el.value = val; fire(el); } }
+    for (const [k, val] of Object.entries(j.settings || {})) { if (!request && k !== 'hookSfx') continue; const el = $('#' + k); if (el && el.value !== val) { el.value = val; fire(el); } }
     // In automatic mode the AI can only switch extra features on (the full edit stays); turning things off needs a request.
-    for (const [k, val] of Object.entries(j.toggles || {})) { if (!request && !val && k !== 'optFrame') continue; const el = $('#' + k); if (el && el.checked !== val) { el.checked = val; el.dispatchEvent(new Event('change', { bubbles: true })); } }
+    for (const [k, val] of Object.entries(j.toggles || {})) { if (!request) continue; const el = $('#' + k); if (el && el.checked !== val) { el.checked = val; el.dispatchEvent(new Event('change', { bubbles: true })); } }
     if (j.fixes) VE.fixWords(j.fixes);
     if (j.hookTitle) VE.setHook(j.hookTitle);
     syncAll(); vsSync(); setTimeout(repaint, 100);

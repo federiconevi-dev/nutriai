@@ -11,7 +11,7 @@ export default async (req) => {
   const account = Netlify.env.get('CF_ACCOUNT_ID'), token = Netlify.env.get('CF_API_TOKEN');
   if (!account || !token) return Response.json({ error: 'El servidor no tiene configurado Cloudflare.' }, { status: 503 });
 
-  if (body.mode === 'broll') return broll(account, token, subjects, text, Math.max(1, Math.min(6, Number(body.max) || 3)));
+  if (body.mode === 'broll') return broll(account, token, subjects, text, Math.max(1, Math.min(8, Number(body.max) || 3)));
   const system = 'You are the art director of viral short-form videos. For each numbered moment, write ONE vivid English image prompt (max 25 words) for a single striking visual metaphor that matches what is being said: one clear subject, centered, no text, no letters, no logos, no people talking to camera. Reply ONLY with lines in the form "N: prompt".';
   const user = `Full transcript (for context): ${text}\n\nMoments:\n${subjects.map((s, i) => `${i + 1}: ${s}`).join('\n')}`;
   const { text: out, model } = await chat(system, user, 900);
@@ -26,13 +26,13 @@ export const config = { path: '/api/ai-plan', method: 'POST' };
 
 // B-roll planning: pick only the sentences where a supporting image makes the message clearer.
 async function broll(account, token, sentences, text, max) {
-  const system = `You are the editor of a viral short video. From the numbered sentences, choose the ${max} best ones to illustrate with a short cutaway image (b-roll) that shows exactly what is being said: a concrete object, place, action, or a clear visual metaphor of the idea. Skip greetings and calls to action ("comment", "follow", "save this video"). For each pick write a vivid English image prompt (max 22 words, one clear subject, cinematic photorealistic, no text, no logos). Reply ONLY with lines "N: prompt || label" where label is a 2-5 word on-screen title in the SAME language as the sentence. Nothing else.`;
+  const system = `You are the editor of a viral short video. From the numbered sentences, choose the ${max} best ones to illustrate with a short cutaway image (b-roll) that shows exactly what is being said: a concrete object, place, action, or a clear visual metaphor of the idea. Always include sentence 1 (the opening image is the visual hook). Skip calls to action ("comment", "follow", "save this video"). For each pick write a vivid English image prompt (max 22 words, one clear subject, cinematic, glossy, dramatic lighting, rich colors, photorealistic or polished 3D, no text, no letters, no logos). Reply ONLY with lines "N: prompt || kicker || title": kicker is a 2-4 word elegant intro phrase and title a 2-4 word bold on-screen title, both in the SAME language as the sentence, natural and grammatically perfect with correct accents (e.g. "Tu viaje comienza || Aprendé lo esencial"). Nothing else.`;
   const user = `Context: ${text.slice(0, 3000)}\n\nSentences:\n${sentences.map((s, i) => `${i + 1}: ${s}`).join('\n')}`;
   const { text: out } = await chat(system, user, 700);
   const picks = [];
   for (const line of out.split('\n')) {
     const m = line.match(/^\s*(\d+)\s*[:.)-]\s*(.+)$/);
-    if (m && picks.length < max) { const i = Number(m[1]) - 1; if (sentences[i] && !picks.some(p => p.i === i)) { const [pr, lb] = m[2].split('||').map(x => x.replace(/^[\s"']+|[\s"']+$/g, '')); picks.push({ i, prompt: pr, label: lb || '' }); } }
+    if (m && picks.length < max) { const i = Number(m[1]) - 1; if (sentences[i] && !picks.some(p => p.i === i)) { const [pr, a, b] = m[2].split('||').map(x => x.replace(/^[\s"']+|[\s"']+$/g, '')); picks.push({ i, prompt: pr, kicker: b ? a : '', label: (b || a || '') }); } }
   }
   return Response.json({ picks });
 }
