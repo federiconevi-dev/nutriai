@@ -286,6 +286,8 @@ footer{border-top:1px solid var(--line);padding:30px 0;color:var(--mut);font-siz
         <div class="now-typo"><div><small class="mut" style="font-size:11px;display:block;letter-spacing:.1em">FORMATO</small><b id="recNow" style="font:800 20px 'Bricolage Grotesque',sans-serif">—</b><small class="mut" id="recDesc" style="display:block;font-size:12px"></small></div><button class="btn sm ghost" id="recNext">Otro formato</button></div>
         <div class="now-typo"><div><small class="mut" style="font-size:11px;display:block;letter-spacing:.1em">TIPOGRAFÍA</small><b id="typoNow">—</b></div><button class="btn sm ghost" id="typoNext">Probar otra</button></div>
         <div class="row2"><button class="btn sm ghost" id="aiAuto">Recomendar de nuevo</button><button class="btn sm ghost" id="toP">Ajustar a mano</button></div>
+        <div id="hookBox" hidden><h5>OTROS GANCHOS (TOCÁ PARA USAR)</h5><div class="chips" id="hookAlts"></div></div>
+        <div id="postBox" hidden><h5>TEXTO PARA PUBLICAR</h5><label class="fld"><textarea id="postTxt" rows="4" readonly></textarea></label><button class="btn sm ghost full" id="postCopy">Copiar texto y hashtags</button></div>
         <h5>PEDILE UN CAMBIO A LA IA</h5>
         <label class="fld"><textarea id="aiAsk" rows="3" placeholder="Ej: más elegante · tipografía de lujo · menos imágenes · más energía"></textarea></label>
         <button class="btn sm full" id="aiGo">Aplicar cambio</button>
@@ -318,12 +320,22 @@ footer{border-top:1px solid var(--line);padding:30px 0;color:var(--mut);font-siz
         <input type="hidden" id="fBase" value="auto"><input type="hidden" id="fKey" value="auto"><input type="hidden" id="fAccent" value="auto">
         <label class="btn sm ghost full" style="position:relative;margin-top:4px">Importar tu fuente (.ttf .otf .woff)<input type="file" id="fontFile" class="sr" accept=".ttf,.otf,.woff,.woff2"></label>
 
+        <h5>MÚSICA</h5>
+        <div class="chips" data-sel="music"><button data-v="auto">Auto (IA)</button><button data-v="motiva">Motivación</button><button data-v="chill">Tranqui</button><button data-v="lujo">Lujo</button><button data-v="misterio">Misterio</button><button data-v="none">Sin música</button></div>
+        <input type="hidden" id="music" value="auto">
+        <label class="fld" style="margin-top:8px">Volumen de la música<input type="range" id="musicVol" min=".1" max="1" step=".05" value=".5"></label>
+        <label class="fld">Tu usuario en pantalla (opcional)<input id="handle" maxlength="30" placeholder="@tucuenta"></label>
+
         <h5>QUÉ INCLUIR</h5>
         <div class="tg"><div><b>Subtítulos</b><small>Palabra por palabra, sincronizados.</small></div><label class="sw"><input type="checkbox" id="optCaps" checked><span></span></label></div>
         <div class="tg"><div><b>Imágenes de apoyo</b><small>A pantalla completa, con título.</small></div><label class="sw"><input type="checkbox" id="optPhotos" checked><span></span></label></div>
         <div class="tg"><div><b>Videos de stock (Pexels)</b><small>Clips reales en movimiento para los b-rolls.</small></div><label class="sw"><input type="checkbox" id="optVideo" checked><span></span></label></div>
         <div class="tg"><div><b>Imágenes creadas con IA</b><small>Si lo apagás, usa solo tus fotos.</small></div><label class="sw"><input type="checkbox" id="optAI" checked><span></span></label></div>
         <div class="tg"><div><b>Arranque con impacto</b><small>Efecto y sonido en el primer segundo.</small></div><label class="sw"><input type="checkbox" id="optHook" checked><span></span></label></div>
+        <div class="tg"><div><b>Voz profesional</b><small>Limpia, más presente y pareja.</small></div><label class="sw"><input type="checkbox" id="optVoice" checked><span></span></label></div>
+        <div class="tg"><div><b>Cortar muletillas</b><small>Saca los "eh", "em", "este".</small></div><label class="sw"><input type="checkbox" id="optFiller" checked><span></span></label></div>
+        <div class="tg"><div><b>Números que cuentan</b><small>Cuando decís un número, sube en pantalla.</small></div><label class="sw"><input type="checkbox" id="optCount" checked><span></span></label></div>
+        <div class="tg"><div><b>Notificaciones animadas</b><small>Cuando hablás de mensajes o chats.</small></div><label class="sw"><input type="checkbox" id="optNotif" checked><span></span></label></div>
         <div class="tg"><div><b>Transiciones en los cortes</b><small>Zoom, barrido, destello, glitch o luz cálida según el formato.</small></div><label class="sw"><input type="checkbox" id="optFx2" checked><span></span></label></div>
         <div class="tg"><div><b>Zooms suaves</b><small>Acercamientos lentos entre cortes.</small></div><label class="sw"><input type="checkbox" id="optZoom" checked><span></span></label></div>
         <div class="tg"><div><b>Efectos de sonido</b><small>En el gancho, transiciones, zooms y pantallas.</small></div><label class="sw"><input type="checkbox" id="optSfx" checked><span></span></label></div>
@@ -380,7 +392,7 @@ footer{border-top:1px solid var(--line);padding:30px 0;color:var(--mut);font-siz
           <div class="fld">Color del texto<div class="sws" data-for="cBase"></div></div>
           <div class="fld">Color de la palabra clave<div class="sws" data-for="cKey"></div></div>
           <input type="hidden" id="cBase" value="auto"><input type="hidden" id="cKey" value="auto">
-          <label class="fld">Color del video<select id="grade"><option value="none">Natural</option><option value="warm">Cálido</option><option value="teal">Cine</option><option value="punch">Contraste vivo</option><option value="film">Película</option><option value="bw">Blanco y negro</option></select></label>
+          <label class="fld">Color del video<select id="grade"><option value="pro" selected>Profesional</option><option value="none">Natural</option><option value="warm">Cálido</option><option value="teal">Cine</option><option value="punch">Contraste vivo</option><option value="film">Película</option><option value="bw">Blanco y negro</option></select></label>
         </div></details>
         <details class="acc"><summary>Texto y transcripción</summary><div class="in">
           <label class="fld">Idioma del video<select id="lang"><option value="spanish">Español</option><option value="english">Inglés</option><option value="portuguese">Portugués</option></select></label>

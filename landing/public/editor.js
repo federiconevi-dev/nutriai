@@ -23,7 +23,7 @@ function load(f) {
   if (!f) return;
   if (!f.type.startsWith('video/') && !/\.(mp4|mov|webm|m4v)$/i.test(f.name)) { alert('Ese archivo no es un video. Elegí un MP4, MOV o WEBM.'); return; }
   if (f.size > 1e9) { alert('El video pesa más de 1 GB. Probá con uno más corto.'); return; }
-  file = f; words = []; plan = null; lastSeg = lastChunk = -1; aiHookTitle = ''; aiTypo = aiRecipe = ''; brollPicks = []; brollFor = null;
+  file = f; words = []; plan = null; lastSeg = lastChunk = -1; aiHookTitle = ''; aiTypo = aiRecipe = aiMusic = ''; brollPicks = []; brollFor = null;
   v.src = URL.createObjectURL(f); v.load(); v.play().catch(() => {});
   $('#dl').hidden = true; $('#go').disabled = true; $('#txt').value = ''; prog(0);
   if (window.onLoaded) window.onLoaded(f);
@@ -138,7 +138,9 @@ function build() {
   const D = v.duration || 0;
   if (!D) return;
   let segs = [];
-  const src = speech && speech.length ? speech : words;
+  // Filler words ("eh", "em", "este"…) are cut out like silences.
+  const FILL = /^(e+h+|e+m+|m+|e+h*m+|a+h+|u+h+|u+m+|este+)$/;
+  const src = on('optFiller') && words.length ? words.filter(w => !FILL.test(norm(w.t))) : speech && speech.length ? speech : words;
   if (on('optCut') && src.length) {
     for (const r of src) {
       const s = Math.max(0, r.s - .1), e = Math.min(D, r.e + .12), l = segs.at(-1);
@@ -389,7 +391,10 @@ function viroCaption(ch, t, st) {
     const lit = on2 && (big || isK(w) || t < w.e + .08);
     if (lit) { cx.shadowColor = st.glowC; cx.shadowBlur = size * (big ? .8 : .55); cx.shadowOffsetY = 0; cx.fillStyle = st.hi; }
     else cx.fillStyle = on2 ? '#fff' : 'rgba(255,255,255,.6)';
-    cx.fillText(tx, x, y); if (lit) cx.fillText(tx, x, y);
+    // Pop: the word you are saying bounces in.
+    const pa = t - w.s, pop = on2 && pa < .2 ? 1 + .18 * Math.sin(Math.PI * pa / .2) : 1;
+    if (pop !== 1) { const ww = cx.measureText(tx).width; cx.save(); cx.translate(x + ww / 2, y); cx.scale(pop, pop); cx.fillText(tx, -ww / 2, 0); if (lit) cx.fillText(tx, -ww / 2, 0); cx.restore(); }
+    else { cx.fillText(tx, x, y); if (lit) cx.fillText(tx, x, y); }
   };
   let size = st.size;
   const wid = sz => main.reduce((q, w) => { cx.font = fnt(w, sz); return q + cx.measureText(low(w)).width; }, 0) + sz * .27 * (main.length - 1);
@@ -400,7 +405,11 @@ function viroCaption(ch, t, st) {
     const k = back((t - ch.key.s) / .3);
     let bs = size * 2.1; cx.font = keyF(bs); while (cx.measureText(low(ch.key)).width > W * .8 && bs > 40) { bs -= 4; cx.font = keyF(bs); }
     const bw = cx.measureText(low(ch.key)).width;
-    cx.save(); cx.translate(0, size * .45 + bs * .5); cx.scale(.7 + .3 * k, .7 + .3 * k); word(ch.key, bs, -bw / 2, 0, true); cx.restore();
+    cx.save(); cx.translate(0, size * .45 + bs * .5); cx.scale(.7 + .3 * k, .7 + .3 * k); word(ch.key, bs, -bw / 2, 0, true);
+    // Hand-drawn underline that draws itself under the star word.
+    const u = easeQ((t - ch.key.s - .15) / .35);
+    if (u > 0) { cx.shadowBlur = 0; cx.strokeStyle = st.hi; cx.lineWidth = Math.max(4, bs * .07); cx.lineCap = 'round'; cx.beginPath(); const x1 = -bw / 2, x2 = x1 + bw * u; cx.moveTo(x1, bs * .5); cx.quadraticCurveTo((x1 + x2) / 2, bs * .62, x2, bs * .46); cx.stroke(); }
+    cx.restore();
   }
   cx.restore();
 }
@@ -1074,6 +1083,28 @@ function makeBeats(P) {
       B.kin.push({ s: s0, e, words: all, key, n: B.kin.length }); busyRanges.push([s0 - .1, e + .1]); lastK = e;
     });
   }
+  // Numbers you say count up on screen; messages/notifications pop in like a phone alert.
+  B.nums = []; B.notifs = [];
+  if (style().viro && on('optCount')) {
+    let lastN = -9;
+    words.forEach((w, i) => {
+      const raw = w.t.replace(/[^0-9.,]/g, '').replace(/[.,](?=\d{3}\b)/g, '').replace(',', '.'), n = parseFloat(raw);
+      if (!(n >= 2) || n > 1e9 || w.s - lastN < 5 || w.s < words[0].s + 1.5 || w.s > words.at(-1).e - 2.5) return;
+      const s0 = w.s - .1, e0 = w.s + 1.7; if (!free(s0, e0)) return;
+      const nx = words[i + 1], unit = nx && !isNum(nx.t) && clean(nx.t).length > 2 ? nx.t.replace(/[.,;:!?]+$/, '') : '';
+      B.nums.push({ s: s0, e: e0, n, money: /\$|peso|dolar|usd|plata/.test(norm(w.t + ' ' + unit)) || w.t.includes('$'), pct: /%|por/.test(w.t + unit) && /cient/.test(norm(unit)), unit });
+      busyRanges.push([s0, e0]); lastN = e0;
+    });
+  }
+  if (style().viro && on('optNotif')) {
+    let lastM = -9;
+    P.chunks.forEach((c, ci) => {
+      if (B.notifs.length >= 2 || c.s - lastM < 8 || c.s > words.at(-1).e - 3 || !c.some(w => /mensaje|whatsapp|notificacion|chat|mail|correo|escrib|dm$|comentari/.test(norm(w.t)))) return;
+      const txt = [c, P.chunks[ci + 1]].filter(Boolean).flat().map(w => w.t).join(' ').slice(0, 60);
+      const s0 = c.s, e0 = c.s + 2.4; if (!free(s0, e0)) return;
+      B.notifs.push({ s: s0, e: e0, txt }); busyRanges.push([s0, e0]); lastM = e0;
+    });
+  }
   ovR.forEach(r => { if (!B.photos.some(ph => ph.s < r[1] && ph.e > r[0])) busyRanges.push(r); });
   if (on('optEmoji')) P.chunks.forEach((c, i) => {
     for (const w of c) { const n = norm(w.t); const hit = EMO.find(([re]) => re.test(n)); if (hit) { B.emoji.set(i, hit[1]); break; } }
@@ -1274,6 +1305,34 @@ function cutFx(kind, k, si) {
   else if (kind === 'leak') warmLeak(k * .4);
   else if (kind === 'zoomblur') { cx.save(); blur(14 * e); cx.drawImage(cv, 0, 0); blur(0); cx.restore(); }
 }
+// Big number that counts up (e.g. "30 días", "$1000").
+function drawCounter(nm, t) {
+  const age = t - nm.s, k = Math.min(easeQ(age / .25), ease((nm.e - t) / .25)), T = typo(), p = easeQ(age / .8);
+  const dec = nm.n % 1 ? 1 : 0, cur = nm.n * p, txt = (nm.money ? '$' : '') + (dec ? cur.toFixed(1) : Math.round(cur).toLocaleString('es-AR')) + (nm.pct ? '%' : '');
+  cx.save(); cx.globalAlpha = k; cx.textAlign = 'center'; cx.textBaseline = 'middle';
+  let fs = 190; cx.font = T.title(fs); while (cx.measureText(txt).width > W * .86 && fs > 80) { fs -= 10; cx.font = T.title(fs); }
+  const y = H * .27, sc = .7 + .3 * back(age / .35);
+  cx.translate(W / 2, y); cx.scale(sc, sc);
+  const ck = val('cKey', 'auto') !== 'auto' ? val('cKey') : null, g = cx.createLinearGradient(-W / 3, 0, W / 3, 0); g.addColorStop(0, ck || T.key[0]); g.addColorStop(1, ck || T.key[1]);
+  cx.shadowColor = 'rgba(0,0,0,.6)'; cx.shadowBlur = 30; cx.fillStyle = g; cx.fillText(txt, 0, 0);
+  if (nm.unit) { cx.shadowBlur = 16; cx.font = accF(58); cx.fillStyle = '#fff'; cx.fillText(nm.unit, 0, fs * .62); }
+  cx.restore();
+}
+// Phone-style notification sliding down from the top.
+function drawNotif(nt, t) {
+  const age = t - nt.s, k = Math.min(easeQ(age / .35), ease((nt.e - t) / .3)), cw = W * .9, ch = 118, x0 = (W - cw) / 2, y0 = H * .07 - 160 * (1 - k);
+  cx.save(); cx.globalAlpha = k;
+  cx.shadowColor = 'rgba(0,0,0,.35)'; cx.shadowBlur = 30; cx.shadowOffsetY = 10;
+  rrect(x0, y0, cw, ch, 30); cx.fillStyle = 'rgba(245,245,247,.94)'; cx.fill(); cx.shadowColor = 'transparent';
+  rrect(x0 + 22, y0 + 26, 66, 66, 16); cx.fillStyle = '#25D366'; cx.fill();
+  cx.fillStyle = '#fff'; cx.font = '700 34px Inter, sans-serif'; cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillText('✉', x0 + 55, y0 + 60);
+  cx.textAlign = 'left'; cx.fillStyle = '#111'; cx.font = '700 25px Inter, sans-serif'; cx.fillText('Nuevo mensaje', x0 + 108, y0 + 42);
+  cx.fillStyle = '#8e8e93'; cx.font = '500 20px Inter, sans-serif'; cx.textAlign = 'right'; cx.fillText('ahora', x0 + cw - 26, y0 + 42);
+  cx.textAlign = 'left'; cx.fillStyle = '#333'; cx.font = '500 23px Inter, sans-serif';
+  let tx = nt.txt; while (cx.measureText(tx + '…').width > cw - 140 && tx.length > 4) tx = tx.slice(0, -1);
+  cx.fillText(tx + (tx.length < nt.txt.length ? '…' : ''), x0 + 108, y0 + 80);
+  cx.restore();
+}
 // Warm light-leak flare used on b-roll cuts (orange to yellow glows, ~0.4s around the cut).
 function warmLeak(d) {
   if (d < 0 || d > .4) return;
@@ -1372,6 +1431,10 @@ function fxLayer(t, ot, P, x, y, w, h, coral) {
     if (busy) { if (!fired.has('k' + kn.s)) { fired.add('k' + kn.s); sfx('impact'); } kn.words.forEach((w, i) => { if (t >= w.s && !fired.has('kw' + kn.s + i)) { fired.add('kw' + kn.s + i); sfx('tick'); } }); }
     drawKin(kn, t); return { hide: true };
   }
+  const nm = (B.nums || []).find(q => t >= q.s && t <= q.e); if (nm) drawCounter(nm, t);
+  const nt = (B.notifs || []).find(q => t >= q.s && t <= q.e); if (nt) drawNotif(nt, t);
+  if (busy && nm && !fired.has('nm' + nm.s)) { fired.add('nm' + nm.s); sfx(nm.money ? 'cash' : 'ding'); }
+  if (busy && nt && !fired.has('nt' + nt.s)) { fired.add('nt' + nt.s); sfx('notif'); }
   if (busy) { const nk = (B.kin || []).find(q => t >= q.s - .6 && t < q.s); if (nk && !fired.has('kr' + nk.s)) { fired.add('kr' + nk.s); sfx('whoosh'); } }
   const big = B.big.find(b => t >= b.s && t <= b.e);
   const photo = B.photos.find(p => t >= p.s && t <= p.e && (p.img || p.vid || (p.failed && p.label && style().viro)));
@@ -1714,6 +1777,7 @@ function colorGrade() {
   else if (g === 'teal') { cx.globalCompositeOperation = 'soft-light'; const gr = cx.createLinearGradient(0, 0, 0, H); gr.addColorStop(0, 'rgba(0,140,160,.45)'); gr.addColorStop(1, 'rgba(255,120,40,.35)'); cx.fillStyle = gr; cx.fillRect(0, 0, W, H); }
   else if (g === 'bw') { cx.globalCompositeOperation = 'saturation'; cx.fillStyle = '#888'; cx.fillRect(0, 0, W, H); cx.globalCompositeOperation = 'soft-light'; cx.fillStyle = 'rgba(0,0,0,.25)'; cx.fillRect(0, 0, W, H); }
   else if (g === 'punch') { cx.globalCompositeOperation = 'overlay'; cx.fillStyle = 'rgba(128,128,128,.35)'; cx.fillRect(0, 0, W, H); cx.globalCompositeOperation = 'saturation'; cx.fillStyle = 'rgba(255,0,0,.12)'; cx.fillRect(0, 0, W, H); }
+  else if (g === 'pro') { cx.globalCompositeOperation = 'soft-light'; cx.fillStyle = 'rgba(255,190,140,.16)'; cx.fillRect(0, 0, W, H); cx.globalCompositeOperation = 'overlay'; cx.fillStyle = 'rgba(128,128,128,.18)'; cx.fillRect(0, 0, W, H); }
   else if (g === 'film') { cx.globalCompositeOperation = 'soft-light'; cx.fillStyle = 'rgba(255,220,170,.3)'; cx.fillRect(0, 0, W, H); cx.globalCompositeOperation = 'source-over'; cx.restore(); cx.save(); grain(.5); }
   cx.restore();
 }
@@ -1951,6 +2015,7 @@ function drawFrame(t, src, sw, sh) {
   if (hookOn && hk === 'glitch' && ot < .45) glitch(ot / .45);
   if (hookOn && hk === 'blackout' && P && P.hook && ot < 1.1) drawBlackout(P.hook, ot);
   if (P && on('optLoop')) loopBlend(ot, P.total);
+  const hd = val('handle', '').trim(); if (hd && P && !(inCta && ot >= ctaS)) { cx.save(); cx.globalAlpha = .75; cx.font = '700 24px Inter, sans-serif'; cx.textAlign = 'left'; cx.textBaseline = 'middle'; cx.shadowColor = 'rgba(0,0,0,.6)'; cx.shadowBlur = 8; cx.fillStyle = '#fff'; cx.fillText((hd[0] === '@' ? '' : '@') + hd, W * .06, H * .09); cx.restore(); }
   if (!busy && on('optSafe')) drawSafeZones();
   if (busy && P) prog(ot / P.total);
   return ot;
@@ -1982,6 +2047,42 @@ requestAnimationFrame(render);
 
 // ---------- Sound effects (synthesized, no files) ----------
 let sfxLog = null;
+// ---------- Background music (generated, royalty-free), ducked under the voice ----------
+let aiMusic = '';
+const MOODS = {
+  motiva: { bpm: 104, prog: [[48, 55, 60, 64], [43, 50, 55, 59], [45, 52, 57, 60], [41, 48, 53, 57]], drums: 'full', wave: 'sawtooth' },
+  chill: { bpm: 82, prog: [[45, 52, 55, 60, 64], [41, 48, 52, 57, 64], [48, 55, 59, 64], [43, 50, 55, 62]], drums: 'soft', wave: 'triangle' },
+  lujo: { bpm: 92, prog: [[50, 57, 60, 65, 69], [43, 50, 55, 59, 65], [48, 55, 59, 64, 67], [45, 52, 57, 60, 67]], drums: 'trap', wave: 'sawtooth' },
+  misterio: { bpm: 74, prog: [[45, 52, 57, 60], [40, 47, 52, 55], [41, 48, 53, 57], [40, 47, 52, 56]], drums: 'soft', wave: 'triangle' }
+};
+const musicMood = () => { const v2 = val('music', 'auto'); if (v2 === 'none') return ''; return MOODS[v2] ? v2 : MOODS[aiMusic] ? aiMusic : style().viro ? 'chill' : ''; };
+function makeMusic(off, total, moodKey) {
+  const M = MOODS[moodKey], beat = 60 / M.bpm, bar = beat * 4, hz = n => 440 * Math.pow(2, (n - 69) / 12);
+  const bus = off.createGain(), vol = +val('musicVol', .5);
+  bus.connect(off.destination);
+  // Ducking: quiet while you talk, a bit louder in the gaps.
+  const lo = .1 * vol, hi = .26 * vol; bus.gain.setValueAtTime(hi, 0);
+  const said = []; plan.segs.forEach(g => words.forEach(w => { if (w.s >= g.s && w.e <= g.e + .05) said.push([g.o + w.s - g.s, g.o + w.e - g.s]); }));
+  let open = null; said.forEach(([a, b]) => { if (open && a - open[1] < .5) open[1] = b; else { if (open) said.merged = (said.merged || []).concat([open]); open = [a, b]; } }); if (open) said.merged = (said.merged || []).concat([open]);
+  (said.merged || []).forEach(([a, b]) => { bus.gain.setTargetAtTime(lo, Math.max(0, a - .15), .06); bus.gain.setTargetAtTime(hi, b + .1, .25); });
+  bus.gain.setTargetAtTime(0, Math.max(0, total - 1.2), .4);
+  const nb = makeNoise(off);
+  const note = (f, at, len, g0, type, cut) => { const o = off.createOscillator(), g = off.createGain(), lp = off.createBiquadFilter(); o.type = type; o.frequency.value = f; lp.type = 'lowpass'; lp.frequency.value = cut; g.gain.setValueAtTime(0, at); g.gain.linearRampToValueAtTime(g0, at + Math.min(.4, len * .3)); g.gain.setValueAtTime(g0, at + len * .7); g.gain.linearRampToValueAtTime(0, at + len); o.connect(lp); lp.connect(g); g.connect(bus); o.start(at); o.stop(at + len + .05); };
+  const kick = at => { const o = off.createOscillator(), g = off.createGain(); o.frequency.setValueAtTime(130, at); o.frequency.exponentialRampToValueAtTime(42, at + .25); g.gain.setValueAtTime(.9, at); g.gain.exponentialRampToValueAtTime(.001, at + .35); o.connect(g); g.connect(bus); o.start(at); o.stop(at + .4); };
+  const hat = (at, g0) => { const n = off.createBufferSource(), f = off.createBiquadFilter(), g = off.createGain(); n.buffer = nb; f.type = 'highpass'; f.frequency.value = 8000; g.gain.setValueAtTime(g0, at); g.gain.exponentialRampToValueAtTime(.001, at + .05); n.connect(f); f.connect(g); g.connect(bus); n.start(at); n.stop(at + .06); };
+  const snare = at => { const n = off.createBufferSource(), f = off.createBiquadFilter(), g = off.createGain(); n.buffer = nb; f.type = 'bandpass'; f.frequency.value = 1900; f.Q.value = .8; g.gain.setValueAtTime(.35, at); g.gain.exponentialRampToValueAtTime(.001, at + .18); n.connect(f); f.connect(g); g.connect(bus); n.start(at); n.stop(at + .2); };
+  for (let b = 0, t0 = 0; t0 < total; b++, t0 += bar) {
+    const ch = M.prog[b % M.prog.length];
+    ch.forEach(n => note(hz(n + 12), t0, bar, .028, M.wave, M.wave === 'sawtooth' ? 1100 : 2400));
+    note(hz(ch[0] - 12), t0, beat * 1.8, .16, 'sine', 400); note(hz(ch[0] - 12), t0 + beat * 2, beat * 1.8, .14, 'sine', 400);
+    for (let i = 0; i < 4; i++) {
+      const at = t0 + i * beat; if (at >= total) break;
+      if (M.drums === 'full') { kick(at); hat(at + beat / 2, .12); if (i % 2) snare(at); }
+      else if (M.drums === 'trap') { if (i === 0 || i === 2) kick(at); for (let k = 0; k < 4; k++) hat(at + k * beat / 4, .06); if (i === 2) snare(at); }
+      else { if (i === 0) kick(at); hat(at + beat / 2, .05); }
+    }
+  }
+}
 function sfx(type, delay = 0) {
   if (!on('optSfx')) return;
   if (sfxLog) { sfxLog.push({ type, at: curOt + delay }); return; }
@@ -2127,11 +2228,23 @@ async function fastExport() {
     const sr = 48000, off = new OfflineAudioContext(2, Math.max(1, Math.ceil(total * sr)), sr);
     try {
       const orig = await off.decodeAudioData(await file.arrayBuffer());
-      plan.segs.forEach(g => { const s = off.createBufferSource(); s.buffer = orig; s.connect(off.destination); s.start(g.o, g.s, g.e - g.s); });
+      // Voice polish: rumble cut, presence boost, gentle compression and makeup gain.
+      let vin = off.destination;
+      if (on('optVoice')) {
+        const hp = off.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 85;
+        const mud = off.createBiquadFilter(); mud.type = 'peaking'; mud.frequency.value = 300; mud.gain.value = -2.5; mud.Q.value = 1;
+        const pres = off.createBiquadFilter(); pres.type = 'peaking'; pres.frequency.value = 3200; pres.gain.value = 3.5; pres.Q.value = .9;
+        const air = off.createBiquadFilter(); air.type = 'highshelf'; air.frequency.value = 9000; air.gain.value = 2;
+        const comp = off.createDynamicsCompressor(); comp.threshold.value = -22; comp.ratio.value = 3.5; comp.attack.value = .005; comp.release.value = .18; comp.knee.value = 8;
+        const mk = off.createGain(); mk.gain.value = 1.35;
+        hp.connect(mud); mud.connect(pres); pres.connect(air); air.connect(comp); comp.connect(mk); mk.connect(off.destination); vin = hp;
+      }
+      plan.segs.forEach(g => { const s = off.createBufferSource(); s.buffer = orig; s.connect(vin); s.start(g.o, g.s, g.e - g.s); });
     } catch (e) { console.warn('no audio track', e); }
     const save = { ac, dest, noiseBuf };
     ac = off; dest = off.createGain(); dest.connect(off.destination); noiseBuf = makeNoise(off);
     sfxLog.forEach(e => playSfx(e.type, Math.max(0, e.at)));
+    const mood = musicMood(); if (mood) makeMusic(off, total, mood);
     ({ ac, dest, noiseBuf } = save);
     const ab = await off.startRendering();
     const aenc = new AudioEncoder({ output: (c, md) => muxer.addAudioChunk(c, md), error: e => { err = e; } });
@@ -2224,6 +2337,7 @@ window.VE = {
   load, build, video: v,
   setHook(t) { aiHookTitle = t; build(); },
   setTypo(k) { if (TYPO[k]) { aiTypo = k; dirty = true; } },
+  setMusic(k) { if (MOODS[k] || k === 'none') aiMusic = k; },
   setRecipe(k) { if (RECIPES[k]) { aiRecipe = k; build(); } },
   get recipeKey() { return recipeKey(); },
   recipes: Object.fromEntries(Object.entries(RECIPES).map(([k, r]) => [k, { name: r.name, desc: r.desc }])),

@@ -199,9 +199,15 @@ async function direct(request = '') {
     // In automatic mode keep our curated typography and colors; fonts/colors change only when asked.
     if (j.settings && j.settings.typo) VE.setTypo(j.settings.typo);
     if (j.settings && j.settings.recipe && !request) VE.setRecipe(j.settings.recipe);
-    for (const [k, val] of Object.entries(j.settings || {})) { if (k === 'typo' || k === 'recipe' ? !request : !request && k !== 'hookSfx' && !(k === 'hookFx' && /^(blur|flash|zoom|iris|cine)$/.test(val))) continue; const el = $('#' + k); if (el && el.value !== val) { el.value = val; fire(el); } }
+    for (const [k, val] of Object.entries(j.settings || {})) { if (k === 'typo' || k === 'recipe' || k === 'music' ? !request : !request && k !== 'hookSfx' && !(k === 'hookFx' && /^(blur|flash|zoom|iris|cine)$/.test(val))) continue; const el = $('#' + k); if (el && el.value !== val) { el.value = val; fire(el); } }
     // In automatic mode the AI can only switch extra features on (the full edit stays); turning things off needs a request.
     for (const [k, val] of Object.entries(j.toggles || {})) { if (!request) continue; const el = $('#' + k); if (el && el.checked !== val) { el.checked = val; el.dispatchEvent(new Event('change', { bubbles: true })); } }
+    if (j.settings && j.settings.music && !request) VE.setMusic(j.settings.music);
+    if (Array.isArray(j.hookAlts) && j.hookAlts.length) {
+      $('#hookAlts').innerHTML = [j.hookTitle, ...j.hookAlts].filter(Boolean).map(hk => `<button type="button">${hk.replace(/</g, '')}</button>`).join('');
+      $('#hookBox').hidden = false;
+    }
+    if (j.post) { $('#postTxt').value = j.post; $('#postBox').hidden = false; }
     if (j.fixes) VE.fixWords(j.fixes);
     if (j.hookTitle) VE.setHook(j.hookTitle);
     syncAll(); vsSync(); tySync(); rcSync(); paintPickers();
@@ -216,3 +222,7 @@ window.onTranscribed = () => direct();
 $('#aiGo').onclick = () => { const q = $('#aiAsk').value.trim(); if (q) direct(q); };
 $('#aiAsk').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('#aiGo').click(); } });
 $('#aiAuto').onclick = () => direct();
+
+// Alternative hooks and post text from the AI.
+$('#hookAlts').onclick = e => { const b = e.target.closest('button'); if (!b) return; VE.setHook(b.textContent); $$('#hookAlts button').forEach(x => x.classList.toggle('sel', x === b)); };
+$('#postCopy').onclick = async () => { try { await navigator.clipboard.writeText($('#postTxt').value); $('#postCopy').textContent = '¡Copiado!'; } catch (e) { $('#postTxt').select(); } setTimeout(() => { $('#postCopy').textContent = 'Copiar texto y hashtags'; }, 1500); };
