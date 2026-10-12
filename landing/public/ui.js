@@ -4,26 +4,42 @@ const $$ = q => [...document.querySelectorAll(q)];
 const VE = window.VE, v = VE.video;
 const fire = el => el.dispatchEvent(new Event('change', { bubbles: true }));
 
-// ---- Fonts ----
-const FONTS = ['auto', 'Plus Jakarta Sans', 'Inter Tight', 'Inter', 'Manrope', 'DM Sans', 'Sora', 'Montserrat', 'Poppins', 'Outfit', 'Space Grotesk', 'Bricolage Grotesque', 'Syne', 'Unbounded', 'Anton', 'Bebas Neue', 'Oswald', 'Big Shoulders Display', 'Archivo Black', 'Instrument Serif', 'Fraunces', 'Cormorant Garamond', 'Playfair Display', 'DM Serif Display', 'Caveat', 'Permanent Marker', 'Great Vibes'];
-function fillFonts() {
-  $$('.fontsel').forEach(s => {
-    const cur = s.value;
-    s.innerHTML = FONTS.map(f => `<option value="${f}">${f === 'auto' ? 'Automática (según estilo)' : f}</option>`).join('');
-    if (cur) s.value = cur;
-  });
+// ---- Font pickers: Texto base / Palabra destacada / Acento cursivo, each font shown in its own face ----
+const CATS = ['Mis fuentes', 'Cursiva', 'Media cursiva', 'Manuscrita', 'Sans', 'Impacto'];
+function buildPicker(box) {
+  const id = box.dataset.for, input = $('#' + id);
+  box.innerHTML = `<button type="button"></button><div class="fpl" hidden></div>`;
+  const btn = box.firstChild, list = box.lastChild;
+  const paintBtn = () => {
+    const v2 = input.value, tf = VE.typoFonts;
+    const f = v2 === 'auto' ? (id === 'fBase' ? tf.base : id === 'fKey' ? tf.key : tf.accent) : VE.fontOf(v2, 20);
+    btn.innerHTML = `<span style="font:${f}">${v2 === 'auto' ? 'Automática' : v2}</span><small>${v2 === 'auto' ? 'según la tipografía' : ''}</small>`;
+    if (v2 !== 'auto') VE.ensureFonts([v2]);
+  };
+  const fill = () => {
+    const lib = VE.fontLib;
+    list.innerHTML = `<button type="button" data-v="auto" style="font:600 15px Inter,sans-serif">Automática (según la tipografía elegida)</button>` +
+      CATS.map(c => { const fs = lib.filter(f => f[1] === c); return fs.length ? `<h6>${c}</h6>` + fs.map(f => `<button type="button" data-v="${f[0]}" style="font:${VE.fontOf(f[0], 21)}">${f[0]}</button>`).join('') : ''; }).join('');
+    list.querySelectorAll('button').forEach(b => b.classList.toggle('sel', b.dataset.v === input.value));
+  };
+  btn.onclick = () => {
+    const open = list.hidden; $$('.fpl').forEach(l => { l.hidden = true; });
+    if (open) { fill(); list.hidden = false; VE.ensureFonts(VE.fontLib.map(f => f[0])); }
+  };
+  list.onclick = e => { const b = e.target.closest('button'); if (!b) return; input.value = b.dataset.v; list.hidden = true; fire(input); };
+  input.addEventListener('change', paintBtn); paintBtn();
+  return paintBtn;
 }
-fillFonts();
-$$('.fontsel').forEach(s => s.addEventListener('change', () => {
-  if (s.value !== 'auto' && document.fonts) ['400', '700', '800', '900'].forEach(wt => document.fonts.load(`${wt} 40px "${s.value}"`).catch(() => {}));
-}));
+const pickers = $$('.fp').map(buildPicker);
+const paintPickers = () => pickers.forEach(p => p());
+document.addEventListener('click', e => { if (!e.target.closest('.fp')) $$('.fpl').forEach(l => { l.hidden = true; }); });
 $('#fontFile').onchange = async e => {
   const f = e.target.files[0]; if (!f) return;
   const name = f.name.replace(/\.[^.]+$/, '').replace(/[^\w ]/g, ' ').trim() || 'Mi fuente';
   try {
     const ff = new FontFace(name, await f.arrayBuffer());
     await ff.load(); document.fonts.add(ff);
-    FONTS.push(name); fillFonts(); $('#fBase').value = name; fire($('#fBase'));
+    VE.addFont(name); $('#fBase').value = name; fire($('#fBase'));
   } catch (er) { alert('No pude leer esa fuente. Probá con un archivo .ttf u .otf.'); }
 };
 
@@ -84,7 +100,7 @@ const tySync = () => {
   const k = VE.typoKey; $('#typoNow').textContent = TY[k] ? TY[k].name : '—'; if (TY[k]) $('#typoNow').style.font = TY[k].title.replace(/\d+(\.\d+)?px/, '22px');
 };
 $('#tys').onclick = e => { const b = e.target.closest('button'); if (!b) return; $('#typo').value = b.dataset.v; fire($('#typo')); };
-$('#typo').addEventListener('change', tySync);
+$('#typo').addEventListener('change', () => { tySync(); paintPickers(); });
 $('#typoNext').onclick = () => { const ks = Object.keys(TY), i = ks.indexOf(VE.typoKey); $('#typo').value = ks[(i + 1) % ks.length]; fire($('#typo')); };
 $('#typesShow').innerHTML = Object.values(TY).map(T => `<span style="font:${T.title.replace(/\d+(\.\d+)?px/, '22px')}">${T.name}</span>`).join('');
 const repaint = () => tySync();
@@ -168,17 +184,17 @@ async function direct(request = '') {
   directing = true; $('#aiGo').disabled = $('#aiAuto').disabled = true;
   setRec(request ? 'Aplicando tu pedido…' : 'La IA está eligiendo la mejor edición para tu video…'); if (!request) setStep(1);
   try {
-    const r = await fetch('/api/ai-direct', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: $('#txt').value, request, current: currentSettings() }) });
+    const r = await fetch('/api/ai-direct', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: $('#txt').value, request, current: currentSettings(), info: VE.info }) });
     const j = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(j.error || 'La IA no respondió.');
     // In automatic mode keep our curated typography and colors; fonts/colors change only when asked.
     if (j.settings && j.settings.typo) VE.setTypo(j.settings.typo);
-    for (const [k, val] of Object.entries(j.settings || {})) { if (k === 'typo' ? !request : !request && k !== 'hookSfx') continue; const el = $('#' + k); if (el && el.value !== val) { el.value = val; fire(el); } }
+    for (const [k, val] of Object.entries(j.settings || {})) { if (k === 'typo' ? !request : !request && k !== 'hookSfx' && !(k === 'hookFx' && /^(blur|flash|zoom|iris|cine)$/.test(val))) continue; const el = $('#' + k); if (el && el.value !== val) { el.value = val; fire(el); } }
     // In automatic mode the AI can only switch extra features on (the full edit stays); turning things off needs a request.
     for (const [k, val] of Object.entries(j.toggles || {})) { if (!request) continue; const el = $('#' + k); if (el && el.checked !== val) { el.checked = val; el.dispatchEvent(new Event('change', { bubbles: true })); } }
     if (j.fixes) VE.fixWords(j.fixes);
     if (j.hookTitle) VE.setHook(j.hookTitle);
-    syncAll(); vsSync(); tySync();
+    syncAll(); vsSync(); tySync(); paintPickers();
     setRec((j.reason || 'Listo, apliqué la edición.').replace(/\b(nova|lujo|revista|tech|suave|clasico|clásico|urbano)\b/gi, m => { const k = m.toLowerCase().replace('á', 'a'); return TY[k] ? TY[k].name : m; })); setStep(2); waitArt();
     if (request) $('#aiAsk').value = '';
   } catch (e) {

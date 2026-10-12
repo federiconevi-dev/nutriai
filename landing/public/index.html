@@ -143,6 +143,19 @@ footer{border-top:1px solid var(--line);padding:30px 0;color:var(--mut);font-siz
 .tys button.sel{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc) inset}
 .tys button.auto{display:flex;flex-direction:column;justify-content:center;font-weight:700}
 .tys button.auto small{position:static;margin-top:4px}
+.role{background:var(--p1);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:8px}
+.rh b{display:block;font-size:14px}.rh small{display:block;color:var(--mut);font-size:12px;margin-bottom:8px}
+.role .fld{margin:8px 0 0}
+.fp{position:relative}
+.fp>button{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--p2);cursor:pointer;font-size:20px;line-height:1.2;color:#fff;text-align:left}
+.fp>button:after{content:"";width:7px;height:7px;border-right:2px solid var(--mut);border-bottom:2px solid var(--mut);transform:rotate(45deg);flex:none}
+.fp>button small{font:500 11px Inter,sans-serif;color:var(--mut);margin-left:auto}
+.fpl{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:20;max-height:340px;overflow:auto;background:#141418;border:1px solid var(--line);border-radius:12px;padding:6px;box-shadow:0 20px 40px -10px rgba(0,0,0,.8)}
+.fpl[hidden]{display:none}
+.fpl h6{font:600 10px Inter,sans-serif;letter-spacing:.12em;color:var(--mut);padding:10px 8px 4px;text-transform:uppercase}
+.fpl button{display:block;width:100%;text-align:left;padding:7px 10px;border-radius:8px;border:0;background:none;color:#fff;font-size:21px;line-height:1.25;cursor:pointer}
+.fpl button:hover,.fpl button.sel{background:var(--p3)}
+.fpl button.sel{box-shadow:inset 3px 0 0 var(--acc)}
 .sw{position:relative;width:40px;height:23px;flex:none}
 .sw input{position:absolute;inset:0;opacity:0;cursor:pointer;z-index:1;margin:0}
 .sw span{position:absolute;inset:0;border-radius:99px;background:#33333b;transition:background .2s}
@@ -293,9 +306,17 @@ footer{border-top:1px solid var(--line);padding:30px 0;color:var(--mut);font-siz
         <div class="tys" id="tys"></div>
         <input type="hidden" id="typo" value="auto">
 
+        <h5>FUENTES</h5>
+        <div class="role"><div class="rh"><b>Texto base</b><small>Las palabras normales del subtítulo.</small></div><div class="fp" data-for="fBase"></div><label class="fld">Tamaño<input type="range" id="sBase" min=".7" max="1.5" step=".05" value="1"></label></div>
+        <div class="role"><div class="rh"><b>Palabra destacada</b><small>La palabra clave que resalta en el subtítulo y en los títulos.</small></div><div class="fp" data-for="fKey"></div><label class="fld">Tamaño<input type="range" id="sKey" min=".6" max="1.5" step=".05" value="1"></label></div>
+        <div class="role"><div class="rh"><b>Acento cursivo</b><small>La frase elegante que va arriba de cada título.</small></div><div class="fp" data-for="fAccent"></div><label class="fld">Tamaño<input type="range" id="sAccent" min=".6" max="1.5" step=".05" value="1"></label></div>
+        <input type="hidden" id="fBase" value="auto"><input type="hidden" id="fKey" value="auto"><input type="hidden" id="fAccent" value="auto">
+        <label class="btn sm ghost full" style="position:relative;margin-top:4px">Importar tu fuente (.ttf .otf .woff)<input type="file" id="fontFile" class="sr" accept=".ttf,.otf,.woff,.woff2"></label>
+
         <h5>QUÉ INCLUIR</h5>
         <div class="tg"><div><b>Subtítulos</b><small>Palabra por palabra, sincronizados.</small></div><label class="sw"><input type="checkbox" id="optCaps" checked><span></span></label></div>
         <div class="tg"><div><b>Imágenes de apoyo</b><small>A pantalla completa, con título.</small></div><label class="sw"><input type="checkbox" id="optPhotos" checked><span></span></label></div>
+        <div class="tg"><div><b>Videos de stock (Pexels)</b><small>Clips reales en movimiento para los b-rolls.</small></div><label class="sw"><input type="checkbox" id="optVideo" checked><span></span></label></div>
         <div class="tg"><div><b>Imágenes creadas con IA</b><small>Si lo apagás, usa solo tus fotos.</small></div><label class="sw"><input type="checkbox" id="optAI" checked><span></span></label></div>
         <div class="tg"><div><b>Arranque con impacto</b><small>Efecto y sonido en el primer segundo.</small></div><label class="sw"><input type="checkbox" id="optHook" checked><span></span></label></div>
         <div class="tg"><div><b>Zooms suaves</b><small>Acercamientos lentos entre cortes.</small></div><label class="sw"><input type="checkbox" id="optZoom" checked><span></span></label></div>
@@ -309,7 +330,7 @@ footer{border-top:1px solid var(--line);padding:30px 0;color:var(--mut);font-siz
           <div class="chips" data-sel="hookFx"><button data-v="blur">Desenfoque</button><button data-v="flash">Flash</button><button data-v="zoom">Zoom</button><button data-v="iris">Círculo</button><button data-v="swipe">Deslizar</button><button data-v="cine">Cine</button><button data-v="blackout">Título en negro</button><button data-v="none">Ninguno</button></div>
           <input type="hidden" id="hookFx" value="blur">
           <span>Texto del gancho</span>
-          <div class="chips" data-sel="hookText"><button data-v="auto">Auto</button><button data-v="big">Texto gigante</button><button data-v="card">Tarjeta</button><button data-v="question">Pregunta</button><button data-v="none">Sin texto</button></div>
+          <div class="chips" data-sel="hookText"><button data-v="auto">Auto</button><button data-v="viro">Título pro</button><button data-v="big">Texto gigante</button><button data-v="card">Tarjeta</button><button data-v="question">Pregunta</button><button data-v="none">Sin texto</button></div>
           <input type="hidden" id="hookText" value="auto">
           <span>Sonido del gancho</span>
           <div class="chips" data-sel="hookSfx"><button data-v="auto">Auto</button><button data-v="impact">Golpe</button><button data-v="riser">Subida</button><button data-v="whoosh">Whoosh</button><button data-v="notif">Notificación</button><button data-v="none">Sin sonido</button></div>
@@ -339,21 +360,15 @@ footer{border-top:1px solid var(--line);padding:30px 0;color:var(--mut);font-siz
           <div class="row">Final en loop<label class="sw"><input type="checkbox" id="optLoop"><span></span></label></div>
           <div class="row">Video en marco con título<label class="sw"><input type="checkbox" id="optFrame"><span></span></label></div>
           <div class="row">Subtítulos que siguen tu cabeza<label class="sw"><input type="checkbox" id="optFollow"><span></span></label></div>
-          <div class="row">Ver interfaz de TikTok (no se exporta)<label class="sw"><input type="checkbox" id="optSafe"><span></span></label></div>
+          <div class="row">Ver zona segura (no se exporta)<label class="sw"><input type="checkbox" id="optSafe"><span></span></label></div>
+          <div class="chips" data-sel="safeApp"><button data-v="tt">TikTok</button><button data-v="ig">Reels</button><button data-v="yt">Shorts</button></div><input type="hidden" id="safeApp" value="tt">
           <input type="checkbox" id="optEmoji" hidden>
         </div></details>
-        <details class="acc"><summary>Letra y color a mano</summary><div class="in">
-          <label class="fld">Letra de los subtítulos<select id="fBase" class="fontsel"></select></label>
-          <label class="fld">Tamaño de los subtítulos<input type="range" id="sBase" min=".7" max="1.5" step=".05" value="1"></label>
-          <label class="fld">Letra de las palabras gigantes<select id="fKey" class="fontsel"></select></label>
-          <label class="fld">Tamaño de las palabras gigantes<input type="range" id="sKey" min=".6" max="1.4" step=".05" value="1"></label>
-          <label class="fld">Letra cursiva<select id="fAccent" class="fontsel"></select></label>
-          <label class="fld">Tamaño de la cursiva<input type="range" id="sAccent" min=".6" max="1.5" step=".05" value="1"></label>
+        <details class="acc"><summary>Color</summary><div class="in">
           <div class="fld">Color del texto<div class="sws" data-for="cBase"></div></div>
           <div class="fld">Color de la palabra clave<div class="sws" data-for="cKey"></div></div>
           <input type="hidden" id="cBase" value="auto"><input type="hidden" id="cKey" value="auto">
           <label class="fld">Color del video<select id="grade"><option value="none">Natural</option><option value="warm">Cálido</option><option value="teal">Cine</option><option value="punch">Contraste vivo</option><option value="film">Película</option><option value="bw">Blanco y negro</option></select></label>
-          <label class="fld">Usar tu propia fuente (.ttf .otf .woff)<input type="file" id="fontFile" accept=".ttf,.otf,.woff,.woff2"></label>
         </div></details>
         <details class="acc"><summary>Texto y transcripción</summary><div class="in">
           <label class="fld">Idioma del video<select id="lang"><option value="spanish">Español</option><option value="english">Inglés</option><option value="portuguese">Portugués</option></select></label>

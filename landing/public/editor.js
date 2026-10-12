@@ -229,27 +229,65 @@ const blur = px => { if (HAS_FILTER) cx.filter = px > .3 ? `blur(${px.toFixed(1)
 const isNum = s => /\d/.test(s);
 // Dark accents (e.g. deep blue) are hard to read over video: mix them with white until they are bright enough.
 // Canvas text only uses web fonts that are already loaded: warm up the ones the looks draw with.
+// ---- Font library: [name, category, Google Fonts axes spec, weight, italic] ----
+const FONT_LIB = [
+  ['Montserrat', 'Sans', 'wght@800;900', 800], ['Poppins', 'Sans', 'wght@800', 800], ['Plus Jakarta Sans', 'Sans', 'wght@800', 800], ['Inter Tight', 'Sans', 'wght@800', 800],
+  ['Bricolage Grotesque', 'Sans', 'wght@800', 800], ['Manrope', 'Sans', 'wght@800', 800], ['Outfit', 'Sans', 'wght@800', 800], ['Nunito', 'Sans', 'wght@900', 900],
+  ['Sora', 'Sans', 'wght@700', 700], ['Space Grotesk', 'Sans', 'wght@700', 700], ['Lexend', 'Sans', 'wght@800', 800], ['Syne', 'Sans', 'wght@800', 800], ['Unbounded', 'Sans', 'wght@800', 800],
+  ['Montserrat Italic', 'Media cursiva', 'Montserrat:ital,wght@1,800', 800, true], ['Poppins Italic', 'Media cursiva', 'Poppins:ital,wght@1,800', 800, true],
+  ['Playfair Display', 'Media cursiva', 'ital,wght@1,700', 700, true], ['Instrument Serif', 'Media cursiva', 'ital@1', 400, true], ['Fraunces', 'Media cursiva', 'ital,wght@1,700', 700, true],
+  ['DM Serif Display', 'Media cursiva', 'ital@1', 400, true], ['Cormorant Garamond', 'Media cursiva', 'ital,wght@1,600', 600, true], ['Lora', 'Media cursiva', 'ital,wght@1,700', 700, true],
+  ['Libre Baskerville', 'Media cursiva', 'ital@1', 400, true], ['EB Garamond', 'Media cursiva', 'ital,wght@1,600', 600, true],
+  ['Great Vibes', 'Cursiva', '', 400], ['Pinyon Script', 'Cursiva', '', 400], ['Allura', 'Cursiva', '', 400], ['Parisienne', 'Cursiva', '', 400], ['Alex Brush', 'Cursiva', '', 400],
+  ['Italianno', 'Cursiva', '', 400], ['Sacramento', 'Cursiva', '', 400], ['Mrs Saint Delafield', 'Cursiva', '', 400], ['Monsieur La Doulaise', 'Cursiva', '', 400],
+  ['Dancing Script', 'Cursiva', 'wght@700', 700], ['Pacifico', 'Cursiva', '', 400], ['Satisfy', 'Cursiva', '', 400], ['Yellowtail', 'Cursiva', '', 400], ['Kaushan Script', 'Cursiva', '', 400],
+  ['Lobster', 'Cursiva', '', 400], ['Cookie', 'Cursiva', '', 400], ['Damion', 'Cursiva', '', 400], ['Courgette', 'Cursiva', '', 400], ['Marck Script', 'Cursiva', '', 400],
+  ['Caveat', 'Manuscrita', 'wght@700', 700], ['Permanent Marker', 'Manuscrita', '', 400], ['Shadows Into Light', 'Manuscrita', '', 400], ['Homemade Apple', 'Manuscrita', '', 400], ['Rock Salt', 'Manuscrita', '', 400],
+  ['Anton', 'Impacto', '', 400], ['Bebas Neue', 'Impacto', '', 400], ['Oswald', 'Impacto', 'wght@700', 700], ['Big Shoulders Display', 'Impacto', 'wght@900', 900], ['Archivo Black', 'Impacto', '', 400],
+  ['Dela Gothic One', 'Impacto', '', 400], ['Bowlby One', 'Impacto', '', 400], ['Titan One', 'Impacto', '', 400], ['Righteous', 'Impacto', '', 400], ['Abril Fatface', 'Impacto', '', 400], ['Gloock', 'Impacto', '', 400]
+];
+const FONT_BY = new Map(FONT_LIB.map(f => [f[0], f]));
+// "Montserrat Italic" style entries are the italic cut of the real family.
+const famOf = n => { const f = FONT_BY.get(n); return f && f[2].includes(':') ? f[2].split(':')[0] : n; };
+const fontOf = (n, s) => { const f = FONT_BY.get(n) || [n, '', '', 400]; return `${f[4] ? 'italic ' : ''}${f[3]} ${Math.round(s)}px "${famOf(n)}", sans-serif`; };
+const fontLoaded = new Set(['Inter']);
+// Loads Google fonts on demand (one stylesheet per batch) and redraws when they are ready.
+function ensureFonts(names) {
+  const need = names.filter(n => FONT_BY.has(n) && !fontLoaded.has(n)); if (!need.length) return Promise.resolve();
+  need.forEach(n => fontLoaded.add(n));
+  const fam = need.map(n => { const f = FONT_BY.get(n); return 'family=' + (f[2].includes(':') ? f[2] : famOf(n) + (f[2] ? ':' + f[2] : '')).replace(/ /g, '+'); });
+  const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = `https://fonts.googleapis.com/css2?${fam.join('&')}&display=swap`;
+  document.head.appendChild(link);
+  return new Promise(r => { link.onload = r; link.onerror = r; })
+    .then(() => Promise.all(need.map(n => document.fonts ? document.fonts.load(fontOf(n, 40)).catch(() => {}) : 0)))
+    .then(() => { dirty = true; });
+}
 // Professional type pairings for the Pro look: title, elegant kicker, captions and the key-word colors.
 // Each video gets one (chosen by the AI or from its words), so edits never look all the same.
 const TYPO = {
-  nova: { name: 'Nova', title: s => `800 ${s}px "Bricolage Grotesque", sans-serif`, kicker: s => `italic 400 ${s}px "Instrument Serif", serif`, cap: s => `800 ${s}px "Bricolage Grotesque", sans-serif`, key: ['#2F7BFF', '#7CC4FF'], hi: '#5CF58A' },
-  lujo: { name: 'Lujo', title: s => `800 ${s}px Syne, sans-serif`, kicker: s => `italic 600 ${s * 1.1}px "Cormorant Garamond", serif`, cap: s => `800 ${s}px Manrope, sans-serif`, key: ['#D9A441', '#F6E3A8'], hi: '#F4D58D' },
-  revista: { name: 'Revista', title: s => `800 ${s}px Fraunces, serif`, kicker: s => `italic 400 ${s}px "Instrument Serif", serif`, cap: s => `800 ${s}px "Inter Tight", sans-serif`, key: ['#FF5A36', '#FFA07A'], hi: '#FF8A5B' },
-  tech: { name: 'Tech', title: s => `800 ${s * .86}px Unbounded, sans-serif`, kicker: s => `600 ${s * .62}px "JetBrains Mono", monospace`, cap: s => `700 ${s}px Sora, sans-serif`, key: ['#7C5CFF', '#C9A7FF'], hi: '#B69CFF' },
-  suave: { name: 'Suave', title: s => `800 ${s}px "Plus Jakarta Sans", sans-serif`, kicker: s => `italic 400 ${s}px "DM Serif Display", serif`, cap: s => `900 ${s}px Nunito, sans-serif`, key: ['#FF3D6E', '#FF9BB5'], hi: '#FF7BA3' },
-  clasico: { name: 'Clásico', title: s => `400 ${s * .92}px "Archivo Black", sans-serif`, kicker: s => `italic 700 ${s * .9}px "Playfair Display", serif`, cap: s => `700 ${s}px "DM Sans", sans-serif`, key: ['#FFC21A', '#FFE58A'], hi: '#FFD23F' },
-  urbano: { name: 'Urbano', title: s => `700 ${s}px "Space Grotesk", sans-serif`, kicker: s => `700 ${s * 1.15}px Caveat, cursive`, cap: s => `700 ${s}px "Space Grotesk", sans-serif`, key: ['#16C964', '#9BF6B9'], hi: '#5CF58A' }
+  nova: { name: 'Nova', title: s => `800 ${s}px "Bricolage Grotesque", sans-serif`, kicker: s => `italic 400 ${s}px "Instrument Serif", serif`, cap: s => `800 ${s}px "Bricolage Grotesque", sans-serif`, keyF: 'Instrument Serif', key: ['#2F7BFF', '#7CC4FF'], hi: '#5CF58A' },
+  lujo: { name: 'Lujo', title: s => `800 ${s}px Syne, sans-serif`, kicker: s => `italic 600 ${s * 1.1}px "Cormorant Garamond", serif`, cap: s => `800 ${s}px Manrope, sans-serif`, keyF: 'Pinyon Script', key: ['#D9A441', '#F6E3A8'], hi: '#F4D58D' },
+  revista: { name: 'Revista', title: s => `800 ${s}px Fraunces, serif`, kicker: s => `italic 400 ${s}px "Instrument Serif", serif`, cap: s => `800 ${s}px "Inter Tight", sans-serif`, keyF: 'Playfair Display', key: ['#FF5A36', '#FFA07A'], hi: '#FF8A5B' },
+  tech: { name: 'Tech', title: s => `800 ${s * .86}px Unbounded, sans-serif`, kicker: s => `600 ${s * .62}px "JetBrains Mono", monospace`, cap: s => `700 ${s}px Sora, sans-serif`, keyF: 'Unbounded', key: ['#7C5CFF', '#C9A7FF'], hi: '#B69CFF' },
+  suave: { name: 'Suave', title: s => `800 ${s}px "Plus Jakarta Sans", sans-serif`, kicker: s => `italic 400 ${s}px "DM Serif Display", serif`, cap: s => `900 ${s}px Nunito, sans-serif`, keyF: 'Pacifico', key: ['#FF3D6E', '#FF9BB5'], hi: '#FF7BA3' },
+  clasico: { name: 'Clásico', title: s => `400 ${s * .92}px "Archivo Black", sans-serif`, kicker: s => `italic 700 ${s * .9}px "Playfair Display", serif`, cap: s => `800 ${s}px Montserrat, sans-serif`, keyF: 'Great Vibes', key: ['#FFC21A', '#FFE58A'], hi: '#FFD23F' },
+  urbano: { name: 'Urbano', title: s => `700 ${s}px "Space Grotesk", sans-serif`, kicker: s => `700 ${s * 1.15}px Caveat, cursive`, cap: s => `700 ${s}px "Space Grotesk", sans-serif`, keyF: 'Permanent Marker', key: ['#16C964', '#9BF6B9'], hi: '#5CF58A' }
 };
 let aiTypo = '';
 const typoKey = () => { const v2 = val('typo', 'auto'); if (TYPO[v2]) return v2; if (TYPO[aiTypo]) return aiTypo; const ks = Object.keys(TYPO), h = [...words.slice(0, 12).map(w => w.t).join('')].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 3); return ks[h % ks.length]; };
 const typo = () => TYPO[typoKey()];
 if (document.fonts) Object.values(TYPO).flatMap(T => [T.title(60), T.kicker(46), T.cap(36)]).concat(['400 40px Anton']).forEach(f => document.fonts.load(f).catch(() => {}));
+setTimeout(() => ensureFonts(Object.values(TYPO).map(T => T.keyF)), 0);
+// The three type roles of the Pro look: base text, highlighted word and cursive accent (manual pick or the pack's).
+const baseF = s => { const f = val('fBase', 'auto'); return f !== 'auto' ? fontOf(f, s) : typo().cap(s); };
+const keyF = s => { const f = val('fKey', 'auto'); return fontOf(f !== 'auto' ? f : typo().keyF, s * +val('sKey', 1)); };
+const accF = s => { const f = val('fAccent', 'auto'); return (f !== 'auto' ? fontOf(f, s * +val('sAccent', 1)) : typo().kicker(s * +val('sAccent', 1))); };
 const lift = hex => { const n = parseInt(hex.slice(1), 16); let r = n >> 16 & 255, g = n >> 8 & 255, b = n & 255; const L = (.2126 * r + .7152 * g + .0722 * b) / 255; if (L >= .5) return hex; const m = Math.min(.6, (.55 - L) / (1 - L)); r += (255 - r) * m; g += (255 - g) * m; b += (255 - b) * m; return `rgb(${r | 0},${g | 0},${b | 0})`; };
 const style = () => {
   const st = { ...fontOverride(STYLES[$("#style").value] || STYLES.viral) };
   const k = val('cKey', 'auto'), b = val('cBase', 'auto');
   const th = THEMES[themeKey()];
-  if (st.viro) { const T = typo(); if (val('fBase', 'auto') === 'auto') st.font = T.cap; st.hi = T.hi; }
+  if (st.viro) { st.font = baseF; st.hi = typo().hi; }
   return { ...st, size: st.size * +val('sBase', 1), hi: k !== 'auto' ? k : st.pill || st.viro ? st.hi : lift(th.accent), glowC: st.viro ? st.hi : th.glow || th.accent, base: b === 'auto' ? '#fff' : b };
 };
 
@@ -317,35 +355,35 @@ function drawCaption(ch, t) {
   cx.restore();
 }
 
-// Viro look (same as viroedit): small lowercase white words, the spoken word lights up green with a glow;
-// a strong last word drops to its own line, big and glowing.
+// Viro look (same as viroedit): small lowercase base words, the spoken word lights up with a glow,
+// the key word in the "palabra destacada" font; a strong last word drops to its own line, big and glowing.
 function viroCaption(ch, t, st) {
   const age = t - ch.s, a = ease(age / .18), solo = ch.emph && ch.length > 1 && ch.at(-1) === ch.key && clean(ch.key.t).length >= 4;
   const main = solo ? ch.slice(0, -1) : ch, low = w => w.t.toLowerCase().replace(/[.,;:!?¿¡"]+/g, '');
+  const isK = w => w === ch.key && ch.emph;
   cx.save(); cx.globalAlpha = a; cx.translate(capX, capY + 10 * (1 - a));
   cx.textBaseline = 'middle'; cx.textAlign = 'left'; cx.lineJoin = 'round';
-  if ('letterSpacing' in cx) cx.letterSpacing = '-0.01em';
+  const fnt = (w, size) => isK(w) ? keyF(size * 1.18) : st.font(size);
   const word = (w, size, x, y, big) => {
     const on2 = t >= w.s - .03, tx = low(w);
-    cx.font = st.font(size);
+    cx.font = big ? keyF(size) : fnt(w, size);
     cx.shadowColor = 'rgba(0,0,0,.75)'; cx.shadowBlur = size * .4; cx.shadowOffsetY = 2;
-    const lit = on2 && (big || t < w.e + .08);
+    const lit = on2 && (big || isK(w) || t < w.e + .08);
     if (lit) { cx.shadowColor = st.glowC; cx.shadowBlur = size * (big ? .8 : .55); cx.shadowOffsetY = 0; cx.fillStyle = st.hi; }
     else cx.fillStyle = on2 ? '#fff' : 'rgba(255,255,255,.6)';
     cx.fillText(tx, x, y); if (lit) cx.fillText(tx, x, y);
   };
-  let size = st.size; cx.font = st.font(size);
-  const tw = () => main.reduce((q, w) => q + cx.measureText(low(w)).width, 0) + size * .27 * (main.length - 1);
-  while (tw() > W * .84 && size > 24) { size -= 2; cx.font = st.font(size); }
-  const tot = tw(); let x = -tot / 2; const y = solo ? -size * .6 : 0;
-  main.forEach(w => { cx.font = st.font(size); const ww = cx.measureText(low(w)).width; word(w, size, x, y, false); x += ww + size * .27; });
+  let size = st.size;
+  const wid = sz => main.reduce((q, w) => { cx.font = fnt(w, sz); return q + cx.measureText(low(w)).width; }, 0) + sz * .27 * (main.length - 1);
+  while (wid(size) > W * .84 && size > 24) size -= 2;
+  const tot = wid(size); let x = -tot / 2; const y = solo ? -size * .6 : 0;
+  main.forEach(w => { cx.font = fnt(w, size); const ww = cx.measureText(low(w)).width; word(w, size, x, y, false); x += ww + size * .27; });
   if (solo && t >= ch.key.s - .05) {
     const k = back((t - ch.key.s) / .3);
-    let bs = size * 1.7; cx.font = st.font(bs); while (cx.measureText(low(ch.key)).width > W * .8 && bs > 40) { bs -= 4; cx.font = st.font(bs); }
+    let bs = size * 1.8; cx.font = keyF(bs); while (cx.measureText(low(ch.key)).width > W * .8 && bs > 40) { bs -= 4; cx.font = keyF(bs); }
     const bw = cx.measureText(low(ch.key)).width;
     cx.save(); cx.translate(0, size * .45 + bs * .5); cx.scale(.7 + .3 * k, .7 + .3 * k); word(ch.key, bs, -bw / 2, 0, true); cx.restore();
   }
-  if ('letterSpacing' in cx) cx.letterSpacing = '0px';
   cx.restore();
 }
 
@@ -728,7 +766,7 @@ async function pickBroll() {
     const r = await fetch('/api/ai-plan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mode: 'broll', max, text: key, subjects: se.map(x => x.map(w => w.t).join(' ')) }) });
     if (!r.ok) throw new Error('broll ' + r.status);
     const j = await r.json();
-    brollPicks = (j.picks || []).filter(pk => se[pk.i]).map(pk => ({ s: se[pk.i][0].s, e: se[pk.i].at(-1).e + .3, prompt: pk.prompt, kicker: (pk.kicker || '').replace(/[*_#`]/g, ''), label: (pk.label || '').replace(/[*_#`]/g, '').trim() || se[pk.i].slice(0, 5).map(w => w.t.replace(/[.,;:!?]+$/, '')).join(' ') }));
+    brollPicks = (j.picks || []).filter(pk => se[pk.i]).map(pk => ({ s: se[pk.i][0].s, e: se[pk.i].at(-1).e + .3, prompt: pk.prompt, search: pk.search || '', kicker: (pk.kicker || '').replace(/[*_#`]/g, ''), label: (pk.label || '').replace(/[*_#`]/g, '').trim() || se[pk.i].slice(0, 5).map(w => w.t.replace(/[.,;:!?]+$/, '')).join(' ') }));
     brollPicks.forEach(pk => promptCache.set(pk.prompt, pk.prompt));
   } catch (e) { console.warn('b-roll plan unavailable', e); brollPicks = []; }
   if (plan) build();
@@ -790,6 +828,32 @@ function backupImage(prompt, subject) {
   backupChain = job.catch(() => null);
   return job;
 }
+// Real stock clips (Pexels) for b-roll moments: loaded muted and ready to draw on the canvas.
+const vidCache = new Map();
+function brollVideo(q) {
+  if (vidCache.has(q)) return vidCache.get(q);
+  const job = (async () => {
+    const r = await fetch(`/api/broll-video?q=${encodeURIComponent(q)}`).catch(() => null);
+    if (!r || !r.ok) return null;
+    const j = await r.json();
+    const el = document.createElement('video');
+    el.crossOrigin = 'anonymous'; el.muted = true; el.playsInline = true; el.loop = true; el.preload = 'auto'; el.src = j.url;
+    const ok = await new Promise(res => { const t = setTimeout(() => res(false), 20000); el.addEventListener('canplay', () => { clearTimeout(t); res(true); }, { once: true }); el.addEventListener('error', () => { clearTimeout(t); res(false); }, { once: true }); el.load(); });
+    return ok ? el : null;
+  })().catch(() => null);
+  vidCache.set(q, job);
+  return job;
+}
+const brollMedia = ph => ph.vid && on('optVideo') && (ph.n % 2 === 1 || !ph.img) ? ph.vid : ph.img;
+// While exporting frame by frame, put the active clip exactly on the right frame.
+async function brollSeek(t) {
+  const B = plan && plan.beats; if (!B) return;
+  const ph = B.photos.find(p => t >= p.s && t <= p.e && p.vid && brollMedia(p) === p.vid); if (!ph) return;
+  const el = ph.vid, want = ((t - ph.s) + .2) % Math.max(1, el.duration || 4);
+  if (Math.abs(el.currentTime - want) < .01) return;
+  el.pause();
+  await new Promise(res => { const tm = setTimeout(res, 400); el.addEventListener('seeked', () => { clearTimeout(tm); res(); }, { once: true }); el.currentTime = want; });
+}
 // Fetches art for every screen and b-roll of the current plan (prompts first, then images in order of appearance).
 async function loadAiArt(P) {
   const items = [
@@ -801,9 +865,10 @@ async function loadAiArt(P) {
   if (on('optPhotos')) pickBroll();
   await planPrompts(items.map(x => x.subj));
   if (P !== plan) return;
+  if (on('optVideo')) (P.beats ? P.beats.photos : []).forEach(ph => { if (ph.search && !ph.user) brollVideo(ph.search).then(el => { if (el && ![...P.beats.photos].some(o => o.vid === el)) { ph.vid = el; ph.failed = false; dirty = true; } }); });
   // Never show the same picture twice in one video.
   const used = new Set();
-  await Promise.all(items.map(x => aiImage(x.subj).then(img => { if (img && !used.has(img)) { used.add(img); x.o.img = img; } else x.o.failed = true; dirty = true; })));
+  await Promise.all(items.map(x => aiImage(x.subj).then(img => { if (img && !used.has(img)) { used.add(img); x.o.img = img; } else if (!x.o.vid) x.o.failed = true; dirty = true; })));
 }
 function contextAround(i, n = 5) { return words.slice(Math.max(0, i - n), i + n).map(w => w.t.replace(/[.,;:!?]+$/, '')).join(' '); }
 let curScreen = null;
@@ -896,12 +961,13 @@ function makeBeats(P) {
       const sl = slot(pk.s, Math.max(pk.e, pk.s + 1.3));
       if (!sl) return;
       const [s0, e0] = sl;
-      const ph = { s: s0, e: e0, q: pk.prompt, subj: pk.prompt, label: pk.label, kicker: pk.kicker || '', img: null, n: B.photos.length };
+      const ph = { s: s0, e: e0, q: pk.prompt, subj: pk.prompt, label: pk.label, kicker: pk.kicker || '', search: pk.search || '', img: null, n: B.photos.length };
       const inW = words.filter(w => w.s >= s0 && w.s < e0); if (inW.length) { const kw = inW.reduce((a, w) => clean(w.t).length > clean(a.t).length ? w : a, inW[0]); ph.word = clean(kw.t).toLowerCase(); ph.word = ph.word[0].toUpperCase() + ph.word.slice(1); }
       if (ui < userPhotos.length) { ph.img = userPhotos[ui++]; ph.user = true; }
       B.photos.push(ph); busyRanges.push([s0, e0]);
     });
   }
+  if (style().viro && aiHookTitle && hookTextType() === 'viro' && on('optHook')) { const f = B.photos[0]; if (f && f.s <= words[0].s + .6) { f.label = aiHookTitle; f.kicker = ''; f.hookT = true; } }
   B.kin = [];
   if (style().viro) {
     let lastK = words[0].s + 5;
@@ -923,7 +989,7 @@ function makeBeats(P) {
 // ---- Drawing ----
 function bigFont(size, coral) {
   const f = val('fKey', 'auto');
-  if (f !== 'auto') return `${/Anton|Bebas|Archivo Black|Permanent/.test(f) ? 400 : 900} ${size}px "${f}", Impact, sans-serif`;
+  if (f !== 'auto') return fontOf(f, size);
   const sk = $('#style').value;
   if (sk === 'editorial') return `italic 600 ${size}px Fraunces, "Instrument Serif", Georgia, serif`;
   if (sk === 'minimal') return `800 ${size}px "Inter Tight", Inter, sans-serif`;
@@ -995,13 +1061,13 @@ function drawBigSmall(b, t, coral) {
   cx.restore();
 }
 function coverDraw(img, alpha, zoom, dx) {
-  const iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height;
+  const iw = img.videoWidth || img.naturalWidth || img.width, ih = img.videoHeight || img.naturalHeight || img.height;
   const s = Math.max(W / iw, H / ih) * zoom, w = iw * s, h = ih * s;
   cx.globalAlpha = alpha; cx.drawImage(img, (W - w) / 2 + dx, (H - h) / 2, w, h); cx.globalAlpha = 1;
 }
 // B-roll: the whole image as a card in the top third while you stay on screen (like viral "visual hook" edits).
 function photoCard(img, x, y, maxW, maxH, rot, k, age, cover) {
-  const iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height;
+  const iw = img.videoWidth || img.naturalWidth || img.width, ih = img.videoHeight || img.naturalHeight || img.height;
   let w, h;
   if (cover) { w = maxW; h = maxH; } else { const s = Math.min(maxW / iw, maxH / ih); w = iw * s; h = ih * s; }
   const pop = .8 + .2 * back(age / .45);
@@ -1015,7 +1081,8 @@ function photoCard(img, x, y, maxW, maxH, rot, k, age, cover) {
 }
 function drawPhoto(ph, t) {
   const age = t - ph.s, left = ph.e - t, k = Math.min(ease(age / .3), ease(left / .3));
-  if (!ph.img) {
+  const media = brollMedia(ph);
+  if (!media) {
     // No picture available: the title still lands, over a soft, darkened copy of your shot.
     cx.save(); cx.globalAlpha = k; blur(26); cx.drawImage(cv, -W * .06, -H * .06, W * 1.12, H * 1.12); blur(0);
     cx.fillStyle = 'rgba(0,0,0,.55)'; cx.fillRect(0, 0, W, H); cx.restore();
@@ -1025,11 +1092,11 @@ function drawPhoto(ph, t) {
     const dur = Math.max(1, ph.e - ph.s), p = Math.min(1, age / dur), dir = ph.n % 2 ? 1 : -1;
     cx.save(); cx.globalAlpha = k; cx.fillStyle = '#000'; cx.fillRect(0, 0, W, H);
     blur(10 * (1 - ease(age / .35)));
-    coverDraw(ph.img, k, 1.16 - .1 * p, dir * W * .03 * (p - .5)); blur(0);
+    coverDraw(media, k, media === ph.vid ? 1.04 - .03 * p : 1.16 - .1 * p, media === ph.vid ? 0 : dir * W * .03 * (p - .5)); blur(0);
     cx.restore();
     if (style().viro) viroPhotoText(ph, t, k);
   }
-  else photoCard(ph.img, W / 2, H * .2, W * .8, H * .3, (ph.n % 2 ? -1 : 1) * .03, k, age, false);
+  else photoCard(media, W / 2, H * .2, W * .8, H * .3, (ph.n % 2 ? -1 : 1) * .03, k, age, false);
   return false;
 }
 // Viro motion graphic over a b-roll: italic kicker + bold title with the key word in a blue gradient, or one script word.
@@ -1041,16 +1108,16 @@ function viroPhotoText(ph, t, k) {
     const x0 = W * .08; let y = H * .1;
     cx.textBaseline = 'alphabetic'; cx.textAlign = 'left'; cx.shadowColor = 'rgba(0,0,0,.45)'; cx.shadowBlur = 18;
     const T = typo();
-    if (ph.kicker) { const a = ease((age - .1) / .4); cx.globalAlpha = k * a; cx.font = T.kicker(46); cx.fillStyle = '#fff'; cx.fillText(ph.kicker, x0, y + 12 * (1 - a)); y += 70; }
+    if (ph.kicker) { const a = ease((age - .1) / .4); cx.globalAlpha = k * a; cx.font = accF(46); cx.fillStyle = '#fff'; cx.fillText(ph.kicker, x0, y + 12 * (1 - a)); y += 70; }
     const ws = ph.label.split(' '), key = ws.reduce((b, w) => clean(w).length >= clean(b).length ? w : b, ws[0]);
-    let fs = 70; cx.font = T.title(fs);
-    while (ws.some(w => cx.measureText(w).width > W * .84) && fs > 40) { fs -= 4; cx.font = T.title(fs); }
+    let fs = 70; const tf = (w, z) => w === key ? keyF(z * 1.12) : (val('fBase', 'auto') !== 'auto' ? baseF(z) : T.title(z)); cx.font = T.title(fs);
+    while (ws.some(w => { cx.font = tf(w, fs); return cx.measureText(w).width > W * .84; }) && fs > 40) fs -= 4;
     if ('letterSpacing' in cx) cx.letterSpacing = '-0.02em';
     const lines = [[]]; let lw = 0; const sp = fs * .26;
-    ws.forEach(w => { const ww = cx.measureText(w).width; if (lw + ww > W * .84 && lines.at(-1).length) { lines.push([]); lw = 0; } lines.at(-1).push(w); lw += ww + sp; });
+    ws.forEach(w => { cx.font = tf(w, fs); const ww = cx.measureText(w).width; if (lw + ww > W * .84 && lines.at(-1).length) { lines.push([]); lw = 0; } lines.at(-1).push(w); lw += ww + sp; });
     let n = 0;
     lines.forEach((l, li) => { let x = x0; const yy = y + li * fs * 1.05;
-      l.forEach(w => { const a = ease((age - .25 - n++ * .12) / .35), ww = cx.measureText(w).width;
+      l.forEach(w => { cx.font = tf(w, fs); const a = ease((age - .25 - n++ * .12) / .35), ww = cx.measureText(w).width;
         if (a > 0) { cx.globalAlpha = k * a;
           if (w === key) { const gg = cx.createLinearGradient(x, 0, x + ww, 0); gg.addColorStop(0, T.key[0]); gg.addColorStop(1, T.key[1]); cx.fillStyle = gg; } else cx.fillStyle = '#fff';
           cx.fillText(w, x, yy + 18 * (1 - a)); }
@@ -1074,20 +1141,21 @@ function drawKin(kn, t) {
   const g = cx.createRadialGradient(W / 2, H * .45, 50, W / 2, H * .5, H * .75);
   if (white) { g.addColorStop(0, '#ffffff'); g.addColorStop(1, '#d9d9d6'); } else { g.addColorStop(0, '#1a1a1a'); g.addColorStop(1, '#000'); }
   cx.fillStyle = g; cx.fillRect(0, 0, W, H);
-  const T = typo(); let fs = 82; const F = T.title; cx.font = F(fs);
-  if ('letterSpacing' in cx) cx.letterSpacing = '-0.04em';
+  const T = typo(); let fs = 82;
+  const F = (w, z) => w === kn.key ? keyF(z * 1.15) : (val('fBase', 'auto') !== 'auto' ? baseF(z) : T.title(z));
   const tx = kn.words.map(w => w.t.replace(/[.,;:!?¿¡]+/g, '').toLowerCase());
-  const sp = fs * .22, tw = () => tx.reduce((q, w) => q + cx.measureText(w).width, 0) + sp * (tx.length - 1);
-  while (tw() > W * .86 && fs > 40) { fs -= 4; cx.font = F(fs); }
-  let x = W / 2 - tw() / 2; cx.textBaseline = 'middle';
+  const wd = z => kn.words.reduce((q, w, i) => { cx.font = F(w, z); return q + cx.measureText(tx[i]).width; }, 0) + z * .22 * (tx.length - 1);
+  while (wd(fs) > W * .86 && fs > 40) fs -= 4;
+  let x = W / 2 - wd(fs) / 2; cx.textBaseline = 'middle';
   kn.words.forEach((w, i) => {
+    cx.font = F(w, fs);
     const a = ease((t - w.s + .08) / .18), ww = cx.measureText(tx[i]).width;
     if (a > 0) {
       cx.save(); cx.globalAlpha = k * a; cx.translate(x + ww / 2, H * .5 + 14 * (1 - a)); cx.scale(.9 + .1 * a, .9 + .1 * a);
       if (w === kn.key) { cx.shadowColor = T.hi; cx.shadowBlur = 34; cx.fillStyle = white ? '#111' : '#fff'; cx.fillText(tx[i], -ww / 2, 0); cx.shadowBlur = 16; }
       cx.fillStyle = white ? '#111' : '#fff'; cx.fillText(tx[i], -ww / 2, 0); cx.restore();
     }
-    x += ww + sp;
+    x += ww + fs * .22;
   });
   if ('letterSpacing' in cx) cx.letterSpacing = '0px';
   cx.restore();
@@ -1137,9 +1205,11 @@ function glitch(k) {
 function fxLayer(t, ot, P, x, y, w, h, coral) {
   const B = P.beats; if (!B) return { hide: false };
   const kn = (B.kin || []).find(q => t >= q.s && t <= q.e);
-  if (kn) { drawKin(kn, t); return { hide: true }; }
+  if (kn) { if (busy && !fired.has('k' + kn.s)) { fired.add('k' + kn.s); sfx('whoosh'); } drawKin(kn, t); return { hide: true }; }
   const big = B.big.find(b => t >= b.s && t <= b.e);
-  const photo = B.photos.find(p => t >= p.s && t <= p.e && (p.img || (p.failed && p.label && style().viro)));
+  const photo = B.photos.find(p => t >= p.s && t <= p.e && (p.img || p.vid || (p.failed && p.label && style().viro)));
+  // Preview: the active clip plays, every other one rests.
+  if (!fastBusy) B.photos.forEach(p => { if (!p.vid) return; if (p === photo && brollMedia(p) === p.vid) { if (p.vid.paused) { p.vid.currentTime = Math.max(0, t - p.s); p.vid.play().catch(() => {}); } } else if (!p.vid.paused) p.vid.pause(); });
   let doubleExp = false;
   if (photo && val('brollLayout', 'split') !== 'split') doubleExp = drawPhoto(photo, t, coral);
   if (big) drawBig(big, t, coral);
@@ -1228,7 +1298,7 @@ document.getElementById('photos').onchange = async e => {
   for (const f of e.target.files) { try { const img = new Image(); img.src = URL.createObjectURL(f); await img.decode(); userPhotos.push(img); } catch (er) { /* skip */ } }
   if (plan) build();
 };
-['optBig', 'optPhotos', 'optEmoji', 'optAI', 'optMG', 'optStats', 'optOverlay'].forEach(id => { document.getElementById(id).onchange = () => { if (id === 'optBig' && on('optBig')) loadSeg(); build(); }; });
+['optBig', 'optPhotos', 'optVideo', 'optEmoji', 'optAI', 'optMG', 'optStats', 'optOverlay'].forEach(id => { document.getElementById(id).onchange = () => { if (id === 'optBig' && on('optBig')) loadSeg(); build(); }; });
 let rebuildT = 0;
 ['mg', 'style', 'hookText'].forEach(id => document.getElementById(id).addEventListener('change', () => { clearTimeout(rebuildT); rebuildT = setTimeout(() => { if (plan) build(); }, 400); }));
 
@@ -1248,7 +1318,7 @@ const THEMES = {
 const THEME_OF = { viro: 'noir', coral: 'coral', viral: 'noir', hormozi: 'dark', editorial: 'cine', minimal: 'clean' };
 const themeKey = () => { const m = val('mg', 'auto'); return m !== 'auto' && THEMES[m] ? m : THEME_OF[$('#style').value] || 'coral'; };
 const theme = () => THEMES[themeKey()];
-const SERIF = s => { const f = val('fAccent', 'auto'); return f === 'auto' ? `italic 400 ${s}px "Instrument Serif", "Playfair Display", Georgia, serif` : `${/Caveat|Marker|Vibes|Pacifico|Dancing/.test(f) ? '' : 'italic '}400 ${s}px "${f}", Georgia, serif`; };
+const SERIF = s => { const f = val('fAccent', 'auto'); return f === 'auto' ? `italic 400 ${s}px "Instrument Serif", "Playfair Display", Georgia, serif` : fontOf(f, s); };
 const ANTON = s => `400 ${s}px Anton, Impact, "Arial Narrow", sans-serif`;
 
 // Paper looks: Editorial B/N (halftone grey, red box keyword) and Collage Vintage (beige paper, red scribble).
@@ -1442,7 +1512,7 @@ function quoteScreen(sc, t) {
 const val = (id, d) => { const el = document.getElementById(id); return el ? el.value : d; };
 const hookFx = () => val('hookFx', 'flash');
 // Text hook: giant word behind you, card on top, or a big question over the opening.
-const hookTextType = () => { const v2 = val('hookText', 'auto'); return v2 !== 'auto' ? v2 : $('#style').value === 'coral' ? 'card' : $('#style').value === 'viro' ? 'none' : 'big'; };
+const hookTextType = () => { const v2 = val('hookText', 'auto'); return v2 !== 'auto' ? v2 : $('#style').value === 'coral' ? 'card' : $('#style').value === 'viro' ? 'viro' : 'big'; };
 const hookSound = () => { const v2 = val('hookSfx', 'auto'); return v2 === 'auto' ? 'riser' : v2; };
 const grade = () => val('grade', 'none') !== 'none';
 // Color grading presets (cheap full-frame blends).
@@ -1472,15 +1542,18 @@ function drawFrameTitle(text, ot) {
 }
 // TikTok / Reels interface preview so you can check nothing important is covered (never exported).
 function drawSafeZones() {
+  // Where each app puts its buttons and texts (share of the 9:16 frame): right rail and bottom band.
+  const Z = { tt: { name: 'TikTok', right: .16, bottom: .2, top: .08 }, ig: { name: 'Reels', right: .15, bottom: .18, top: .07 }, yt: { name: 'Shorts', right: .17, bottom: .22, top: .1 } }[val('safeApp', 'tt')] || {};
   cx.save();
-  cx.strokeStyle = 'rgba(52,211,153,.8)'; cx.setLineDash([10, 8]); cx.lineWidth = 2;
-  cx.strokeRect(W * .05, H * .1, W * .78, H * .68); cx.setLineDash([]);
-  cx.fillStyle = 'rgba(16,185,129,.85)'; rrect(W * .5 - 90, H * .1 + 14, 180, 40, 20); cx.fill();
-  cx.fillStyle = '#fff'; cx.font = '700 20px Inter, sans-serif'; cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillText('✓ Zona segura', W * .5, H * .1 + 34);
-  cx.globalAlpha = .85; cx.font = '40px sans-serif';
-  ['♥', '💬', '↗', '⋯'].forEach((ic, i) => cx.fillText(ic, W - 50, H * .5 + i * 86));
+  cx.fillStyle = 'rgba(255,60,60,.16)'; cx.fillRect(0, 0, W, H * Z.top); cx.fillRect(0, H * (1 - Z.bottom), W, H * Z.bottom); cx.fillRect(W * (1 - Z.right), H * Z.top, W * Z.right, H * (1 - Z.top - Z.bottom));
+  cx.strokeStyle = 'rgba(52,211,153,.9)'; cx.setLineDash([10, 8]); cx.lineWidth = 2;
+  cx.strokeRect(W * .04, H * Z.top, W * (.96 - Z.right), H * (1 - Z.top - Z.bottom)); cx.setLineDash([]);
+  cx.fillStyle = 'rgba(16,185,129,.9)'; rrect(W * .5 - 120, H * Z.top + 14, 240, 40, 20); cx.fill();
+  cx.fillStyle = '#fff'; cx.font = '700 20px Inter, sans-serif'; cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillText(`Zona segura · ${Z.name}`, W * .5, H * Z.top + 34);
+  cx.globalAlpha = .9; cx.font = '40px sans-serif';
+  ['♥', '💬', '↗', '⋯'].forEach((ic, i) => cx.fillText(ic, W * (1 - Z.right / 2), H * .5 + i * 86));
   cx.font = '600 22px Inter, sans-serif'; cx.textAlign = 'left'; cx.fillStyle = '#fff';
-  cx.fillText('@tucuenta · descripción y hashtags', 30, H - 110); cx.fillText('♫ sonido original', 30, H - 74);
+  cx.fillText('@tucuenta · descripción y hashtags', 30, H * (1 - Z.bottom) + 40); cx.fillText('♫ sonido original', 30, H * (1 - Z.bottom) + 76);
   cx.restore();
 }
 
@@ -1548,7 +1621,7 @@ function drawOverlays(t, P) {
 // ---- Custom typography (Personalizar) ----
 function fontOverride(base) {
   const f = val('fBase', 'auto'); if (f === 'auto') return base;
-  return { ...base, font: s => `${/Anton|Bebas|Archivo Black/.test(f) ? 400 : 800} ${s}px "${f}", Inter, sans-serif` };
+  return { ...base, font: s => fontOf(f, s) };
 }
 
 // Draws one output frame for source time t from any drawable (the <video> in preview, a decoded VideoFrame when exporting).
@@ -1645,6 +1718,10 @@ function drawFrame(t, src, sw, sh) {
   if (P && !covered && !fxs.hide && !qHook && !(inCta && ot >= ctaS) && on('optCaps')) { drawCaption(ch, t); }
   if (hookOn && P && P.hook && !covered && !framed && hookTextType() === 'card') drawHookCard(P.hook, ot, P.hookDur);
   if (hookOn && P && P.hook && !covered && hookTextType() === 'question') drawHookQuestion(P.hook, ot, P.hookDur);
+  if (hookOn && P && P.hook && !covered && !framed && hookTextType() === 'viro' && ot < P.hookDur && !(P.beats && P.beats.photos.some(q => q.hookT && (q.img || q.vid || q.failed)))) {
+    const k = Math.min(ease(ot / .3), ease((P.hookDur - ot) / .3));
+    viroPhotoText({ s: t - ot, e: t - ot + P.hookDur, label: P.hook, kicker: '' }, t, k);
+  }
   if (inCta) screenTrans(ot, ctaS, 1e9, tt => ctaScreen(P.cta, tt - ctaS), 7, 'cta');
   if (P && on('optBar')) { cx.fillStyle = 'rgba(255,255,255,.18)'; cx.fillRect(0, H - 8, W, 8); cx.fillStyle = theme().accent; cx.fillRect(0, H - 8, W * ot / P.total, 8); }
   if (P && !covered) fxTop(t, ot, P, si);
@@ -1772,7 +1849,7 @@ async function fastExport() {
   while (aiPending.size && performance.now() - t0w < 45000) { msg(`Terminando las imágenes IA… (${aiPending.size})`); await Promise.race([...aiPending, new Promise(r => setTimeout(r, 1500))]); }
 
   if (on('optBig')) await loadSeg();
-  await ensureFonts();
+  await exportFonts();
 
   fastBusy = true; busy = true; v.pause();
   let err = null;
@@ -1820,6 +1897,7 @@ async function fastExport() {
         if (rot.width !== sw) { rot.width = sw; rot.height = sh; }
         rcx.save(); rcx.translate(sw / 2, sh / 2); rcx.rotate(Math.PI); rcx.drawImage(f, -sw / 2, -sh / 2); rcx.restore(); src = rot;
       }
+      await brollSeek(t);
       drawFrame(t, src, sw, sh);
       const vf = new VideoFrame(cv, { timestamp: Math.round(ot * 1e6), duration: Math.round(1e6 / fps) });
       venc.encode(vf, { keyFrame: k % 60 === 0 }); vf.close();
@@ -1879,15 +1957,16 @@ $('#go').onclick = async () => {
   } catch (e) { console.warn('fast export failed, using real time', e); fastBusy = false; busy = false; }
   realtimeExport();
 };
-async function ensureFonts() {
+async function exportFonts() {
   if (!document.fonts) return;
   const list = ['800 40px "Plus Jakarta Sans"', '600 40px "Plus Jakarta Sans"', '900 40px Montserrat', '400 40px Anton', 'italic 400 40px "Instrument Serif"',
     'italic 600 40px Fraunces', '800 40px Outfit', '600 40px Outfit', '600 40px "Inter Tight"', '800 40px "Inter Tight"', '700 40px Caveat', '600 40px "JetBrains Mono"'];
-  ['fBase', 'fKey', 'fAccent'].forEach(id => { const f = val(id, 'auto'); if (f !== 'auto') list.push(`400 40px "${f}"`, `800 40px "${f}"`, `italic 400 40px "${f}"`); });
+  ['fBase', 'fKey', 'fAccent'].forEach(id => { const f = val(id, 'auto'); if (f !== 'auto') list.push(fontOf(f, 40)); });
+  const T = typo(); list.push(T.title(40), T.kicker(40), T.cap(40), fontOf(T.keyF, 40));
   await Promise.race([Promise.all(list.map(f => document.fonts.load(f).catch(() => {}))), new Promise(r => setTimeout(r, 4000))]);
 }
 async function realtimeExport() {
-  await ensureFonts();
+  await exportFonts();
   if (!window.MediaRecorder || !cv.captureStream) { msg('Tu navegador no permite exportar video. Probá con Chrome o Safari actualizado.'); $('#go').disabled = $('#ai').disabled = false; return; }
   busy = true;
   try {
@@ -1931,6 +2010,11 @@ window.VE = {
   load, build, video: v,
   setHook(t) { aiHookTitle = t; build(); },
   setTypo(k) { if (TYPO[k]) { aiTypo = k; dirty = true; } },
+  fontLib: FONT_LIB, fontOf, ensureFonts,
+  // What the AI director gets to know about the video besides the words.
+  get info() { const P = plan; if (!P) return {}; return { seconds: Math.round(P.total), words: words.length, cuts: P.segs.length - 1, wordsPerSecond: +(words.length / Math.max(1, P.total)).toFixed(2), longPauses: words.filter((w, i) => words[i + 1] && words[i + 1].s - w.e > .6).length, questions: words.filter(w => /\?$/.test(w.t)).length, numbers: words.filter(w => isNum(w.t)).length }; },
+  addFont(n) { if (!FONT_BY.has(n)) { const f = [n, 'Mis fuentes', '', 400]; FONT_LIB.push(f); FONT_BY.set(n, f); fontLoaded.add(n); } dirty = true; },
+  get typoFonts() { const T = typo(); return { base: T.cap(20), key: fontOf(T.keyF, 20), accent: T.kicker(20), keyName: T.keyF }; },
   get typoKey() { return typoKey(); },
   typos: Object.fromEntries(Object.entries(TYPO).map(([k, T]) => [k, { name: T.name, title: T.title(30), kicker: T.kicker(22), cap: T.cap(16), key: T.key, hi: T.hi }])),
   // Fix words the transcription got wrong (e.g. "desloqueas" → "desbloqueás"), keeping punctuation.

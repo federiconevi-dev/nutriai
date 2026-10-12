@@ -6,7 +6,7 @@ const ALLOWED = {
   mg: ['noir', 'dark', 'bw', 'cine', 'photo', 'vintage', 'coral', 'neonpink', 'clean'],
   ovStyle: ['auto', 'glass', 'neon', 'mono', 'graph', 'femtech', 'cyber'],
   hookFx: ['flash', 'zoom', 'iris', 'swipe', 'glitch', 'blackout', 'blur', 'cine', 'none'],
-  hookText: ['auto', 'big', 'card', 'question', 'none'],
+  hookText: ['auto', 'viro', 'big', 'card', 'question', 'none'],
   brollLayout: ['split', 'card', 'full'],
   hookSfx: ['auto', 'impact', 'riser', 'whoosh', 'scratch', 'notif', 'drop', 'zap', 'none'],
   grade: ['none', 'warm', 'teal', 'punch', 'film', 'bw'],
@@ -24,7 +24,7 @@ mg (look of animated screens): noir=black + lime | dark=black + yellow | bw=blac
 ovStyle (idea cards): auto|glass|neon|mono|graph|femtech|cyber
 hookFx (first second): flash (energetic) | zoom (punch-in) | iris (circle opening) | swipe (TikTok swipe-up) | glitch (tech) | blackout (title on black, then cut) | blur (soft, aesthetic) | cine (dramatic letterbox) | none
 brollLayout (how supporting images appear): split (image top, person bottom - great for explaining) | card (image card on top) | full (full-screen cutaway)
-hookText: big (giant word) | card (white card on top) | question (big question over the opening) | auto
+hookText: viro (the hook title over the opening image, pro look) | big (giant word) | card (white card on top) | question (big question over the opening) | auto
 hookSfx (sound in the first second): impact | riser (build-up + hit) | whoosh | scratch (record scratch, funny) | notif (phone notification) | drop (bass drop) | zap | auto
 grade (video color): none|warm|teal|punch|film|bw
 fBase/fKey/fAccent fonts: ${['fBase', 'fKey', 'fAccent'].map(k => `${k}: ${ALLOWED[k].join(', ')}`).join('; ')}
@@ -37,15 +37,16 @@ export default async (req) => {
   let body;
   try { body = await req.json(); } catch { return Response.json({ error: 'JSON inválido' }, { status: 400 }); }
   const text = String(body.text || '').slice(0, 4000), request = String(body.request || '').slice(0, 400);
+  const info = body.info && typeof body.info === 'object' ? JSON.stringify(body.info).slice(0, 400) : '{}';
   const current = body.current && typeof body.current === 'object' ? JSON.stringify(body.current).slice(0, 1500) : '{}';
   const account = Netlify.env.get('CF_ACCOUNT_ID'), token = Netlify.env.get('CF_API_TOKEN');
   if (!account || !token) return Response.json({ error: 'El servidor no tiene configurado Cloudflare.' }, { status: 503 });
 
-  const system = `You are a world-class short-form video editor (TikTok/Reels). ${request ? 'Apply the user\'s requested change to the current settings, changing only what is needed.' : 'Read the transcript and choose the best possible edit for this specific video: tone, topic and audience must drive every choice. Keep style "viro" and brollLayout "full"; pick the "typo" that best fits the topic and tone.'}
+  const system = `You are a world-class short-form video editor (TikTok/Reels). ${request ? 'Apply the user\'s requested change to the current settings, changing only what is needed.' : 'Read the transcript and choose the best possible edit for this specific video: tone, topic and audience must drive every choice. Keep style "viro" and brollLayout "full"; pick the "typo" that best fits the topic and tone, the visual hook (hookFx: blur, flash, zoom, iris or cine) and the sound hook (hookSfx) that best grab attention for this topic.'}
 ${GUIDE}
 Also write "hookTitle": a short, punchy on-screen hook (max 8 words) in the SAME language as the transcript, based on its real content (no clickbait lies). It must be perfectly natural and grammatical, with correct spelling and accents, addressed to the viewer (for Spanish from Argentina use correct voseo, e.g. "¿Querés subir de nivel?", never mixed forms like "¿Subí de nivel y dominá…?"). Also write "fixes": an object mapping single words the automatic transcription clearly misheard or misspelled to the correct single word, with accents (e.g. {"desloqueas":"desbloqueás"}); only obvious errors, {} if none. And "reason": one short sentence in Spanish (rioplatense) explaining the look you chose to the creator: talk only about the typography (by its name) and the mood, never mention caption styles or internal option keys.
 Reply with ONLY one JSON object: {"style":..,"typo":..,"mg":..,"ovStyle":..,"hookFx":..,"hookText":..,"hookSfx":..,"brollLayout":..,"grade":..,"fBase":..,"fKey":..,"fAccent":..,"cKey":..,"toggles":{..},"hookTitle":..,"fixes":{..},"reason":..}`;
-  const user = `Transcript: ${text || '(no speech)'}\nCurrent settings: ${current}${request ? `\nUser request: ${request}` : ''}`;
+  const user = `Video facts: ${info}\nTranscript: ${text || '(no speech)'}\nCurrent settings: ${current}${request ? `\nUser request: ${request}` : ''}`;
   let last = '';
   for (let attempt = 0; attempt < 2; attempt++) {
     const { text: out, model } = await chat(system, user, 700);

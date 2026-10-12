@@ -11,7 +11,7 @@ export default async (req) => {
       const res = await fetch(`https://api.cloudflare.com/client/v4/accounts/${account}/ai/run/@cf/black-forest-labs/flux-1-schnell`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt, steps: 6 })
+        body: JSON.stringify({ prompt, steps: 4 })
       });
       const data = res.ok ? await res.json() : null;
       const b64 = data && data.result && data.result.image;
