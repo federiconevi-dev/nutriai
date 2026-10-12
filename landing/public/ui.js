@@ -76,7 +76,8 @@ restore(); syncAll(); vsSync();
 
 // ---- Typography cards (Personalizado) and showcase (landing) ----
 const TY = VE.typos;
-const tyHtml = (k, T) => `<button type="button" data-v="${k}"><i style="font:${T.kicker}">Tu viaje comienza</i><b style="font:${T.title}">Aprendé lo <span style="background:linear-gradient(90deg,${T.key[0]},${T.key[1]});-webkit-background-clip:text;background-clip:text;color:transparent">esencial</span></b><small>${T.name}</small></button>`;
+const px = (f, n) => f.replace(/\d+(\.\d+)?px/, n + 'px');
+const tyHtml = (k, T) => `<button type="button" data-v="${k}"><i style="font:${px(T.kicker, 14)}">Tu viaje comienza</i><b style="font:${px(T.title, 19)}">Aprendé lo <span style="background:linear-gradient(90deg,${T.key[0]},${T.key[1]});-webkit-background-clip:text;background-clip:text;color:transparent">esencial</span></b><small>${T.name}</small></button>`;
 $('#tys').innerHTML = `<button type="button" class="auto" data-v="auto">Automática<small class="mut">La IA elige según tu video</small></button>` + Object.entries(TY).map(([k, T]) => tyHtml(k, T)).join('');
 const tySync = () => {
   $$('#tys button').forEach(b => b.classList.toggle('sel', b.dataset.v === $('#typo').value));
@@ -147,7 +148,7 @@ function drawTl(t) {
   tcx.fillStyle = '#c6f432'; tcx.fillRect(X(t) - dpr, 0, 2 * dpr, Ht);
 }
 let lastTl = 0;
-window.onFrame = t => { const now = performance.now(); if (now - lastTl > 60 && $('#ed').classList.contains('on')) { lastTl = now; drawTl(t); } };
+window.onFrame = t => { const now = performance.now(); if (now - lastTl > 60 && app.classList.contains('on')) { lastTl = now; drawTl(t); } };
 tl.onclick = e => { const r = tl.getBoundingClientRect(); v.currentTime = (e.clientX - r.left) / r.width * (v.duration || 0); };
 
 // ---- Export result ----
@@ -178,7 +179,7 @@ async function direct(request = '') {
     if (j.fixes) VE.fixWords(j.fixes);
     if (j.hookTitle) VE.setHook(j.hookTitle);
     syncAll(); vsSync(); tySync();
-    setRec(j.reason || 'Listo, apliqué la edición.'); setStep(2); waitArt();
+    setRec((j.reason || 'Listo, apliqué la edición.').replace(/\b(nova|lujo|revista|tech|suave|clasico|clásico|urbano)\b/gi, m => { const k = m.toLowerCase().replace('á', 'a'); return TY[k] ? TY[k].name : m; })); setStep(2); waitArt();
     if (request) $('#aiAsk').value = '';
   } catch (e) {
     setRec('La IA no pudo responder ahora (' + e.message + '). Tu edición automática sigue lista.'); waitArt();
