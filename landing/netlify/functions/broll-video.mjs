@@ -17,8 +17,9 @@ export default async (req) => {
     }
   }
   if (pixabay) {
-    const r = await fetch(`https://pixabay.com/api/videos/?key=${pixabay}&q=${encodeURIComponent(q)}&per_page=20&safesearch=true`).catch(() => null);
-    const hits = r && r.ok ? (await r.json()).hits || [] : [];
+    const r = await fetch(`https://pixabay.com/api/videos/?key=${encodeURIComponent(pixabay.trim())}&q=${encodeURIComponent(q)}&per_page=20&safesearch=true`).catch(() => null);
+    if (!r || !r.ok) return Response.json({ error: `Pixabay respondió ${r ? r.status + ' ' + (await r.text()).slice(0, 80) : 'sin conexión'}` }, { status: 502 });
+    const hits = (await r.json()).hits || [];
     // Vertical clips first; a wide clip still works (it is cropped to 9:16), so use the sharpest small-enough file.
     const pick = h => { const v = h.videos || {}; return [v.medium, v.large, v.small].find(f => f && f.url && f.width && f.size < 18e6); };
     const ranked = hits.filter(h => h.duration >= 3 && pick(h)).sort((a, b) => (pick(b).height > pick(b).width) - (pick(a).height > pick(a).width));
