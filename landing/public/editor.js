@@ -759,18 +759,8 @@ function aiImage(subject) {
     await aiSlot();
     try {
       let r = await fetch(`/api/ai-image?p=${encodeURIComponent(prompt)}`).catch(() => null);
-      // Server busy or out of free quota: ask the free backup generator straight from the browser.
-      if (!r || !r.ok) {
-        const seed = [...prompt].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7) % 100000;
-        r = await fetch(`https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=720&height=1400&nologo=true&model=flux&seed=${seed}`).catch(() => null);
-        if (r && r.ok) {
-          // The backup stamps a small logo in the bottom corner: crop it off.
-          const raw = new Image(); raw.src = URL.createObjectURL(await r.blob()); await raw.decode();
-          const c2 = document.createElement('canvas'); c2.width = raw.naturalWidth; c2.height = Math.round(raw.naturalHeight * .9);
-          c2.getContext('2d').drawImage(raw, 0, 0); URL.revokeObjectURL(raw.src);
-          return c2;
-        }
-      }
+      // Server busy or out of free quota: free backup generator (one at a time, it limits per person), then a stock photo.
+      if (!r || !r.ok) { const alt = await backupImage(prompt, subject); if (alt) return alt; }
       if (!r || !r.ok) { aiCache.delete(prompt); return null; }
       const img = new Image(); img.src = URL.createObjectURL(await r.blob()); await img.decode();
       return img;
@@ -778,6 +768,27 @@ function aiImage(subject) {
     finally { aiFree(); }
   })();
   aiCache.set(prompt, job); aiPending.add(job); job.finally(() => aiPending.delete(job));
+  return job;
+}
+let backupChain = Promise.resolve();
+function backupImage(prompt, subject) {
+  const job = backupChain.then(async () => {
+    const seed = [...prompt].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7) % 100000;
+    for (let i = 0; i < 3; i++) {
+      const r = await fetch(`https://image.pollinations.ai/prompt/${encodeURIComponent(prompt.slice(0, 400))}?width=720&height=1400&nologo=true&seed=${seed + i}`).catch(() => null);
+      if (r && r.ok && (r.headers.get('content-type') || '').startsWith('image/')) {
+        // It stamps a small logo in the bottom corner: crop it off.
+        const raw = new Image(); raw.src = URL.createObjectURL(await r.blob()); await raw.decode();
+        const c2 = document.createElement('canvas'); c2.width = raw.naturalWidth; c2.height = Math.round(raw.naturalHeight * .9);
+        c2.getContext('2d').drawImage(raw, 0, 0); URL.revokeObjectURL(raw.src);
+        return c2;
+      }
+      await new Promise(res => setTimeout(res, 2500 * (i + 1)));
+    }
+    const q = String(promptCache.get(subject) || subject).replace(/[^a-zA-Z ]/g, ' ').split(/\s+/).filter(w => w.length > 3).slice(0, 3).join(' ');
+    return q ? fetchPhoto(q) : null;
+  }).catch(() => null);
+  backupChain = job.catch(() => null);
   return job;
 }
 // Fetches art for every screen and b-roll of the current plan (prompts first, then images in order of appearance).
@@ -821,13 +832,13 @@ function drawScreenArt(sc, t) {
 function fetchPhoto(q) {
   if (photoCache.has(q)) return photoCache.get(q);
   const p = (async () => {
-    const r = await fetch(`https://api.openverse.org/v1/images/?q=${encodeURIComponent(q)}&page_size=6&mature=false`);
+    const r = await fetch(`https://api.openverse.org/v1/images/?q=${encodeURIComponent(q)}&page_size=6&mature=false&aspect_ratio=tall`);
     if (!r.ok) return null;
     const res = (await r.json()).results || [];
     for (const it of res) {
       try {
         const img = new Image(); img.crossOrigin = 'anonymous';
-        img.src = `https://api.openverse.org/v1/images/${it.id}/thumb/`;
+        img.src = `https://api.openverse.org/v1/images/${it.id}/thumb/?full_size=true`;
         await img.decode();
         if (img.naturalWidth > 200) return img;
       } catch (e) { /* try next */ }
