@@ -1245,6 +1245,7 @@ function viroPhotoText(ph, t, k, force) {
   cx.restore();
 }
 // Viro kinetic screen: a short phrase alone on a white or black screen, words land as you say them, key word glowing green.
+const mixDark = (hex, m) => { const n = parseInt(hex.slice(1), 16); return `rgb(${(n >> 16 & 255) * (1 - m) | 0},${(n >> 8 & 255) * (1 - m) | 0},${(n & 255) * (1 - m) | 0})`; };
 // Warm light-leak flare used on b-roll cuts (orange to yellow glows, ~0.4s around the cut).
 function warmLeak(d) {
   if (d < 0 || d > .4) return;
@@ -1266,7 +1267,7 @@ function drawKin(kn, t) {
   if (bg === 'blur') { blur(28); cx.drawImage(cv, -W * .06, -H * .06, W * 1.12, H * 1.12); blur(0); cx.fillStyle = 'rgba(0,0,0,.55)'; cx.fillRect(0, 0, W, H); }
   else {
     const g = cx.createRadialGradient(W / 2, H * .45, 50, W / 2, H * .5, H * .75);
-    if (white) { g.addColorStop(0, '#ffffff'); g.addColorStop(1, '#dcdcd8'); } else if (bg === 'accent') { g.addColorStop(0, T.key[0]); g.addColorStop(1, '#0b0b10'); } else { g.addColorStop(0, '#1a1a1a'); g.addColorStop(1, '#000'); }
+    if (white) { g.addColorStop(0, '#ffffff'); g.addColorStop(1, '#dcdcd8'); } else if (bg === 'accent') { g.addColorStop(0, mixDark(T.key[0], .55)); g.addColorStop(1, '#070709'); } else { g.addColorStop(0, '#1a1a1a'); g.addColorStop(1, '#000'); }
     cx.fillStyle = g; cx.fillRect(0, 0, W, H);
   }
   const ink = white ? '#111' : '#fff', dim = white ? 'rgba(0,0,0,.18)' : 'rgba(255,255,255,.22)';
