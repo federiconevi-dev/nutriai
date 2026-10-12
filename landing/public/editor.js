@@ -374,8 +374,17 @@ function drawCaption(ch, t) {
 
 // Viro look (same as viroedit): small lowercase base words, the spoken word lights up with a glow,
 // the key word in the "palabra destacada" font; a strong last word drops to its own line, big and glowing.
+// Keeps captions readable: if the area behind them is bright, a soft dark glow goes under the text.
+function capShade(ch) {
+  if (ch.bright === undefined) {
+    try { const d = cx.getImageData(W * .15, Math.max(0, capY - 40), W * .7, 80).data; let L = 0, n = 0; for (let i = 0; i < d.length; i += 64) { L += .2126 * d[i] + .7152 * d[i + 1] + .0722 * d[i + 2]; n++; } ch.bright = L / n / 255 > .55; } catch (e) { ch.bright = false; }
+  }
+  if (!ch.bright) return;
+  cx.save(); const g = cx.createRadialGradient(capX, capY, 10, capX, capY, W * .5); g.addColorStop(0, 'rgba(0,0,0,.45)'); g.addColorStop(1, 'rgba(0,0,0,0)'); cx.fillStyle = g; cx.fillRect(0, capY - H * .12, W, H * .24); cx.restore();
+}
 function viroCaption(ch, t, st) {
   const mode = recipe().cap;
+  if (mode !== 'pill') capShade(ch);
   if (mode === 'pill' || mode === 'box' || mode === 'serif') return lineCaption(ch, t, st, mode);
   if (mode === 'word') return wordCaption(ch, t, st);
   const age = t - ch.s, a = ease(age / .18), solo = ch.emph && ch.length > 1 && clean(ch.key.t).length >= 4;
@@ -1019,7 +1028,7 @@ function makeBeats(P) {
   const B = { big: [], photos: [], emoji: new Map() };
   if (!words.length) return B;
   const busyRanges = [];
-  if (P.list && on('optMG')) busyRanges.push([P.list.s - .5, P.list.e + .5]);
+  if (P.list && (on('optMG') || style().viro)) busyRanges.push([P.list.s - .5, P.list.e + .5]);
   (P.screens || []).forEach(sc => { if (sc.type === 'stat' ? on('optStats') : on('optMG')) busyRanges.push([sc.s - .5, sc.e + .5]); });
   const ovR = on('optOverlay') ? (P.overlays || []).map(o => [o.s, o.e]) : [];
   const free = (s, e) => !busyRanges.some(([a, b]) => s < b && e > a);
@@ -1305,6 +1314,40 @@ function cutFx(kind, k, si) {
   else if (kind === 'leak') warmLeak(k * .4);
   else if (kind === 'zoomblur') { cx.save(); blur(14 * e); cx.drawImage(cv, 0, 0); blur(0); cx.restore(); }
 }
+// Viro checklist: when you list things ("primero, segundo…"), a card with checks fills in as you say them.
+function drawChecklist(L, t) {
+  const k = Math.min(easeQ((t - L.s) / .35), ease((L.e - t) / .3)); if (k <= 0) return;
+  const T = typo(), items = L.items, rowH = 76, cw = W * .86, chh = 40 + items.length * rowH, x0 = (W - cw) / 2, y0 = H * .1 - 30 * (1 - k);
+  cx.save(); cx.globalAlpha = k;
+  cx.shadowColor = 'rgba(0,0,0,.4)'; cx.shadowBlur = 30; rrect(x0, y0, cw, chh, 28); cx.fillStyle = 'rgba(12,12,16,.82)'; cx.fill(); cx.shadowColor = 'transparent';
+  items.forEach((it, i) => {
+    const a = easeQ((t - it.at) / .3), y = y0 + 20 + i * rowH + rowH / 2, cxp = x0 + 52;
+    cx.globalAlpha = k * (a > 0 ? 1 : .35);
+    cx.beginPath(); cx.arc(cxp, y, 22, 0, Math.PI * 2); cx.lineWidth = 3; cx.strokeStyle = a > 0 ? T.hi : 'rgba(255,255,255,.4)'; cx.stroke();
+    if (a > 0) { cx.beginPath(); cx.arc(cxp, y, 22 * a, 0, Math.PI * 2); cx.fillStyle = T.hi; cx.fill(); cx.strokeStyle = '#111'; cx.lineWidth = 4; cx.beginPath(); cx.moveTo(cxp - 10, y); cx.lineTo(cxp - 3, y + 8); cx.lineTo(cxp + 11, y - 9); cx.stroke(); }
+    cx.fillStyle = '#fff'; cx.textBaseline = 'middle'; cx.textAlign = 'left';
+    let fs = 34, tx = it.title.join(' '); cx.font = T.title(fs); while (cx.measureText(tx).width > cw - 120 && fs > 20) { fs -= 2; cx.font = T.title(fs); }
+    cx.fillText(tx, cxp + 42 + 10 * (1 - Math.max(0, a)), y);
+  });
+  cx.restore();
+}
+// End card: your @ and a "Seguir" button that gets tapped.
+function drawEndCard(ot, total) {
+  const age = ot - (total - 2.2); if (age < 0) return;
+  const k = easeQ(age / .35), hd = val('handle', '').trim(), T = typo();
+  cx.save(); cx.globalAlpha = k; const y = H * .58 + 30 * (1 - k);
+  cx.font = '800 30px Inter, sans-serif'; const label = hd ? (hd[0] === '@' ? hd : '@' + hd) : 'Seguime para más';
+  const bw = Math.max(300, cx.measureText(label).width + 190), x0 = W / 2 - bw / 2;
+  cx.shadowColor = 'rgba(0,0,0,.45)'; cx.shadowBlur = 24; rrect(x0, y - 44, bw, 88, 44); cx.fillStyle = 'rgba(255,255,255,.95)'; cx.fill(); cx.shadowColor = 'transparent';
+  cx.beginPath(); cx.arc(x0 + 44, y, 30, 0, Math.PI * 2); const g = cx.createLinearGradient(x0 + 14, 0, x0 + 74, 0); g.addColorStop(0, T.key[0]); g.addColorStop(1, T.key[1]); cx.fillStyle = g; cx.fill();
+  cx.fillStyle = '#111'; cx.textAlign = 'left'; cx.textBaseline = 'middle'; cx.fillText(label, x0 + 88, y);
+  const tap = age > .9, bx = x0 + bw - 96;
+  rrect(bx, y - 26, 80, 52, 26); cx.fillStyle = tap ? '#e5e5ea' : '#ff2d55'; cx.fill();
+  cx.fillStyle = tap ? '#111' : '#fff'; cx.font = '800 22px Inter, sans-serif'; cx.textAlign = 'center'; cx.fillText(tap ? '✓' : 'Seguir', bx + 40, y + 1);
+  const fp = Math.min(1, age / .9); cx.globalAlpha = k * (age < 1.4 ? 1 : Math.max(0, 1 - (age - 1.4) / .3));
+  cx.font = '64px sans-serif'; cx.fillText('👆', bx + 50 + 60 * (1 - fp), y + 70 + 50 * (1 - fp) - (age > .85 && age < 1 ? 8 : 0));
+  cx.restore();
+}
 // Big number that counts up (e.g. "30 días", "$1000").
 function drawCounter(nm, t) {
   const age = t - nm.s, k = Math.min(easeQ(age / .25), ease((nm.e - t) / .25)), T = typo(), p = easeQ(age / .8);
@@ -1431,6 +1474,7 @@ function fxLayer(t, ot, P, x, y, w, h, coral) {
     if (busy) { if (!fired.has('k' + kn.s)) { fired.add('k' + kn.s); sfx('impact'); } kn.words.forEach((w, i) => { if (t >= w.s && !fired.has('kw' + kn.s + i)) { fired.add('kw' + kn.s + i); sfx('tick'); } }); }
     drawKin(kn, t); return { hide: true };
   }
+  if (style().viro && P.list && !on('optMG') && t >= P.list.s && t <= P.list.e) { drawChecklist(P.list, t); if (busy) P.list.items.forEach(it => { if (t >= it.at && !fired.has('ck' + it.n)) { fired.add('ck' + it.n); sfx('pop'); } }); }
   const nm = (B.nums || []).find(q => t >= q.s && t <= q.e); if (nm) drawCounter(nm, t);
   const nt = (B.notifs || []).find(q => t >= q.s && t <= q.e); if (nt) drawNotif(nt, t);
   if (busy && nm && !fired.has('nm' + nm.s)) { fired.add('nm' + nm.s); sfx(nm.money ? 'cash' : 'ding'); }
@@ -2015,7 +2059,8 @@ function drawFrame(t, src, sw, sh) {
   if (hookOn && hk === 'glitch' && ot < .45) glitch(ot / .45);
   if (hookOn && hk === 'blackout' && P && P.hook && ot < 1.1) drawBlackout(P.hook, ot);
   if (P && on('optLoop')) loopBlend(ot, P.total);
-  const hd = val('handle', '').trim(); if (hd && P && !(inCta && ot >= ctaS)) { cx.save(); cx.globalAlpha = .75; cx.font = '700 24px Inter, sans-serif'; cx.textAlign = 'left'; cx.textBaseline = 'middle'; cx.shadowColor = 'rgba(0,0,0,.6)'; cx.shadowBlur = 8; cx.fillStyle = '#fff'; cx.fillText((hd[0] === '@' ? '' : '@') + hd, W * .06, H * .09); cx.restore(); }
+  if (P && st.viro && on('optEnd') && !inCta && ot > P.total - 2.2) { drawEndCard(ot, P.total); if (busy && ot > P.total - 1.3 && !fired.has('endtap')) { fired.add('endtap'); sfx('pop'); } }
+  const hd = val('handle', '').trim(); if (hd && P && !(st.viro && on('optEnd') && ot > P.total - 2.2) && !(inCta && ot >= ctaS)) { cx.save(); cx.globalAlpha = .75; cx.font = '700 24px Inter, sans-serif'; cx.textAlign = 'left'; cx.textBaseline = 'middle'; cx.shadowColor = 'rgba(0,0,0,.6)'; cx.shadowBlur = 8; cx.fillStyle = '#fff'; cx.fillText((hd[0] === '@' ? '' : '@') + hd, W * .06, H * .09); cx.restore(); }
   if (!busy && on('optSafe')) drawSafeZones();
   if (busy && P) prog(ot / P.total);
   return ot;

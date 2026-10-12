@@ -2,15 +2,16 @@
   "0": "editor.js",
   "1": "drawFrame",
   "2": "ui.js",
-  "3": "ease",
-  "4": "theme",
+  "3": "rrect",
+  "4": "ease",
   "5": "fastExport",
   "6": "llm.mjs",
   "7": "build",
   "8": "loadAiArt",
-  "9": "screenTrans",
+  "9": "blobCover",
   "10": "clip.ts",
   "11": "ai-image.mjs",
   "12": "finish",
-  "13": "typoKey"
+  "13": "typoKey",
+  "14": "screenTrans"
 }

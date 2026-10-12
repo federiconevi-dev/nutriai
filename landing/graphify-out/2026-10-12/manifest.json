@@ -6,9 +6,9 @@
     "semantic_hash": ""
   },
   "netlify/functions/ai-direct.mjs": {
-    "mtime": 1791772546.7145524,
-    "seen": 1791821460.086468,
-    "ast_hash": "10be060557c8ee116fabfe1df04adeed",
+    "mtime": 1791840486.1837223,
+    "seen": 1791840624.2194278,
+    "ast_hash": "c7d41ed6feed7f5702d5f67f92528882",
     "semantic_hash": ""
   },
   "netlify/functions/ai-health.mjs": {
@@ -54,21 +54,21 @@
     "semantic_hash": ""
   },
   "public/editor.js": {
-    "mtime": 1791772877.1265664,
-    "seen": 1791821460.0864837,
-    "ast_hash": "a3ed1494ac3ed1a135079786f9e77370",
+    "mtime": 1791840621.120086,
+    "seen": 1791840624.2194686,
+    "ast_hash": "77d90368bacacd32747ef9014d95c1b8",
     "semantic_hash": ""
   },
   "public/ui.js": {
-    "mtime": 1791772869.6912255,
-    "seen": 1791821460.0864854,
-    "ast_hash": "bb0f6f371042c577c2410892aad83d5a",
+    "mtime": 1791840464.2451885,
+    "seen": 1791840624.21947,
+    "ast_hash": "c1f3c5a242e3091c678e34af0834c4b7",
     "semantic_hash": ""
   },
   "public/index.html": {
-    "mtime": 1791772869.6905136,
-    "seen": 1791821460.0864878,
-    "ast_hash": "5d3531d9b5da26a8f4ed01579c23c090",
+    "mtime": 1791840464.2446942,
+    "seen": 1791840624.2194715,
+    "ast_hash": "343975921162c8f55945f86f044fe0ec",
     "semantic_hash": ""
   },
   "public/broll.jpg": {
