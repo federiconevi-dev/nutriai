@@ -30,12 +30,14 @@ export default async (req) => {
     const ranked = hits.filter(h => h.duration >= 3 && pick(h) && score(h) >= need)
       .sort((a, b) => (score(b) - score(a)) * 2 + ((pick(b).height > pick(b).width) - (pick(a).height > pick(a).width))).slice(0, 6);
     // A second AI check: the clip must clearly show what the moment needs, or nothing is used.
-    let h = null;
+    let h = null, check = '';
     if (ranked.length && want2) {
-      const { text } = await chat('You check stock footage for a video editor. Reply ONLY with the number of the clip whose tags clearly show the wanted scene, or 0 if none clearly fits. Be strict: a loosely related or symbolic clip is 0.', `Wanted scene: ${want2}\nClips:\n${ranked.map((c, i) => `${i + 1}: ${c.tags}`).join('\n')}`, 10).catch(() => ({ text: '' }));
+      const { text } = await chat('You check stock footage for a video editor. Reply ONLY with the number of the clip whose tags clearly show the wanted scene, or 0 if none clearly fits. Be strict: a loosely related or symbolic clip is 0.', `Wanted scene: ${want2}\nClips:\n${ranked.map((c, i) => `${i + 1}: ${c.tags}`).join('\n')}`, 60).catch(() => ({ text: '' }));
+      check = String(text || '').slice(0, 80);
       const n = parseInt((text.match(/\d+/) || ['0'])[0], 10);
       h = n >= 1 && n <= ranked.length ? ranked[n - 1] : null;
     } else h = ranked[0] || null;
+    if (!h && ranked.length) return Response.json({ error: 'Ningún clip encaja', candidates: ranked.length, check }, { status: 404 });
     if (h) { const f = pick(h); return Response.json({ url: `/api/clip?u=${encodeURIComponent(f.url)}`, w: f.width, h: f.height, dur: h.duration }, cache); }
   }
   return Response.json({ error: 'Sin resultados' }, { status: 404 });
