@@ -1,7 +1,8 @@
+import { chat } from '../lib/llm.mjs';
 // Finds a stock clip for a b-roll moment on Pexels (PEXELS_API_KEY) or Pixabay (PIXABAY_API_KEY), both free.
 // GET /api/broll-video?q=<english keywords>  →  { url, w, h, dur } (cached at the CDN per query)
 export default async (req) => {
-  const q = (new URL(req.url).searchParams.get('q') || '').slice(0, 80).trim();
+  const sp = new URL(req.url).searchParams, q = (sp.get('q') || '').slice(0, 80).trim(), want2 = (sp.get('want') || '').slice(0, 300);
   if (q.length < 2) return Response.json({ error: 'Falta la búsqueda.' }, { status: 400 });
   const cache = { headers: { 'Cache-Control': 'public, max-age=86400', 'Netlify-CDN-Cache-Control': 'public, durable, max-age=604800' } };
   const pexels = Netlify.env.get('PEXELS_API_KEY'), pixabay = Netlify.env.get('PIXABAY_API_KEY');
@@ -27,8 +28,14 @@ export default async (req) => {
     const score = h => { const tags = (h.tags || '').toLowerCase(); return want.filter(w => tags.includes(w.replace(/s$/, ''))).length; };
     const need = Math.min(2, want.length);
     const ranked = hits.filter(h => h.duration >= 3 && pick(h) && score(h) >= need)
-      .sort((a, b) => (score(b) - score(a)) * 2 + ((pick(b).height > pick(b).width) - (pick(a).height > pick(a).width)));
-    const h = ranked[0];
+      .sort((a, b) => (score(b) - score(a)) * 2 + ((pick(b).height > pick(b).width) - (pick(a).height > pick(a).width))).slice(0, 6);
+    // A second AI check: the clip must clearly show what the moment needs, or nothing is used.
+    let h = null;
+    if (ranked.length && want2) {
+      const { text } = await chat('You check stock footage for a video editor. Reply ONLY with the number of the clip whose tags clearly show the wanted scene, or 0 if none clearly fits. Be strict: a loosely related or symbolic clip is 0.', `Wanted scene: ${want2}\nClips:\n${ranked.map((c, i) => `${i + 1}: ${c.tags}`).join('\n')}`, 10).catch(() => ({ text: '' }));
+      const n = parseInt((text.match(/\d+/) || ['0'])[0], 10);
+      h = n >= 1 && n <= ranked.length ? ranked[n - 1] : null;
+    } else h = ranked[0] || null;
     if (h) { const f = pick(h); return Response.json({ url: `/api/clip?u=${encodeURIComponent(f.url)}`, w: f.width, h: f.height, dur: h.duration }, cache); }
   }
   return Response.json({ error: 'Sin resultados' }, { status: 404 });

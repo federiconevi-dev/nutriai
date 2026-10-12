@@ -916,10 +916,10 @@ function backupImage(prompt, subject) {
 }
 // Real stock clips (Pexels) for b-roll moments: loaded muted and ready to draw on the canvas.
 const vidCache = new Map();
-function brollVideo(q) {
+function brollVideo(q, want) {
   if (vidCache.has(q)) return vidCache.get(q);
   const job = (async () => {
-    const r = await fetch(`/api/broll-video?q=${encodeURIComponent(q)}`).catch(() => null);
+    const r = await fetch(`/api/broll-video?q=${encodeURIComponent(q)}&want=${encodeURIComponent(want || '')}`).catch(() => null);
     if (!r || !r.ok) return null;
     const j = await r.json();
     const el = document.createElement('video');
@@ -951,7 +951,7 @@ async function loadAiArt(P) {
   if (on('optPhotos')) pickBroll();
   await planPrompts(items.map(x => x.subj));
   if (P !== plan) return;
-  if (on('optVideo')) (P.beats ? P.beats.photos : []).forEach(ph => { if (ph.search && !ph.user) brollVideo(ph.search).then(el => { if (el && ![...P.beats.photos].some(o => o.vid === el)) { ph.vid = el; ph.failed = false; dirty = true; } }); });
+  if (on('optVideo')) (P.beats ? P.beats.photos : []).forEach(ph => { if (ph.search && !ph.user) brollVideo(ph.search, ph.subj).then(el => { if (el && ![...P.beats.photos].some(o => o.vid === el)) { ph.vid = el; ph.failed = false; dirty = true; } }); });
   // Never show the same picture twice in one video.
   const used = new Set();
   await Promise.all(items.map(x => aiImage(x.subj).then(img => { if (img && !used.has(img)) { used.add(img); x.o.img = img; } else if (!x.o.vid) x.o.failed = true; dirty = true; })));
