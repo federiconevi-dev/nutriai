@@ -283,6 +283,7 @@ footer{border-top:1px solid var(--line);padding:30px 0;color:var(--mut);font-siz
           <p id="aiRec">Cuando termine de escucharte, la IA elige la mejor edición para tu video.</p>
           <div class="steps" id="steps"><span data-s="0">Escuchando tu video</span><span data-s="1">Eligiendo el estilo y la tipografía</span><span data-s="2">Creando imágenes y títulos</span><span data-s="3">Listo para exportar</span></div>
         </div>
+        <div class="now-typo"><div><small class="mut" style="font-size:11px;display:block;letter-spacing:.1em">FORMATO</small><b id="recNow" style="font:800 20px 'Bricolage Grotesque',sans-serif">—</b><small class="mut" id="recDesc" style="display:block;font-size:12px"></small></div><button class="btn sm ghost" id="recNext">Otro formato</button></div>
         <div class="now-typo"><div><small class="mut" style="font-size:11px;display:block;letter-spacing:.1em">TIPOGRAFÍA</small><b id="typoNow">—</b></div><button class="btn sm ghost" id="typoNext">Probar otra</button></div>
         <div class="row2"><button class="btn sm ghost" id="aiAuto">Recomendar de nuevo</button><button class="btn sm ghost" id="toP">Ajustar a mano</button></div>
         <h5>PEDILE UN CAMBIO A LA IA</h5>
@@ -301,6 +302,10 @@ footer{border-top:1px solid var(--line);padding:30px 0;color:var(--mut);font-siz
           <button data-v="minimal"><b>Franja</b><small>Texto sobre banda oscura</small></button>
         </div>
         <select id="style" hidden><option value="viro" selected>viro</option><option value="viral">viral</option><option value="hormozi">hormozi</option><option value="editorial">editorial</option><option value="coral">coral</option><option value="minimal">minimal</option></select>
+
+        <h5>FORMATO DE EDICIÓN</h5>
+        <div class="vs" id="rcs"></div>
+        <input type="hidden" id="recipe" value="auto">
 
         <h5>TIPOGRAFÍA</h5>
         <div class="tys" id="tys"></div>
@@ -330,7 +335,7 @@ footer{border-top:1px solid var(--line);padding:30px 0;color:var(--mut);font-siz
           <div class="chips" data-sel="hookFx"><button data-v="blur">Desenfoque</button><button data-v="flash">Flash</button><button data-v="zoom">Zoom</button><button data-v="iris">Círculo</button><button data-v="swipe">Deslizar</button><button data-v="cine">Cine</button><button data-v="blackout">Título en negro</button><button data-v="none">Ninguno</button></div>
           <input type="hidden" id="hookFx" value="blur">
           <span>Texto del gancho</span>
-          <div class="chips" data-sel="hookText"><button data-v="auto">Auto</button><button data-v="viro">Título pro</button><button data-v="big">Texto gigante</button><button data-v="card">Tarjeta</button><button data-v="question">Pregunta</button><button data-v="none">Sin texto</button></div>
+          <div class="chips" data-sel="hookText"><button data-v="auto">Auto</button><button data-v="stack">Título en 3 líneas</button><button data-v="viro">Título sobre imagen</button><button data-v="big">Texto gigante</button><button data-v="card">Tarjeta</button><button data-v="question">Pregunta</button><button data-v="none">Sin texto</button></div>
           <input type="hidden" id="hookText" value="auto">
           <span>Sonido del gancho</span>
           <div class="chips" data-sel="hookSfx"><button data-v="auto">Auto</button><button data-v="impact">Golpe</button><button data-v="riser">Subida</button><button data-v="whoosh">Whoosh</button><button data-v="notif">Notificación</button><button data-v="none">Sin sonido</button></div>
@@ -339,8 +344,8 @@ footer{border-top:1px solid var(--line);padding:30px 0;color:var(--mut);font-siz
         </div></details>
         <details class="acc"><summary><span class="on-dot"></span>Imágenes de apoyo</summary><div class="in">
           <span>Cómo se muestran</span>
-          <div class="chips" data-sel="brollLayout"><button data-v="full">Pantalla completa</button><button data-v="split">Pantalla dividida</button><button data-v="card">Tarjeta arriba</button></div>
-          <input type="hidden" id="brollLayout" value="full">
+          <div class="chips" data-sel="brollLayout"><button data-v="auto">Según el formato</button><button data-v="full">Pantalla completa</button><button data-v="split">Pantalla dividida</button><button data-v="card">Tarjeta arriba</button></div>
+          <input type="hidden" id="brollLayout" value="auto">
           <label class="fld">Tus fotos (opcional)<input type="file" id="photos" accept="image/*" multiple></label>
         </div></details>
         <details class="acc"><summary><span class="on-dot"></span>Pantallas animadas y tarjetas</summary><div class="in">

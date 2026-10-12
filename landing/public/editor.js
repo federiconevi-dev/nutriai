@@ -23,7 +23,7 @@ function load(f) {
   if (!f) return;
   if (!f.type.startsWith('video/') && !/\.(mp4|mov|webm|m4v)$/i.test(f.name)) { alert('Ese archivo no es un video. Elegí un MP4, MOV o WEBM.'); return; }
   if (f.size > 1e9) { alert('El video pesa más de 1 GB. Probá con uno más corto.'); return; }
-  file = f; words = []; plan = null; lastSeg = lastChunk = -1; aiHookTitle = ''; brollPicks = []; brollFor = null;
+  file = f; words = []; plan = null; lastSeg = lastChunk = -1; aiHookTitle = ''; aiTypo = aiRecipe = ''; brollPicks = []; brollFor = null;
   v.src = URL.createObjectURL(f); v.load(); v.play().catch(() => {});
   $('#dl').hidden = true; $('#go').disabled = true; $('#txt').value = ''; prog(0);
   if (window.onLoaded) window.onLoaded(f);
@@ -227,6 +227,7 @@ const C = { coral: '#F0452F', light: '#FF785C', dark: '#CE2C1A', cream: '#F4EFE6
 const HAS_FILTER = 'filter' in cx;
 const blur = px => { if (HAS_FILTER) cx.filter = px > .3 ? `blur(${px.toFixed(1)}px)` : 'none'; };
 const isNum = s => /\d/.test(s);
+const easeQ = x => { x = Math.max(0, Math.min(1, x)); return 1 - Math.pow(1 - x, 4); };
 // Dark accents (e.g. deep blue) are hard to read over video: mix them with white until they are bright enough.
 // Canvas text only uses web fonts that are already loaded: warm up the ones the looks draw with.
 // ---- Font library: [name, category, Google Fonts axes spec, weight, italic] ----
@@ -274,6 +275,20 @@ const TYPO = {
   urbano: { name: 'Urbano', title: s => `700 ${s}px "Space Grotesk", sans-serif`, kicker: s => `700 ${s * 1.15}px Caveat, cursive`, cap: s => `700 ${s}px "Space Grotesk", sans-serif`, keyF: 'Permanent Marker', key: ['#16C964', '#9BF6B9'], hi: '#5CF58A' }
 };
 let aiTypo = '';
+// ---- Edit formats: each one changes captions, titles, transitions, phrase screens, hook and pace. The AI picks one per video. ----
+const RECIPES = {
+  cine: { name: 'Cine', desc: 'Imágenes a pantalla completa, títulos arriba, subtítulos con brillo', cap: 'glow', capY: .76, broll: 'full', titles: ['tl', 'tl', 'center'], trans: 'leak', kinBg: ['white', 'black'], kinGap: 6, kinMax: 3, brollSec: 5, hook: 'stack' },
+  podcast: { name: 'Podcast', desc: 'Pantalla dividida, subtítulos en franja blanca, ritmo tranquilo', cap: 'pill', capY: .72, broll: 'split', titles: ['center'], trans: 'slide', kinBg: ['blur', 'black'], kinGap: 9, kinMax: 2, brollSec: 6, hook: 'question' },
+  energia: { name: 'Energía', desc: 'Cortes rápidos, palabra en recuadro de color, destellos', cap: 'box', capY: .7, broll: 'full', titles: ['center', 'bottom'], trans: 'flash', kinBg: ['accent', 'black', 'white'], kinGap: 4.5, kinMax: 4, brollSec: 4, hook: 'stack' },
+  historia: { name: 'Historia', desc: 'Cursivas elegantes, imágenes en tarjeta, transiciones suaves', cap: 'serif', capY: .74, broll: 'card', titles: ['bottom', 'tl'], trans: 'zoom', kinBg: ['blur', 'white'], kinGap: 8, kinMax: 2, brollSec: 6, hook: 'viro' },
+  noticia: { name: 'Noticia', desc: 'Palabra por palabra en grande, apertura en negro, impacto', cap: 'word', capY: .66, broll: 'full', titles: ['tl', 'bottom'], trans: 'slide', kinBg: ['black', 'accent'], kinGap: 5, kinMax: 3, brollSec: 4.5, hook: 'blackout' },
+  minimal: { name: 'Minimal', desc: 'Limpio y sobrio, subtítulos chicos abajo, pocas pantallas', cap: 'glow', capY: .8, broll: 'card', titles: ['bottom'], trans: 'blur', kinBg: ['white'], kinGap: 10, kinMax: 1, brollSec: 7, hook: 'viro' }
+};
+let aiRecipe = '';
+const recipeKey = () => { const v2 = val('recipe', 'auto'); if (RECIPES[v2]) return v2; if (RECIPES[aiRecipe]) return aiRecipe; const ks = Object.keys(RECIPES), h = [...words.slice(0, 8).map(w => w.t).join('')].reduce((a, c) => (a * 17 + c.charCodeAt(0)) >>> 0, 11); return ks[h % ks.length]; };
+const recipe = () => RECIPES[recipeKey()];
+// B-roll layout: the format decides unless the person picked one.
+const blay = () => { const v2 = val('brollLayout', 'auto'); return v2 !== 'auto' ? v2 : style().viro ? recipe().broll : 'split'; };
 const typoKey = () => { const v2 = val('typo', 'auto'); if (TYPO[v2]) return v2; if (TYPO[aiTypo]) return aiTypo; const ks = Object.keys(TYPO), h = [...words.slice(0, 12).map(w => w.t).join('')].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 3); return ks[h % ks.length]; };
 const typo = () => TYPO[typoKey()];
 if (document.fonts) Object.values(TYPO).flatMap(T => [T.title(60), T.kicker(46), T.cap(36)]).concat(['400 40px Anton']).forEach(f => document.fonts.load(f).catch(() => {}));
@@ -358,8 +373,11 @@ function drawCaption(ch, t) {
 // Viro look (same as viroedit): small lowercase base words, the spoken word lights up with a glow,
 // the key word in the "palabra destacada" font; a strong last word drops to its own line, big and glowing.
 function viroCaption(ch, t, st) {
-  const age = t - ch.s, a = ease(age / .18), solo = ch.emph && ch.length > 1 && ch.at(-1) === ch.key && clean(ch.key.t).length >= 4;
-  const main = solo ? ch.slice(0, -1) : ch, low = w => w.t.toLowerCase().replace(/[.,;:!?¿¡"]+/g, '');
+  const mode = recipe().cap;
+  if (mode === 'pill' || mode === 'box' || mode === 'serif') return lineCaption(ch, t, st, mode);
+  if (mode === 'word') return wordCaption(ch, t, st);
+  const age = t - ch.s, a = ease(age / .18), solo = ch.emph && ch.length > 1 && clean(ch.key.t).length >= 4;
+  const main = solo ? ch.filter(w => w !== ch.key) : ch, low = w => w.t.toLowerCase().replace(/[.,;:!?¿¡"]+/g, '');
   const isK = w => w === ch.key && ch.emph;
   cx.save(); cx.globalAlpha = a; cx.translate(capX, capY + 10 * (1 - a));
   cx.textBaseline = 'middle'; cx.textAlign = 'left'; cx.lineJoin = 'round';
@@ -380,10 +398,77 @@ function viroCaption(ch, t, st) {
   main.forEach(w => { cx.font = fnt(w, size); const ww = cx.measureText(low(w)).width; word(w, size, x, y, false); x += ww + size * .27; });
   if (solo && t >= ch.key.s - .05) {
     const k = back((t - ch.key.s) / .3);
-    let bs = size * 1.8; cx.font = keyF(bs); while (cx.measureText(low(ch.key)).width > W * .8 && bs > 40) { bs -= 4; cx.font = keyF(bs); }
+    let bs = size * 2.1; cx.font = keyF(bs); while (cx.measureText(low(ch.key)).width > W * .8 && bs > 40) { bs -= 4; cx.font = keyF(bs); }
     const bw = cx.measureText(low(ch.key)).width;
     cx.save(); cx.translate(0, size * .45 + bs * .5); cx.scale(.7 + .3 * k, .7 + .3 * k); word(ch.key, bs, -bw / 2, 0, true); cx.restore();
   }
+  cx.restore();
+}
+
+// Text hook like the best creators: 2-3 stacked lines mixing a script line and heavy uppercase lines, at the top for ~3s.
+function drawStackHook(text, ot, dur) {
+  const out = ot > dur - .3 ? ease((ot - dur + .3) / .3) : 0; if (out >= 1) return;
+  const ws = text.replace(/[¿?¡!.]/g, '').split(' ').filter(Boolean); if (!ws.length) return;
+  const n1 = ws.length > 4 ? 2 : 1, l1 = ws.slice(0, n1).join(' '), rest = ws.slice(n1), mid = Math.ceil(rest.length / 2);
+  const lines = [[l1, 'script'], [rest.slice(0, mid).join(' ').toUpperCase(), 'heavy'], [rest.slice(mid).join(' ').toUpperCase(), 'big']].filter(l => l[0]);
+  const T = typo(), heavy = z => val('fBase', 'auto') !== 'auto' ? baseF(z) : `400 ${z}px Anton, Impact, sans-serif`;
+  const F = (kind, z) => kind === 'script' ? keyF(z * 1.1) : heavy(kind === 'big' ? z * 1.35 : z);
+  let size = 70; const fits = z => lines.every(([tx, kd]) => { cx.font = F(kd, z); return cx.measureText(tx).width < W * .86; });
+  while (!fits(size) && size > 28) size -= 3;
+  cx.save(); cx.globalAlpha = 1 - out; cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.lineJoin = 'round';
+  let y = H * .16;
+  lines.forEach(([tx, kd], i) => {
+    const a = easeQ((ot - .1 - i * .14) / .35), z = kd === 'big' ? size * 1.35 : size;
+    cx.save(); cx.globalAlpha = (1 - out) * a; cx.translate(W / 2, y + 16 * (1 - a)); cx.scale(.9 + .1 * a, .9 + .1 * a);
+    cx.font = F(kd, size);
+    if (kd === 'script') { cx.shadowColor = 'rgba(0,0,0,.7)'; cx.shadowBlur = 20; cx.fillStyle = '#fff'; }
+    else if (kd === 'big') { cx.shadowColor = T.hi; cx.shadowBlur = 26; cx.fillStyle = T.hi; }
+    else { cx.shadowColor = 'rgba(0,0,0,.7)'; cx.shadowBlur = 18; cx.fillStyle = '#fff'; }
+    cx.fillText(tx, 0, 0); if (kd === 'big') { cx.shadowBlur = 8; cx.fillText(tx, 0, 0); }
+    cx.restore();
+    y += z * (kd === 'script' ? .95 : .92);
+  });
+  cx.restore();
+}
+// Other caption looks of the formats: white pill, colored box on the spoken word, cursive line.
+function lineCaption(ch, t, st, mode) {
+  const age = t - ch.s, a = ease(age / .16), out = t > ch.e + .05 ? ease((t - ch.e - .05) / .15) : 0;
+  const isK = w => w === ch.key && ch.emph, up = mode === 'box';
+  const tx = ch.map(w => { const x2 = w.t.replace(/[.,;:!?¿¡"]+/g, ''); return up ? x2.toUpperCase() : x2; });
+  let size = st.size * (mode === 'serif' ? 1.3 : mode === 'box' ? 1.05 : 1);
+  const F = (w, z) => isK(w) ? keyF(z * 1.12) : mode === 'serif' ? accF(z) : st.font(z);
+  const wd = z => ch.reduce((q, w, i) => { cx.font = F(w, z); return q + cx.measureText(tx[i]).width; }, 0) + z * .28 * (ch.length - 1);
+  while (wd(size) > W * .8 && size > 24) size -= 2;
+  const tot = wd(size), ph = size * 1.55, padX = size * .55;
+  cx.save(); cx.globalAlpha = a * (1 - out); cx.translate(capX, capY + 8 * (1 - a));
+  const sc = .92 + .08 * back(age / .25); cx.scale(sc, sc);
+  cx.textBaseline = 'middle'; cx.textAlign = 'left'; cx.lineJoin = 'round';
+  if (mode === 'pill') { cx.shadowColor = 'rgba(0,0,0,.3)'; cx.shadowBlur = 18; cx.shadowOffsetY = 4; rrect(-tot / 2 - padX, -ph / 2, tot + padX * 2, ph, ph / 2); cx.fillStyle = '#fff'; cx.fill(); cx.shadowColor = 'transparent'; }
+  let x = -tot / 2;
+  ch.forEach((w, i) => {
+    cx.font = F(w, size); const ww = cx.measureText(tx[i]).width, on2 = t >= w.s - .03, act = on2 && (i === ch.length - 1 || t < ch[i + 1].s);
+    if (mode === 'pill') { cx.fillStyle = isK(w) ? st.hi : '#151515'; cx.globalAlpha = a * (1 - out) * (on2 ? 1 : .4); }
+    else if (mode === 'box') {
+      if (act) { cx.save(); cx.fillStyle = st.hi; rrect(x - size * .18, -size * .62, ww + size * .36, size * 1.2, size * .22); cx.fill(); cx.restore(); }
+      cx.shadowColor = act ? 'transparent' : 'rgba(0,0,0,.8)'; cx.shadowBlur = size * .3;
+      if (!act) { cx.lineWidth = size * .09; cx.strokeStyle = 'rgba(0,0,0,.85)'; cx.strokeText(tx[i], x, 0); }
+      cx.fillStyle = act ? '#111' : isK(w) ? st.hi : '#fff'; cx.globalAlpha = a * (1 - out);
+    } else { cx.shadowColor = isK(w) && on2 ? st.glowC : 'rgba(0,0,0,.75)'; cx.shadowBlur = size * .45; cx.fillStyle = isK(w) && on2 ? st.hi : on2 ? '#fff' : 'rgba(255,255,255,.55)'; }
+    cx.fillText(tx[i], x, 0); x += ww + size * .28;
+  });
+  cx.restore();
+}
+// "Noticia" format: one word at a time, big and centered, the key words in the highlight font.
+function wordCaption(ch, t, st) {
+  let i = ch.findIndex((w, j) => t >= w.s - .02 && (j === ch.length - 1 || t < ch[j + 1].s - .02)); if (i < 0) i = 0;
+  const w = ch[i], age = t - w.s, k = back(age / .22), isK = w === ch.key && ch.emph;
+  const tx = w.t.replace(/[.,;:!?¿¡"]+/g, '').toUpperCase();
+  let size = st.size * (isK ? 2.4 : 2); const F = z => isK ? keyF(z) : st.font(z);
+  cx.font = F(size); while (cx.measureText(tx).width > W * .82 && size > 30) { size -= 4; cx.font = F(size); }
+  cx.save(); cx.translate(capX, capY); cx.scale(.75 + .25 * k, .75 + .25 * k); cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.lineJoin = 'round';
+  cx.lineWidth = size * .1; cx.strokeStyle = 'rgba(0,0,0,.85)'; cx.strokeText(tx, 0, 0);
+  cx.shadowColor = isK ? st.glowC : 'rgba(0,0,0,.6)'; cx.shadowBlur = size * .4;
+  cx.fillStyle = isK ? st.hi : '#fff'; cx.fillText(tx, 0, 0);
   cx.restore();
 }
 
@@ -761,7 +846,7 @@ async function pickBroll() {
   if (!key || brollFor === key || aiDown) return;
   brollFor = key;
   const se = sentences().filter(x => x.length >= 3);
-  const dur = words.at(-1).e - words[0].s, max = Math.max(1, Math.min(8, Math.round(dur / (style().viro ? 5 : 8))));
+  const dur = words.at(-1).e - words[0].s, max = Math.max(1, Math.min(8, Math.round(dur / (style().viro ? recipe().brollSec : 8))));
   try {
     const r = await fetch('/api/ai-plan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mode: 'broll', max, text: key, subjects: se.map(x => x.map(w => w.t).join(' ')) }) });
     if (!r.ok) throw new Error('broll ' + r.status);
@@ -967,16 +1052,20 @@ function makeBeats(P) {
       B.photos.push(ph); busyRanges.push([s0, e0]);
     });
   }
+  // With a stacked text hook the opening stays on you; the first cutaway lands right after it (pattern break at ~3s).
+  if (style().viro && hookTextType() === 'stack') B.photos = B.photos.filter(ph => ph.s >= words[0].s + 2.6);
   if (style().viro && aiHookTitle && hookTextType() === 'viro' && on('optHook')) { const f = B.photos[0]; if (f && f.s <= words[0].s + .6) { f.label = aiHookTitle; f.kicker = ''; f.hookT = true; } }
   B.kin = [];
   if (style().viro) {
-    let lastK = words[0].s + 5;
-    P.chunks.forEach(c => {
-      const txt = c.map(w => w.t).join(' ');
-      if (B.kin.length >= 3 || c.length < 2 || txt.length < 7 || txt.length > 22 || c.s - lastK < 6 || c.e > words.at(-1).e - 2) return;
-      const e = Math.max(c.e + .25, c.s + .9);
-      if (!free(c.s - .1, e + .1)) return;
-      B.kin.push({ s: c.s - .04, e, words: c, key: c.key, n: B.kin.length }); busyRanges.push([c.s - .1, e + .1]); lastK = e;
+    const RC = recipe(); let lastK = words[0].s + 4;
+    P.chunks.forEach((c, ci) => {
+      const c2 = P.chunks[ci + 1], all = c2 && c2.s - c.e < .5 && c.length + c2.length <= 7 ? [...c, ...c2] : [...c];
+      const txt = all.map(w => w.t).join(' ');
+      if (B.kin.length >= RC.kinMax || all.length < 2 || txt.length < 7 || txt.length > 40 || c.s - lastK < RC.kinGap || all.at(-1).e > words.at(-1).e - 2) return;
+      const e = Math.max(all.at(-1).e + .4, c.s + 1.2), s0 = c.s - .35;
+      if (!free(s0 - .1, e + .1)) return;
+      const key = all.reduce((a2, w) => clean(w.t).length > clean(a2.t).length ? w : a2, all[0]);
+      B.kin.push({ s: s0, e, words: all, key, n: B.kin.length }); busyRanges.push([s0 - .1, e + .1]); lastK = e;
     });
   }
   ovR.forEach(r => { if (!B.photos.some(ph => ph.s < r[1] && ph.e > r[0])) busyRanges.push(r); });
@@ -1088,74 +1177,119 @@ function drawPhoto(ph, t) {
     cx.fillStyle = 'rgba(0,0,0,.55)'; cx.fillRect(0, 0, W, H); cx.restore();
     viroPhotoText(ph, t, k); return false;
   }
-  if (val('brollLayout', 'split') === 'full') {
+  if (blay() === 'full') {
     const dur = Math.max(1, ph.e - ph.s), p = Math.min(1, age / dur), dir = ph.n % 2 ? 1 : -1;
-    cx.save(); cx.globalAlpha = k; cx.fillStyle = '#000'; cx.fillRect(0, 0, W, H);
-    blur(10 * (1 - ease(age / .35)));
-    coverDraw(media, k, media === ph.vid ? 1.04 - .03 * p : 1.16 - .1 * p, media === ph.vid ? 0 : dir * W * .03 * (p - .5)); blur(0);
+    // Entry transition of the format: soft blur, white flash, slide in or zoom in.
+    const tr = style().viro ? recipe().trans : 'blur', e1 = ease(age / .32);
+    cx.save(); cx.globalAlpha = tr === 'slide' || tr === 'flash' ? Math.min(1, ease(left / .3) + (age < .3 ? 1 : 0)) : k;
+    if (tr === 'slide') cx.translate(W * (1 - e1) * (ph.n % 2 ? -1 : 1), 0);
+    cx.fillStyle = '#000'; cx.fillRect(0, 0, W, H);
+    if (tr === 'blur' || tr === 'leak') blur((tr === 'leak' ? 6 : 10) * (1 - ease(age / .35)));
+    const zin = tr === 'zoom' ? .25 * (1 - e1) : 0;
+    coverDraw(media, 1, (media === ph.vid ? 1.04 - .03 * p : 1.16 - .1 * p) + zin, media === ph.vid ? 0 : dir * W * .03 * (p - .5)); blur(0);
     cx.restore();
+    if (tr === 'flash' && age < .18) { cx.fillStyle = `rgba(255,255,255,${.85 * (1 - age / .18)})`; cx.fillRect(0, 0, W, H); }
+    if (tr === 'leak') { warmLeak(age); warmLeak(ph.e - t); }
     if (style().viro) viroPhotoText(ph, t, k);
+  } else if (style().viro) {
+    // Card format: you stay on screen, dimmed; the picture sits in a framed card and the title goes above it.
+    cx.save(); cx.globalAlpha = .45 * k; cx.fillStyle = '#000'; cx.fillRect(0, 0, W, H); cx.restore();
+    photoCard(media, W / 2, H * .44, W * .84, H * .4, (ph.n % 2 ? -1 : 1) * .025, k, age, true);
+    viroPhotoText(ph, t, k, 'tl');
   }
   else photoCard(media, W / 2, H * .2, W * .8, H * .3, (ph.n % 2 ? -1 : 1) * .03, k, age, false);
   return false;
 }
 // Viro motion graphic over a b-roll: italic kicker + bold title with the key word in a blue gradient, or one script word.
-function viroPhotoText(ph, t, k) {
-  const age = t - ph.s;
-  if (ph.label) {
-    cx.save(); cx.globalAlpha = k;
-    const g = cx.createLinearGradient(0, 0, 0, H * .5); g.addColorStop(0, 'rgba(0,0,0,.6)'); g.addColorStop(1, 'rgba(0,0,0,0)'); cx.fillStyle = g; cx.fillRect(0, 0, W, H * .5);
-    const x0 = W * .08; let y = H * .1;
-    cx.textBaseline = 'alphabetic'; cx.textAlign = 'left'; cx.shadowColor = 'rgba(0,0,0,.45)'; cx.shadowBlur = 18;
-    const T = typo();
-    if (ph.kicker) { const a = ease((age - .1) / .4); cx.globalAlpha = k * a; cx.font = accF(46); cx.fillStyle = '#fff'; cx.fillText(ph.kicker, x0, y + 12 * (1 - a)); y += 70; }
-    const ws = ph.label.split(' '), key = ws.reduce((b, w) => clean(w).length >= clean(b).length ? w : b, ws[0]);
-    let fs = 70; const tf = (w, z) => w === key ? keyF(z * 1.12) : (val('fBase', 'auto') !== 'auto' ? baseF(z) : T.title(z)); cx.font = T.title(fs);
-    while (ws.some(w => { cx.font = tf(w, fs); return cx.measureText(w).width > W * .84; }) && fs > 40) fs -= 4;
-    if ('letterSpacing' in cx) cx.letterSpacing = '-0.02em';
-    const lines = [[]]; let lw = 0; const sp = fs * .26;
-    ws.forEach(w => { cx.font = tf(w, fs); const ww = cx.measureText(w).width; if (lw + ww > W * .84 && lines.at(-1).length) { lines.push([]); lw = 0; } lines.at(-1).push(w); lw += ww + sp; });
-    let n = 0;
-    lines.forEach((l, li) => { let x = x0; const yy = y + li * fs * 1.05;
-      l.forEach(w => { cx.font = tf(w, fs); const a = ease((age - .25 - n++ * .12) / .35), ww = cx.measureText(w).width;
-        if (a > 0) { cx.globalAlpha = k * a;
-          if (w === key) { const gg = cx.createLinearGradient(x, 0, x + ww, 0); gg.addColorStop(0, T.key[0]); gg.addColorStop(1, T.key[1]); cx.fillStyle = gg; } else cx.fillStyle = '#fff';
-          cx.fillText(w, x, yy + 18 * (1 - a)); }
-        x += ww + sp; }); });
-    if ('letterSpacing' in cx) cx.letterSpacing = '0px';
-    cx.restore();
-  } else if (false) {
-    const a = ease((age - .1) / .45);
-    cx.save(); cx.globalAlpha = k * a; cx.textAlign = 'center'; cx.textBaseline = 'middle';
-    const T = typo(); let fs = 104; cx.font = T.kicker(fs); while (cx.measureText(ph.word).width > W * .8 && fs > 44) { fs -= 6; cx.font = T.kicker(fs); }
-    cx.shadowColor = 'rgba(0,0,0,.6)'; cx.shadowBlur = 24; cx.fillStyle = '#fff';
-    cx.save(); cx.beginPath(); cx.rect(0, 0, W * .1 + W * .9 * a, H); cx.clip(); cx.fillText(ph.word, W / 2, H * .55); cx.restore();
-    cx.restore();
+function viroPhotoText(ph, t, k, force) {
+  const age = t - ph.s; if (!ph.label) return;
+  const RT = recipe().titles, pos = force || RT[(ph.n || 0) % RT.length];
+  const T = typo();
+  cx.save(); cx.globalAlpha = k;
+  const ws = ph.label.split(' '), key = ws.reduce((b, w) => clean(w).length >= clean(b).length ? w : b, ws[0]);
+  let fs = pos === 'center' ? 76 : 70;
+  const tf = (w, z) => w === key ? keyF(z * 1.12) : (val('fBase', 'auto') !== 'auto' ? baseF(z) : T.title(z));
+  const maxW = W * .84;
+  while (ws.some(w => { cx.font = tf(w, fs); return cx.measureText(w).width > maxW; }) && fs > 40) fs -= 4;
+  if ('letterSpacing' in cx) cx.letterSpacing = '-0.02em';
+  const sp = fs * .26, lines = [[]]; let lw = 0;
+  ws.forEach(w => { cx.font = tf(w, fs); const ww = cx.measureText(w).width; if (lw + ww > maxW && lines.at(-1).length) { lines.push([]); lw = 0; } lines.at(-1).push([w, ww]); lw += ww + sp; });
+  const lh = fs * 1.05, kickH = ph.kicker ? 70 : 0, blockH = kickH + lines.length * lh;
+  // Shade only where the text sits, so the picture stays clean.
+  let g;
+  if (pos === 'center') { g = cx.createRadialGradient(W / 2, H * .42, 40, W / 2, H * .42, H * .5); g.addColorStop(0, 'rgba(0,0,0,.55)'); g.addColorStop(1, 'rgba(0,0,0,.1)'); cx.fillStyle = g; cx.fillRect(0, 0, W, H); }
+  else if (pos === 'bottom') { g = cx.createLinearGradient(0, H * .3, 0, H * .8); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(.5, 'rgba(0,0,0,.55)'); g.addColorStop(1, 'rgba(0,0,0,.3)'); cx.fillStyle = g; cx.fillRect(0, H * .3, W, H * .5); }
+  else { g = cx.createLinearGradient(0, 0, 0, H * .5); g.addColorStop(0, 'rgba(0,0,0,.6)'); g.addColorStop(1, 'rgba(0,0,0,0)'); cx.fillStyle = g; cx.fillRect(0, 0, W, H * .5); }
+  const center = pos === 'center', x0 = W * .08;
+  let y = pos === 'center' ? H * .42 - blockH / 2 + 40 : pos === 'bottom' ? H * .47 : force ? H * .07 : H * .1;
+  cx.textBaseline = 'alphabetic'; cx.textAlign = 'left'; cx.shadowColor = 'rgba(0,0,0,.45)'; cx.shadowBlur = 18;
+  if (ph.kicker) {
+    const a = ease((age - .1) / .4); cx.globalAlpha = k * a; cx.font = accF(46); cx.fillStyle = '#fff';
+    const kw = cx.measureText(ph.kicker).width; cx.fillText(ph.kicker, center ? W / 2 - kw / 2 : x0, y + 12 * (1 - a)); y += kickH;
   }
+  let n = 0;
+  lines.forEach((l, li) => {
+    const tot = l.reduce((q, [, ww]) => q + ww, 0) + sp * (l.length - 1);
+    let x = center ? W / 2 - tot / 2 : x0; const yy = y + li * lh;
+    l.forEach(([w, ww]) => {
+      cx.font = tf(w, fs); const a = ease((age - .25 - n++ * .12) / .35);
+      if (a > 0) {
+        cx.globalAlpha = k * a;
+        if (w === key) { const gg = cx.createLinearGradient(x, 0, x + ww, 0); gg.addColorStop(0, T.key[0]); gg.addColorStop(1, T.key[1]); cx.fillStyle = gg; } else cx.fillStyle = '#fff';
+        cx.fillText(w, x, yy + 18 * (1 - a));
+      }
+      x += ww + sp;
+    });
+  });
+  if ('letterSpacing' in cx) cx.letterSpacing = '0px';
+  cx.restore();
 }
 // Viro kinetic screen: a short phrase alone on a white or black screen, words land as you say them, key word glowing green.
+// Warm light-leak flare used on b-roll cuts (orange to yellow glows, ~0.4s around the cut).
+function warmLeak(d) {
+  if (d < 0 || d > .4) return;
+  const a = Math.sin((1 - d / .4) * Math.PI / 2);
+  cx.save(); cx.globalCompositeOperation = 'screen';
+  [[W * .2, H * .3, '255,138,60'], [W * .8, H * .55, '255,210,58'], [W * .45, H * .8, '255,160,70']].forEach(([x, y, c]) => {
+    const g = cx.createRadialGradient(x, y, 10, x, y, H * .55); g.addColorStop(0, `rgba(${c},${.9 * a})`); g.addColorStop(1, `rgba(${c},0)`); cx.fillStyle = g; cx.fillRect(0, 0, W, H);
+  });
+  cx.restore();
+}
 function drawKin(kn, t) {
   const age = t - kn.s, left = kn.e - t, k = Math.min(ease(age / .12), ease(left / .12));
-  const white = kn.n % 2 === 0;
+  const KB = recipe().kinBg; let bg = KB[kn.n % KB.length];
+  // Halfway through, white and black swap (like the best impact screens).
+  const flip = (bg === 'white' || bg === 'black') && t > (kn.s + kn.e) / 2;
+  if (flip) bg = bg === 'white' ? 'black' : 'white';
+  const white = bg === 'white', T = typo();
   cx.save(); cx.globalAlpha = k;
-  const g = cx.createRadialGradient(W / 2, H * .45, 50, W / 2, H * .5, H * .75);
-  if (white) { g.addColorStop(0, '#ffffff'); g.addColorStop(1, '#d9d9d6'); } else { g.addColorStop(0, '#1a1a1a'); g.addColorStop(1, '#000'); }
-  cx.fillStyle = g; cx.fillRect(0, 0, W, H);
-  const T = typo(); let fs = 82;
+  if (bg === 'blur') { blur(28); cx.drawImage(cv, -W * .06, -H * .06, W * 1.12, H * 1.12); blur(0); cx.fillStyle = 'rgba(0,0,0,.55)'; cx.fillRect(0, 0, W, H); }
+  else {
+    const g = cx.createRadialGradient(W / 2, H * .45, 50, W / 2, H * .5, H * .75);
+    if (white) { g.addColorStop(0, '#ffffff'); g.addColorStop(1, '#dcdcd8'); } else if (bg === 'accent') { g.addColorStop(0, T.key[0]); g.addColorStop(1, '#0b0b10'); } else { g.addColorStop(0, '#1a1a1a'); g.addColorStop(1, '#000'); }
+    cx.fillStyle = g; cx.fillRect(0, 0, W, H);
+  }
+  const ink = white ? '#111' : '#fff', dim = white ? 'rgba(0,0,0,.18)' : 'rgba(255,255,255,.22)';
   const F = (w, z) => w === kn.key ? keyF(z * 1.15) : (val('fBase', 'auto') !== 'auto' ? baseF(z) : T.title(z));
-  const tx = kn.words.map(w => w.t.replace(/[.,;:!?¿¡]+/g, '').toLowerCase());
-  const wd = z => kn.words.reduce((q, w, i) => { cx.font = F(w, z); return q + cx.measureText(tx[i]).width; }, 0) + z * .22 * (tx.length - 1);
-  while (wd(fs) > W * .86 && fs > 40) fs -= 4;
-  let x = W / 2 - wd(fs) / 2; cx.textBaseline = 'middle';
-  kn.words.forEach((w, i) => {
-    cx.font = F(w, fs);
-    const a = ease((t - w.s + .08) / .18), ww = cx.measureText(tx[i]).width;
-    if (a > 0) {
-      cx.save(); cx.globalAlpha = k * a; cx.translate(x + ww / 2, H * .5 + 14 * (1 - a)); cx.scale(.9 + .1 * a, .9 + .1 * a);
-      if (w === kn.key) { cx.shadowColor = T.hi; cx.shadowBlur = 34; cx.fillStyle = white ? '#111' : '#fff'; cx.fillText(tx[i], -ww / 2, 0); cx.shadowBlur = 16; }
-      cx.fillStyle = white ? '#111' : '#fff'; cx.fillText(tx[i], -ww / 2, 0); cx.restore();
-    }
-    x += ww + fs * .22;
+  const tx = kn.words.map(w => w.t.replace(/[.,;:!?¿¡"]+/g, '').toLowerCase());
+  if ('letterSpacing' in cx) cx.letterSpacing = '-0.03em';
+  // Wrap into balanced lines that fit, as big as possible.
+  let fs = 92, lines;
+  const layout = z => { const L = [[]]; let lw = 0; kn.words.forEach((w, i) => { cx.font = F(w, z); const ww = cx.measureText(tx[i]).width; if (lw + ww > W * .84 && L.at(-1).length) { L.push([]); lw = 0; } L.at(-1).push([i, ww]); lw += ww + z * .24; }); return L; };
+  for (; fs > 40; fs -= 4) { lines = layout(fs); if (lines.length <= 3 && lines.every(l => l.every(([, ww]) => ww < W * .84))) break; }
+  const lh = fs * 1.12, y0 = H * .48 - (lines.length - 1) * lh / 2;
+  cx.textBaseline = 'middle';
+  lines.forEach((l, li) => {
+    const tot = l.reduce((q, [, ww]) => q + ww, 0) + fs * .24 * (l.length - 1); let x = W / 2 - tot / 2;
+    l.forEach(([i, ww]) => {
+      const w = kn.words[i], a = ease((t - w.s + .06) / .16), on2 = t >= w.s - .06;
+      cx.font = F(w, fs);
+      cx.save(); cx.translate(x + ww / 2, y0 + li * lh); const sc = on2 ? .94 + .06 * a : 1; cx.scale(sc, sc);
+      if (on2 && w === kn.key) { cx.shadowColor = T.hi; cx.shadowBlur = 30; cx.fillStyle = bg === 'accent' ? '#fff' : ink; cx.fillText(tx[i], -ww / 2, 0); cx.shadowBlur = 12; }
+      cx.fillStyle = on2 ? (w === kn.key && bg !== 'accent' && !white ? T.hi : ink) : dim;
+      cx.fillText(tx[i], -ww / 2, 0); cx.restore();
+      x += ww + fs * .24;
+    });
   });
   if ('letterSpacing' in cx) cx.letterSpacing = '0px';
   cx.restore();
@@ -1205,13 +1339,17 @@ function glitch(k) {
 function fxLayer(t, ot, P, x, y, w, h, coral) {
   const B = P.beats; if (!B) return { hide: false };
   const kn = (B.kin || []).find(q => t >= q.s && t <= q.e);
-  if (kn) { if (busy && !fired.has('k' + kn.s)) { fired.add('k' + kn.s); sfx('whoosh'); } drawKin(kn, t); return { hide: true }; }
+  if (kn) {
+    if (busy) { if (!fired.has('k' + kn.s)) { fired.add('k' + kn.s); sfx('impact'); } kn.words.forEach((w, i) => { if (t >= w.s && !fired.has('kw' + kn.s + i)) { fired.add('kw' + kn.s + i); sfx('tick'); } }); }
+    drawKin(kn, t); return { hide: true };
+  }
+  if (busy) { const nk = (B.kin || []).find(q => t >= q.s - .6 && t < q.s); if (nk && !fired.has('kr' + nk.s)) { fired.add('kr' + nk.s); sfx('whoosh'); } }
   const big = B.big.find(b => t >= b.s && t <= b.e);
   const photo = B.photos.find(p => t >= p.s && t <= p.e && (p.img || p.vid || (p.failed && p.label && style().viro)));
   // Preview: the active clip plays, every other one rests.
   if (!fastBusy) B.photos.forEach(p => { if (!p.vid) return; if (p === photo && brollMedia(p) === p.vid) { if (p.vid.paused) { p.vid.currentTime = Math.max(0, t - p.s); p.vid.play().catch(() => {}); } } else if (!p.vid.paused) p.vid.pause(); });
   let doubleExp = false;
-  if (photo && val('brollLayout', 'split') !== 'split') doubleExp = drawPhoto(photo, t, coral);
+  if (photo && blay() !== 'split') doubleExp = drawPhoto(photo, t, coral);
   if (big) drawBig(big, t, coral);
   if ((big || doubleExp) && on('optBig')) {
     if (!seg) loadSeg();
@@ -1222,7 +1360,8 @@ function fxLayer(t, ot, P, x, y, w, h, coral) {
     const nb = B.big.find(b => !b.hook && t >= b.s - .55 && t < b.s);
     if (nb && on('optFx') && !fired.has('r' + nb.s)) { fired.add('r' + nb.s); sfx('riser'); }
     if (big && !big.hook && !fired.has('b' + big.s)) { fired.add('b' + big.s); sfx('hit'); }
-    if (photo && !fired.has('p' + photo.s)) { fired.add('p' + photo.s); sfx(photo.n % 2 ? 'shutter' : 'whoosh'); }
+    if (photo && !fired.has('p' + photo.s)) { fired.add('p' + photo.s); sfx('whoosh'); }
+    if (photo && t >= photo.e - .25 && !fired.has('px' + photo.s)) { fired.add('px' + photo.s); sfx('swipe'); }
   }
   return { hide: !!big, photoCard: photo && !doubleExp };
 }
@@ -1235,6 +1374,16 @@ function fxTop(t, ot, P, si) {
 }
 // Extra synthesized sound hooks
 function sfxExtra(type, t0) {
+  if (type === 'tick') {
+    const o = ac.createOscillator(), g = ac.createGain(); o.type = 'triangle'; o.frequency.setValueAtTime(1800, t0); o.frequency.exponentialRampToValueAtTime(900, t0 + .04);
+    g.gain.setValueAtTime(.09, t0); g.gain.exponentialRampToValueAtTime(.001, t0 + .05); o.connect(g); g.connect(dest); o.start(t0); o.stop(t0 + .06); return true;
+  }
+  if (type === 'swipe') {
+    const n = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain(); n.buffer = noiseBuf; f.type = 'highpass';
+    f.frequency.setValueAtTime(800, t0); f.frequency.exponentialRampToValueAtTime(4000, t0 + .22);
+    g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(.14, t0 + .05); g.gain.linearRampToValueAtTime(0, t0 + .24);
+    n.connect(f); f.connect(g); g.connect(dest); n.start(t0); n.stop(t0 + .26); return true;
+  }
   if (type === 'scratch') {
     const n = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain(); n.buffer = noiseBuf; f.type = 'bandpass'; f.Q.value = 6;
     f.frequency.setValueAtTime(2200, t0); f.frequency.exponentialRampToValueAtTime(350, t0 + .12); f.frequency.exponentialRampToValueAtTime(1800, t0 + .3);
@@ -1512,7 +1661,7 @@ function quoteScreen(sc, t) {
 const val = (id, d) => { const el = document.getElementById(id); return el ? el.value : d; };
 const hookFx = () => val('hookFx', 'flash');
 // Text hook: giant word behind you, card on top, or a big question over the opening.
-const hookTextType = () => { const v2 = val('hookText', 'auto'); return v2 !== 'auto' ? v2 : $('#style').value === 'coral' ? 'card' : $('#style').value === 'viro' ? 'viro' : 'big'; };
+const hookTextType = () => { const v2 = val('hookText', 'auto'); return v2 !== 'auto' ? v2 : $('#style').value === 'coral' ? 'card' : $('#style').value === 'viro' ? recipe().hook : 'big'; };
 const hookSound = () => { const v2 = val('hookSfx', 'auto'); return v2 === 'auto' ? 'riser' : v2; };
 const grade = () => val('grade', 'none') !== 'none';
 // Color grading presets (cheap full-frame blends).
@@ -1543,7 +1692,7 @@ function drawFrameTitle(text, ot) {
 // TikTok / Reels interface preview so you can check nothing important is covered (never exported).
 function drawSafeZones() {
   // Where each app puts its buttons and texts (share of the 9:16 frame): right rail and bottom band.
-  const Z = { tt: { name: 'TikTok', right: .16, bottom: .2, top: .08 }, ig: { name: 'Reels', right: .15, bottom: .18, top: .07 }, yt: { name: 'Shorts', right: .17, bottom: .22, top: .1 } }[val('safeApp', 'tt')] || {};
+  const Z = { tt: { name: 'TikTok', right: .111, bottom: .156, top: .068 }, ig: { name: 'Reels', right: .157, bottom: .182, top: .109 }, yt: { name: 'Shorts', right: .176, bottom: .177, top: .094 } }[val('safeApp', 'tt')] || {};
   cx.save();
   cx.fillStyle = 'rgba(255,60,60,.16)'; cx.fillRect(0, 0, W, H * Z.top); cx.fillRect(0, H * (1 - Z.bottom), W, H * Z.bottom); cx.fillRect(W * (1 - Z.right), H * Z.top, W * Z.right, H * (1 - Z.top - Z.bottom));
   cx.strokeStyle = 'rgba(52,211,153,.9)'; cx.setLineDash([10, 8]); cx.lineWidth = 2;
@@ -1650,15 +1799,24 @@ function drawFrame(t, src, sw, sh) {
   const hk = hookFx();
   // Camera: a gentle opening settle, a slow push-in inside each shot and a light reframe on cuts. No shakes, no whips.
   if (hookOn && hk === 'zoom' && ot < .7) z *= 1 + .28 * (1 - ease(ot / .7));
+  else if (hookOn && st.viro && /^(blur|flash|cine)$/.test(hk) && ot < .5) z *= 1 + .4 * (1 - easeQ(ot / .5));
   else if (hookOn && hk !== 'none' && ot < 1.2) z *= 1 + .08 * (1 - ease(ot / 1.2));
-  if (zoomOn && g) z *= 1 + .035 * Math.min(1, (t - g.s) / Math.max(2, g.e - g.s));
+  if (zoomOn && g && !st.viro) z *= 1 + .035 * Math.min(1, (t - g.s) / Math.max(2, g.e - g.s));
+  if (zoomOn && P && st.viro && ci >= 0) {
+    const blk = Math.floor(ci / 7), inB = ci % 7, lv = [1.06, 1.1, 1.14, 1.08][blk % 4], kind = [0, 1, 2, 0, 2, 1][blk % 6];
+    if (inB >= 3) {
+      const c0 = P.chunks[ci - (inB - 3)], dt = t - c0.s, sp = kind === 0 ? 1.2 : kind === 1 ? .4 : .001;
+      z *= 1 + (lv - 1) * (kind === 2 ? 1 : easeQ(dt / sp));
+      if (busy && kind !== 2 && !fired.has('zi' + blk)) { fired.add('zi' + blk); sfx('whoosh'); }
+    }
+  }
   if (P && on('optPunch')) { const pu = P.punches.find(q => t >= q.s && t <= q.e + .4); if (pu) z *= 1 + .14 * ease((t - pu.s) / .35) * (1 - ease((t - pu.e) / .4)); }
   const sx = 0, sy = 0;
 
   const framed = on('optFrame');
-  const brollLayout = val('brollLayout', 'split');
-  const splitPh = P && P.beats && !framed && brollLayout === 'split' ? P.beats.photos.find(q => q.img && t >= q.s && t <= q.e) : null;
-  capX = W / 2; capY = splitPh ? H * .5 : H * (style().viro ? .76 : .69);
+  const brollLayout = blay();
+  const splitPh = P && P.beats && !framed && brollLayout === 'split' ? P.beats.photos.find(q => brollMedia(q) && t >= q.s && t <= q.e) : null;
+  capX = W / 2; capY = splitPh ? H * .5 : H * (style().viro ? recipe().capY : .69);
   let x, y, w, h;
   cx.fillStyle = '#000'; cx.fillRect(0, 0, W, H);
   if (framed) {
@@ -1678,7 +1836,7 @@ function drawFrame(t, src, sw, sh) {
     x = (W - w) / 2; y = top + Math.min(0, Math.max(H - top - h, (H - top) / 2 - h * .42));
     cx.save(); cx.beginPath(); cx.rect(0, top, W, H - top); cx.clip(); cx.drawImage(src, x, y, w, h); cx.restore();
     if (top > 1) {
-      const img = splitPh.img, iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height, s3 = Math.max(W / iw, top / ih) * (1.03 + .03 * (t - splitPh.s));
+      const img = brollMedia(splitPh), iw = img.videoWidth || img.naturalWidth || img.width, ih = img.videoHeight || img.naturalHeight || img.height, s3 = Math.max(W / iw, top / ih) * (1.03 + .03 * (t - splitPh.s));
       cx.save(); cx.beginPath(); cx.rect(0, 0, W, top); cx.clip(); cx.drawImage(img, (W - iw * s3) / 2, (top - ih * s3) / 2, iw * s3, ih * s3); cx.restore();
       cx.fillStyle = '#000'; cx.fillRect(0, top - 2, W, 4);
     }
@@ -1718,6 +1876,8 @@ function drawFrame(t, src, sw, sh) {
   if (P && !covered && !fxs.hide && !qHook && !(inCta && ot >= ctaS) && on('optCaps')) { drawCaption(ch, t); }
   if (hookOn && P && P.hook && !covered && !framed && hookTextType() === 'card') drawHookCard(P.hook, ot, P.hookDur);
   if (hookOn && P && P.hook && !covered && hookTextType() === 'question') drawHookQuestion(P.hook, ot, P.hookDur);
+  if (hookOn && P && P.hook && hookTextType() === 'blackout' && hk !== 'blackout' && ot < 1.1) drawBlackout(P.hook, ot);
+  if (hookOn && P && P.hook && !covered && !framed && hookTextType() === 'stack' && !(P.beats && P.beats.photos.some(q => t >= q.s && t <= q.e && (q.img || q.vid)))) drawStackHook(P.hook, ot, Math.min(3.2, P.hookDur + .4));
   if (hookOn && P && P.hook && !covered && !framed && hookTextType() === 'viro' && ot < P.hookDur && !(P.beats && P.beats.photos.some(q => q.hookT && (q.img || q.vid || q.failed)))) {
     const k = Math.min(ease(ot / .3), ease((P.hookDur - ot) / .3));
     viroPhotoText({ s: t - ot, e: t - ot + P.hookDur, label: P.hook, kicker: '' }, t, k);
@@ -1731,7 +1891,8 @@ function drawFrame(t, src, sw, sh) {
     if (hs === 'riser') { sfx('riser'); sfx('impact', .5); } else if (hs !== 'none') sfx(hs);
   }
   if (hookOn && hk === 'blur' && ot < .6) { const k = 1 - ease(ot / .6); cx.save(); blur(18 * k); cx.drawImage(cv, 0, 0); blur(0); cx.restore(); }
-  if (hookOn && hk === 'cine' && ot < 1.4) { const k = 1 - ease(ot / 1.4), bh = H * .13 * k; cx.fillStyle = '#000'; cx.fillRect(0, 0, W, bh); cx.fillRect(0, H - bh, W, bh); }
+  if (hookOn && hk === 'cine' && st.viro && ot < .5) { const k = 1 - easeQ(ot / .5); cx.save(); cx.globalCompositeOperation = 'saturation'; cx.fillStyle = `rgba(128,128,128,${k})`; cx.fillRect(0, 0, W, H); cx.restore(); cx.fillStyle = `rgba(0,0,0,${.5 * k})`; cx.fillRect(0, 0, W, H); }
+  if (hookOn && hk === 'cine' && !st.viro && ot < 1.4) { const k = 1 - ease(ot / 1.4), bh = H * .13 * k; cx.fillStyle = '#000'; cx.fillRect(0, 0, W, bh); cx.fillRect(0, H - bh, W, bh); }
   if (hookOn && hk === 'iris' && ot < .8) { const r = Math.hypot(W, H) * .6 * ease(ot / .8); cx.save(); cx.beginPath(); cx.rect(0, 0, W, H); cx.arc(W / 2, H * .4, Math.max(1, r), 0, Math.PI * 2); cx.fillStyle = '#000'; cx.fill('evenodd'); cx.restore(); }
   if (hookOn && hk === 'swipe' && ot < .5) { const off = H * (1 - ease(ot / .5)); const sc = scrCv.getContext('2d'); sc.clearRect(0, 0, W, H); sc.drawImage(cv, 0, 0); cx.fillStyle = '#000'; cx.fillRect(0, 0, W, H); cx.drawImage(scrCv, 0, off); }
   if (hookOn && hk === 'glitch' && ot < .45) glitch(ot / .45);
@@ -2010,6 +2171,9 @@ window.VE = {
   load, build, video: v,
   setHook(t) { aiHookTitle = t; build(); },
   setTypo(k) { if (TYPO[k]) { aiTypo = k; dirty = true; } },
+  setRecipe(k) { if (RECIPES[k]) { aiRecipe = k; build(); } },
+  get recipeKey() { return recipeKey(); },
+  recipes: Object.fromEntries(Object.entries(RECIPES).map(([k, r]) => [k, { name: r.name, desc: r.desc }])),
   fontLib: FONT_LIB, fontOf, ensureFonts,
   // What the AI director gets to know about the video besides the words.
   get info() { const P = plan; if (!P) return {}; return { seconds: Math.round(P.total), words: words.length, cuts: P.segs.length - 1, wordsPerSecond: +(words.length / Math.max(1, P.total)).toFixed(2), longPauses: words.filter((w, i) => words[i + 1] && words[i + 1].s - w.e > .6).length, questions: words.filter(w => /\?$/.test(w.t)).length, numbers: words.filter(w => isNum(w.t)).length }; },

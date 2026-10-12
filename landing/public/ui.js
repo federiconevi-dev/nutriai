@@ -103,6 +103,14 @@ $('#tys').onclick = e => { const b = e.target.closest('button'); if (!b) return;
 $('#typo').addEventListener('change', () => { tySync(); paintPickers(); });
 $('#typoNext').onclick = () => { const ks = Object.keys(TY), i = ks.indexOf(VE.typoKey); $('#typo').value = ks[(i + 1) % ks.length]; fire($('#typo')); };
 $('#typesShow').innerHTML = Object.values(TY).map(T => `<span style="font:${T.title.replace(/\d+(\.\d+)?px/, '22px')}">${T.name}</span>`).join('');
+// ---- Edit formats ----
+const RC = VE.recipes;
+$('#rcs').innerHTML = `<button data-v="auto"><b>Automático</b><small>La IA elige según tu video</small></button>` + Object.entries(RC).map(([k, r]) => `<button data-v="${k}"><b>${r.name}</b><small>${r.desc}</small></button>`).join('');
+const rcSync = () => { $$('#rcs button').forEach(b => b.classList.toggle('sel', b.dataset.v === $('#recipe').value)); const r = RC[VE.recipeKey]; if (r) { $('#recNow').textContent = r.name; $('#recDesc').textContent = r.desc; } };
+$('#rcs').onclick = e => { const b = e.target.closest('button'); if (!b) return; $('#recipe').value = b.dataset.v; fire($('#recipe')); };
+$('#recipe').addEventListener('change', () => { rcSync(); if (VE.plan) VE.build(); });
+$('#recNext').onclick = () => { const ks = Object.keys(RC), i = ks.indexOf(VE.recipeKey); $('#recipe').value = ks[(i + 1) % ks.length]; fire($('#recipe')); };
+rcSync();
 const repaint = () => tySync();
 (document.fonts ? document.fonts.ready : Promise.resolve()).then(tySync);
 
@@ -189,12 +197,13 @@ async function direct(request = '') {
     if (!r.ok) throw new Error(j.error || 'La IA no respondió.');
     // In automatic mode keep our curated typography and colors; fonts/colors change only when asked.
     if (j.settings && j.settings.typo) VE.setTypo(j.settings.typo);
-    for (const [k, val] of Object.entries(j.settings || {})) { if (k === 'typo' ? !request : !request && k !== 'hookSfx' && !(k === 'hookFx' && /^(blur|flash|zoom|iris|cine)$/.test(val))) continue; const el = $('#' + k); if (el && el.value !== val) { el.value = val; fire(el); } }
+    if (j.settings && j.settings.recipe && !request) VE.setRecipe(j.settings.recipe);
+    for (const [k, val] of Object.entries(j.settings || {})) { if (k === 'typo' || k === 'recipe' ? !request : !request && k !== 'hookSfx' && !(k === 'hookFx' && /^(blur|flash|zoom|iris|cine)$/.test(val))) continue; const el = $('#' + k); if (el && el.value !== val) { el.value = val; fire(el); } }
     // In automatic mode the AI can only switch extra features on (the full edit stays); turning things off needs a request.
     for (const [k, val] of Object.entries(j.toggles || {})) { if (!request) continue; const el = $('#' + k); if (el && el.checked !== val) { el.checked = val; el.dispatchEvent(new Event('change', { bubbles: true })); } }
     if (j.fixes) VE.fixWords(j.fixes);
     if (j.hookTitle) VE.setHook(j.hookTitle);
-    syncAll(); vsSync(); tySync(); paintPickers();
+    syncAll(); vsSync(); tySync(); rcSync(); paintPickers();
     setRec((j.reason || 'Listo, apliqué la edición.').replace(/\b(nova|lujo|revista|tech|suave|clasico|clásico|urbano)\b/gi, m => { const k = m.toLowerCase().replace('á', 'a'); return TY[k] ? TY[k].name : m; })); setStep(2); waitArt();
     if (request) $('#aiAsk').value = '';
   } catch (e) {
