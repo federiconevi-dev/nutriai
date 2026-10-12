@@ -22,7 +22,12 @@ export default async (req) => {
     const hits = (await r.json()).hits || [];
     // Vertical clips first; a wide clip still works (it is cropped to 9:16), so use the sharpest small-enough file.
     const pick = h => { const v = h.videos || {}; return [v.medium, v.large, v.small].find(f => f && f.url && f.width && f.size < 18e6); };
-    const ranked = hits.filter(h => h.duration >= 3 && pick(h)).sort((a, b) => (pick(b).height > pick(b).width) - (pick(a).height > pick(a).width));
+    // Only clips whose tags really match what is being said (Pixabay search alone returns loose matches).
+    const want = q.toLowerCase().split(/[^a-z]+/).filter(w => w.length > 2);
+    const score = h => { const tags = (h.tags || '').toLowerCase(); return want.filter(w => tags.includes(w.replace(/s$/, ''))).length; };
+    const need = Math.min(2, want.length);
+    const ranked = hits.filter(h => h.duration >= 3 && pick(h) && score(h) >= need)
+      .sort((a, b) => (score(b) - score(a)) * 2 + ((pick(b).height > pick(b).width) - (pick(a).height > pick(a).width)));
     const h = ranked[0];
     if (h) { const f = pick(h); return Response.json({ url: `/api/clip?u=${encodeURIComponent(f.url)}`, w: f.width, h: f.height, dur: h.duration }, cache); }
   }

@@ -1187,11 +1187,24 @@ function drawPhoto(ph, t) {
     cx.fillStyle = '#000'; cx.fillRect(0, 0, W, H);
     if (tr === 'blur' || tr === 'leak') blur((tr === 'leak' ? 6 : 10) * (1 - ease(age / .35)));
     const zin = tr === 'zoom' ? .25 * (1 - e1) : 0;
-    coverDraw(media, 1, (media === ph.vid ? 1.04 - .03 * p : 1.16 - .1 * p) + zin, media === ph.vid ? 0 : dir * W * .03 * (p - .5)); blur(0);
+    const mw = media.videoWidth || media.naturalWidth || media.width, mh = media.videoHeight || media.naturalHeight || media.height;
+    ph.fit = mh / mw < 1.5; // square or wide: show it whole instead of cropping it
+    if (ph.fit) {
+      // Whole picture in a rounded card, over a soft blurred copy of itself.
+      blur(30); coverDraw(media, 1, 1.15, 0); blur(0);
+      cx.fillStyle = 'rgba(0,0,0,.45)'; cx.fillRect(0, 0, W, H);
+      const cw = W * .8, chh = Math.min(H * .42, cw * mh / mw), cw2 = chh * mw / mh, zz = 1 + zin + .04 * p;
+      cx.save(); cx.translate(W / 2, H * .48); cx.scale(zz, zz);
+      cx.shadowColor = 'rgba(0,0,0,.55)'; cx.shadowBlur = 40; cx.shadowOffsetY = 14;
+      rrect(-cw2 / 2, -chh / 2, cw2, chh, 26); cx.fillStyle = '#000'; cx.fill(); cx.shadowColor = 'transparent';
+      rrect(-cw2 / 2, -chh / 2, cw2, chh, 26); cx.clip(); cx.drawImage(media, -cw2 / 2, -chh / 2, cw2, chh);
+      cx.restore();
+    } else coverDraw(media, 1, (media === ph.vid ? 1.04 - .03 * p : 1.16 - .1 * p) + zin, media === ph.vid ? 0 : dir * W * .03 * (p - .5));
+    blur(0);
     cx.restore();
     if (tr === 'flash' && age < .18) { cx.fillStyle = `rgba(255,255,255,${.85 * (1 - age / .18)})`; cx.fillRect(0, 0, W, H); }
     if (tr === 'leak') { warmLeak(age); warmLeak(ph.e - t); }
-    if (style().viro) viroPhotoText(ph, t, k);
+    if (style().viro) viroPhotoText(ph, t, k, ph.fit ? 'tl' : undefined);
   } else if (style().viro) {
     // Card format: you stay on screen, dimmed; the picture sits in a framed card and the title goes above it.
     cx.save(); cx.globalAlpha = .45 * k; cx.fillStyle = '#000'; cx.fillRect(0, 0, W, H); cx.restore();
