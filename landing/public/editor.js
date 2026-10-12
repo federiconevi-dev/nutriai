@@ -434,7 +434,8 @@ function drawStackHook(text, ot, dur) {
 function lineCaption(ch, t, st, mode) {
   const age = t - ch.s, a = ease(age / .16), out = t > ch.e + .05 ? ease((t - ch.e - .05) / .15) : 0;
   const isK = w => w === ch.key && ch.emph, up = mode === 'box';
-  const tx = ch.map(w => { const x2 = w.t.replace(/[.,;:!?¿¡"]+/g, ''); return up ? x2.toUpperCase() : x2; });
+  // Cursive faces never go uppercase (unreadable); the key word keeps its case.
+  const tx = ch.map(w => { const x2 = w.t.replace(/[.,;:!?¿¡"]+/g, ''); return up && !isK(w) ? x2.toUpperCase() : isK(w) ? x2.toLowerCase() : x2; });
   let size = st.size * (mode === 'serif' ? 1.3 : mode === 'box' ? 1.05 : 1);
   const F = (w, z) => isK(w) ? keyF(z * 1.12) : mode === 'serif' ? accF(z) : st.font(z);
   const wd = z => ch.reduce((q, w, i) => { cx.font = F(w, z); return q + cx.measureText(tx[i]).width; }, 0) + z * .28 * (ch.length - 1);
@@ -462,7 +463,7 @@ function lineCaption(ch, t, st, mode) {
 function wordCaption(ch, t, st) {
   let i = ch.findIndex((w, j) => t >= w.s - .02 && (j === ch.length - 1 || t < ch[j + 1].s - .02)); if (i < 0) i = 0;
   const w = ch[i], age = t - w.s, k = back(age / .22), isK = w === ch.key && ch.emph;
-  const tx = w.t.replace(/[.,;:!?¿¡"]+/g, '').toUpperCase();
+  const raw = w.t.replace(/[.,;:!?¿¡"]+/g, ''), tx = isK ? raw.toLowerCase() : raw.toUpperCase();
   let size = st.size * (isK ? 2.4 : 2); const F = z => isK ? keyF(z) : st.font(z);
   cx.font = F(size); while (cx.measureText(tx).width > W * .82 && size > 30) { size -= 4; cx.font = F(size); }
   cx.save(); cx.translate(capX, capY); cx.scale(.75 + .25 * k, .75 + .25 * k); cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.lineJoin = 'round';
