@@ -752,7 +752,7 @@ let aiActive = 0; const aiWait = [];
 const aiSlot = () => aiActive < 3 ? (aiActive++, Promise.resolve()) : new Promise(r => aiWait.push(r)).then(() => { aiActive++; });
 const aiFree = () => { aiActive--; const n = aiWait.shift(); if (n) n(); };
 function aiImage(subject) {
-  const prompt = `${promptCache.get(subject) || subject}, ${AI_LOOK}, no text, no letters`;
+  const prompt = `${promptCache.get(subject) || subject}, ${AI_LOOK}, no text, no letters, no words, no writing, no signs, no logos, no typography`;
   if (aiCache.has(prompt)) return aiCache.get(prompt);
   const job = (async () => {
     if (aiDown) return null;
@@ -785,8 +785,7 @@ function backupImage(prompt, subject) {
       }
       await new Promise(res => setTimeout(res, 2500 * (i + 1)));
     }
-    const q = String(promptCache.get(subject) || subject).replace(/[^a-zA-Z ]/g, ' ').split(/\s+/).filter(w => w.length > 3).slice(0, 3).join(' ');
-    return q ? fetchPhoto(q) : null;
+    return null;
   }).catch(() => null);
   backupChain = job.catch(() => null);
   return job;
@@ -802,7 +801,9 @@ async function loadAiArt(P) {
   if (on('optPhotos')) pickBroll();
   await planPrompts(items.map(x => x.subj));
   if (P !== plan) return;
-  await Promise.all(items.map(x => aiImage(x.subj).then(img => { if (img) { x.o.img = img; dirty = true; } })));
+  // Never show the same picture twice in one video.
+  const used = new Set();
+  await Promise.all(items.map(x => aiImage(x.subj).then(img => { if (img && !used.has(img)) { used.add(img); x.o.img = img; dirty = true; } })));
 }
 function contextAround(i, n = 5) { return words.slice(Math.max(0, i - n), i + n).map(w => w.t.replace(/[.,;:!?]+$/, '')).join(' '); }
 let curScreen = null;
@@ -1029,7 +1030,7 @@ function drawPhoto(ph, t) {
 // Viro motion graphic over a b-roll: italic kicker + bold title with the key word in a blue gradient, or one script word.
 function viroPhotoText(ph, t, k) {
   const age = t - ph.s;
-  if (ph.label && ph.n % 3 !== 2) {
+  if (ph.label) {
     cx.save(); cx.globalAlpha = k;
     const g = cx.createLinearGradient(0, 0, 0, H * .5); g.addColorStop(0, 'rgba(0,0,0,.6)'); g.addColorStop(1, 'rgba(0,0,0,0)'); cx.fillStyle = g; cx.fillRect(0, 0, W, H * .5);
     const x0 = W * .08; let y = H * .1;
@@ -1051,7 +1052,7 @@ function viroPhotoText(ph, t, k) {
         x += ww + sp; }); });
     if ('letterSpacing' in cx) cx.letterSpacing = '0px';
     cx.restore();
-  } else if (ph.word) {
+  } else if (false) {
     const a = ease((age - .1) / .45);
     cx.save(); cx.globalAlpha = k * a; cx.textAlign = 'center'; cx.textBaseline = 'middle';
     const T = typo(); let fs = 104; cx.font = T.kicker(fs); while (cx.measureText(ph.word).width > W * .8 && fs > 44) { fs -= 6; cx.font = T.kicker(fs); }
