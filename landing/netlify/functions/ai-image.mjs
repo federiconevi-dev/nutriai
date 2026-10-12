@@ -5,18 +5,20 @@ export default async (req) => {
   const prompt = (url.searchParams.get('p') || '').slice(0, 900).trim();
   if (prompt.length < 3) return new Response('Falta la descripción de la imagen.', { status: 400 });
   const account = Netlify.env.get('CF_ACCOUNT_ID'), token = Netlify.env.get('CF_API_TOKEN');
-  if (!account || !token) return new Response('El servidor no tiene configurado Cloudflare.', { status: 503 });
-
-  const res = await fetch(`https://api.cloudflare.com/client/v4/accounts/${account}/ai/run/@cf/black-forest-labs/flux-1-schnell`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt, steps: 6 })
-  });
-  if (!res.ok) return new Response(`Cloudflare respondió ${res.status}: ${(await res.text()).slice(0, 300)}`, { status: res.status === 429 ? 429 : 502 });
-  const data = await res.json();
-  const b64 = data && data.result && data.result.image;
-  if (!b64) return new Response('Cloudflare no devolvió imagen.', { status: 502 });
-  const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+  let bytes = null;
+  if (account && token) {
+    try {
+      const res = await fetch(`https://api.cloudflare.com/client/v4/accounts/${account}/ai/run/@cf/black-forest-labs/flux-1-schnell`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt, steps: 6 })
+      });
+      const data = res.ok ? await res.json() : null;
+      const b64 = data && data.result && data.result.image;
+      if (b64) bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+    } catch (e) { /* fall back below */ }
+  }
+  if (!bytes) return new Response('No se pudo generar la imagen.', { status: 502 });
   return new Response(bytes, {
     headers: {
       'Content-Type': 'image/jpeg',

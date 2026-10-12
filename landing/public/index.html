@@ -3,182 +3,182 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0a0a0c">
-<title>Videora — Edición automática con IA</title>
-<meta name="description" content="Subí tu video vertical y la IA lo edita: subtítulos, hooks, motion graphics, b-rolls, texto detrás tuyo, zooms y sonidos. Gratis y en tu navegador.">
+<meta name="theme-color" content="#09090b">
+<title>Videora — Edición profesional automática</title>
+<meta name="description" content="Subí tu video vertical y la IA lo edita como un profesional: imágenes a pantalla completa con títulos, subtítulos sincronizados, tipografías de diseñador y cortes. Gratis, en tu navegador.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=Nunito:wght@800;900&family=Plus+Jakarta+Sans:wght@600;800&family=Outfit:wght@600;800&family=Montserrat:wght@800;900&family=Anton&family=Bebas+Neue&family=Archivo+Black&family=Poppins:wght@800&family=Space+Grotesk:wght@700&family=Instrument+Serif:ital@1&family=Playfair+Display:ital,wght@1,700&family=DM+Serif+Display:ital@1&family=Caveat:wght@700&family=Permanent+Marker&family=Great+Vibes&family=JetBrains+Mono:wght@600&family=Inter+Tight:wght@600;700;800&family=Fraunces:ital,wght@1,600&family=Bricolage+Grotesque:wght@800&family=Syne:wght@800&family=Unbounded:wght@800&family=Sora:wght@700&family=Manrope:wght@800&family=DM+Sans:wght@700&family=Cormorant+Garamond:ital,wght@1,600&family=Oswald:wght@700&family=Big+Shoulders+Display:wght@900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Instrument+Serif:ital@0;1&family=Nunito:wght@800;900&family=Plus+Jakarta+Sans:wght@600;800&family=Outfit:wght@600;800&family=Montserrat:wght@800;900&family=Anton&family=Bebas+Neue&family=Archivo+Black&family=Poppins:wght@800&family=Space+Grotesk:wght@700&family=Playfair+Display:ital,wght@1,700&family=DM+Serif+Display:ital@1&family=Caveat:wght@700&family=Permanent+Marker&family=Great+Vibes&family=JetBrains+Mono:wght@600&family=Inter+Tight:wght@600;700;800&family=Fraunces:ital,wght@0,800;1,600&family=Syne:wght@800&family=Unbounded:wght@800&family=Sora:wght@700&family=Manrope:wght@800&family=DM+Sans:wght@700&family=Cormorant+Garamond:ital,wght@1,600&family=Oswald:wght@700&family=Big+Shoulders+Display:wght@900&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#0b0d12;--p1:#11141b;--p2:#171b24;--line:#252b38;--tx:#f2f5f9;--mut:#8b93a7;--acc:#c6f432;--acc2:#5eead4;--ink:#0b0d12;--ok:#5eead4;--glow:0 0 60px -12px rgba(198,244,50,.55)}
+:root{--bg:#09090b;--p1:#111114;--p2:#18181c;--p3:#202026;--line:#26262d;--tx:#f4f4f5;--mut:#9a9aa6;--acc:#c6f432;--ink:#0a0a0c;--grn:#5cf58a;--r:16px}
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--tx);font-family:Inter,system-ui,sans-serif;line-height:1.5;overflow-x:hidden}
+body{background:var(--bg);color:var(--tx);font-family:Inter,system-ui,sans-serif;line-height:1.5;overflow-x:hidden;-webkit-font-smoothing:antialiased}
 a{color:inherit;text-decoration:none}
 button,select,input,textarea{font:inherit;color:inherit}
-:focus-visible{outline:2px solid var(--acc2);outline-offset:2px}
-.w{max-width:1160px;margin:0 auto;padding:0 16px}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 22px;border-radius:999px;font-weight:800;background:var(--acc);color:var(--ink);border:0;cursor:pointer;transition:transform .15s,filter .15s}
-.btn:hover{filter:brightness(1.1)}.btn:active{transform:scale(.97)}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.w{max-width:1140px;margin:0 auto;padding:0 16px}
+.disp{font-family:"Bricolage Grotesque",Inter,sans-serif;letter-spacing:-.02em}
+.it{font-family:"Instrument Serif",serif;font-style:italic;font-weight:400;letter-spacing:0}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 22px;border-radius:999px;font-weight:700;background:var(--acc);color:var(--ink);border:0;cursor:pointer;transition:transform .15s,filter .15s;white-space:nowrap}
+.btn:hover{filter:brightness(1.08)}.btn:active{transform:scale(.97)}
 .btn.ghost{background:var(--p2);border:1px solid var(--line);color:var(--tx)}
 .btn:disabled{opacity:.45;cursor:not-allowed}
-.btn.sm{padding:8px 14px;font-size:13px;border-radius:10px}
-.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--acc2);margin-right:8px;box-shadow:0 0 10px var(--acc2)}
+.btn.sm{padding:8px 14px;font-size:13px}
+.btn.full{width:100%}
 .mut{color:var(--mut)}
-/* ---------- landing ---------- */
-.top{position:sticky;top:0;z-index:5;background:rgba(10,10,12,.75);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
-.top .w{height:60px;display:flex;align-items:center;justify-content:space-between}
-.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:19px}
-.logo i{width:28px;height:28px;border-radius:50%;background:conic-gradient(var(--acc),var(--acc2),var(--acc));color:var(--ink);display:grid;place-items:center;font-style:normal;font-size:14px;box-shadow:var(--glow)}
-.hero{padding:56px 0 30px;background:radial-gradient(ellipse at 30% -10%,rgba(198,244,50,.16),transparent 55%),radial-gradient(ellipse at 80% 0,rgba(94,234,212,.14),transparent 50%)}
-.hero h1{text-align:center;font-size:clamp(34px,5.6vw,64px);line-height:1.04;font-weight:900;letter-spacing:-1.5px;text-wrap:balance}
-.hero h1 em{font-family:"Instrument Serif",serif;font-weight:400;color:var(--acc)}
-.hero p.lead{text-align:center;color:var(--mut);max-width:620px;margin:16px auto 36px;font-size:17px}
-.trio{display:grid;grid-template-columns:190px minmax(0,440px) 190px;gap:34px;align-items:center;justify-content:center}
-.trio>div{position:relative}
-.lbl2{display:block;text-align:center;font-size:11px;letter-spacing:.16em;margin-bottom:10px;color:var(--mut)}
-.ph{position:relative;border-radius:26px;aspect-ratio:9/16;overflow:hidden;background:#000 url(hero.jpg) center/cover;border:6px solid #1a1d24;box-shadow:0 30px 60px -20px rgba(0,0,0,.7)}
-.ph.raw{filter:saturate(.55) brightness(.85)}
-.ph .chip{position:absolute;top:12px;left:12px;display:flex;align-items:center;gap:6px;padding:4px 9px;border-radius:99px;background:rgba(0,0,0,.55);font-size:11px;font-weight:700;color:#fff}
-.ph .chip i{width:7px;height:7px;border-radius:50%;background:#ff4d4d}
-.ph .foot{position:absolute;left:0;right:0;bottom:12px;text-align:center;font-size:11px;color:rgba(255,255,255,.75)}
-.ph.res{border-color:#26300f;box-shadow:0 30px 70px -20px rgba(198,244,50,.45),0 0 0 1px rgba(198,244,50,.35)}
-.ph.res:before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.45),transparent 38%,transparent 62%,rgba(0,0,0,.55))}
-.ph.res .big{position:absolute;left:0;right:0;top:9%;text-align:center;font-family:Anton,Impact,sans-serif;font-size:50px;line-height:1;color:#fff;text-shadow:0 6px 24px rgba(0,0,0,.45);animation:slam 4s infinite}
-.ph.res .acc{position:absolute;left:0;right:0;top:calc(9% + 50px);text-align:center;font-family:"Instrument Serif",Georgia,serif;font-style:italic;font-size:24px;color:var(--acc);transform:rotate(-4deg);text-shadow:0 2px 12px rgba(0,0,0,.6);white-space:nowrap;animation:wipe 4s infinite}
-.ph.res .cap{position:absolute;left:8px;right:8px;bottom:17%;text-align:center;font-family:"Plus Jakarta Sans",sans-serif;font-weight:800;font-size:17px;line-height:1.25;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.7)}
-.ph.res .cap span{opacity:0;display:inline-block;animation:word 4s infinite}
-.ph.res .cap span:nth-child(2){animation-delay:.25s}.ph.res .cap span:nth-child(3){animation-delay:.5s}.ph.res .cap span:nth-child(4){animation-delay:.75s;color:var(--acc);text-shadow:0 0 14px rgba(198,244,50,.8)}.ph.res .cap span:nth-child(5){animation-delay:1s}
-.ph.res .bar{position:absolute;left:0;bottom:0;height:4px;background:var(--acc);animation:prog 4s linear infinite}
-@keyframes slam{0%{transform:scale(1.45);filter:blur(6px);opacity:0}10%{transform:scale(1);filter:none;opacity:1}90%{opacity:1}100%{opacity:0}}
-@keyframes wipe{0%,14%{clip-path:inset(0 100% 0 0);opacity:1}30%,90%{clip-path:inset(0 0 0 0);opacity:1}100%{clip-path:inset(0 0 0 0);opacity:0}}
-@keyframes word{0%,8%{opacity:0;transform:translateY(6px) scale(.9)}14%,90%{opacity:1;transform:none}100%{opacity:0}}
-@keyframes prog{from{width:0}to{width:100%}}
-.arrow{position:absolute;top:52%;font-size:18px;color:var(--acc);opacity:.8}
-.trio>div:first-child .arrow{right:-26px}.trio>div:last-child .arrow{left:-26px}
-.drop{position:relative;display:grid;place-items:center;text-align:center;gap:10px;padding:34px 22px;border-radius:20px;border:1px solid var(--line);background:linear-gradient(180deg,#141418,#0e0e11);cursor:pointer;transition:border-color .2s,box-shadow .2s}
-.drop:hover,.drop.over{border-color:rgba(198,244,50,.7);box-shadow:var(--glow)}
-.drop .up{width:52px;height:52px;border-radius:14px;border:1px solid var(--line);display:grid;place-items:center;font-size:22px;background:var(--p2)}
-.drop strong{font-size:18px}
-.drop .chips{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;font-size:12px;color:var(--mut)}
 .sr{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;z-index:2;font-size:0}
-.free{text-align:center;margin-top:12px;font-size:14px;color:var(--mut)}.free b{color:var(--tx)}
-.marq{overflow:hidden;margin-top:44px;mask-image:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent)}
-.marq>div{display:flex;gap:16px;width:max-content;animation:mq 40s linear infinite}
-.cm{background:#fff;color:#111;border-radius:14px;padding:12px 16px;min-width:240px;font-size:14px}
-.cm small{display:block;color:#888;font-size:12px}.cm b{font-weight:700}
-@keyframes mq{to{transform:translateX(-50%)}}
-section.blk{padding:84px 0}
-.blk h2{font-size:clamp(28px,4vw,44px);font-weight:900;letter-spacing:-1px;line-height:1.08;text-wrap:balance;margin-bottom:12px}
-.blk h2 em{font-family:"Instrument Serif",serif;font-weight:400;color:var(--acc)}
-.blk .sub{color:var(--mut);max-width:620px}
-.feat{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:40px}
-.feat div{background:var(--p1);border:1px solid var(--line);border-radius:16px;padding:20px}
-.feat b{display:block;margin:10px 0 6px}.feat p{color:var(--mut);font-size:14px}
-.feat i{font-style:normal;font-size:20px}
-.styles{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-top:36px}
-.styles canvas{width:100%;aspect-ratio:9/16;border-radius:14px;border:1px solid var(--line);display:block;background:#000}
-.styles span{display:block;font-size:13px;margin-top:8px;color:var(--mut)}
+/* ---------- landing ---------- */
+.top{position:sticky;top:0;z-index:5;background:rgba(9,9,11,.78);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.top .w{height:62px;display:flex;align-items:center;justify-content:space-between}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:19px;font-family:"Bricolage Grotesque",sans-serif}
+.logo i{width:26px;height:26px;border-radius:8px;background:var(--acc);display:grid;place-items:center}
+.logo i:after{content:"";border-left:9px solid var(--ink);border-top:6px solid transparent;border-bottom:6px solid transparent;margin-left:2px}
+.hero{padding:64px 0 40px;background:radial-gradient(ellipse 60% 50% at 70% 0,rgba(198,244,50,.10),transparent),radial-gradient(ellipse 50% 40% at 10% 10%,rgba(92,245,138,.07),transparent)}
+.hgrid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:48px;align-items:center}
+.kick{display:inline-flex;gap:8px;align-items:center;font-size:13px;color:var(--mut);border:1px solid var(--line);border-radius:999px;padding:6px 12px;margin-bottom:22px}
+.kick b{width:6px;height:6px;border-radius:50%;background:var(--grn);box-shadow:0 0 10px var(--grn)}
+.hero h1{font-size:clamp(38px,5.4vw,66px);line-height:1;font-weight:800;text-wrap:balance}
+.hero h1 .it{color:var(--acc);font-size:1.06em}
+.hero p.lead{color:var(--mut);max-width:520px;margin:20px 0 28px;font-size:18px}
+.drop{position:relative;display:flex;align-items:center;gap:16px;padding:18px 20px;border-radius:20px;border:1px dashed #3a3a44;background:var(--p1);cursor:pointer;transition:border-color .2s,background .2s;max-width:520px}
+.drop:hover,.drop.over{border-color:var(--acc);background:#14150f}
+.drop .up{width:48px;height:48px;border-radius:14px;background:var(--acc);display:grid;place-items:center;flex:none}
+.drop .up:before{content:"";width:14px;height:14px;border-left:2.5px solid var(--ink);border-top:2.5px solid var(--ink);transform:rotate(45deg) translate(3px,3px)}
+.drop strong{display:block;font-size:17px}
+.drop small{color:var(--mut);font-size:13px}
+.free{margin-top:14px;font-size:14px;color:var(--mut)}.free b{color:var(--tx);font-weight:600}
+.phones{position:relative;display:flex;justify-content:center;gap:18px}
+.ph{position:relative;width:min(46%,240px);border-radius:28px;aspect-ratio:9/16;overflow:hidden;background:#000 center/cover;border:5px solid #1c1c22;box-shadow:0 40px 80px -30px rgba(0,0,0,.9)}
+.ph.raw{background-image:url(hero.jpg);filter:saturate(.6) brightness(.8);transform:translateY(28px)}
+.ph.res{background-image:url(broll.jpg);box-shadow:0 40px 90px -30px rgba(92,245,138,.35),0 0 0 1px rgba(255,255,255,.06)}
+.ph .tag2{position:absolute;top:10px;left:10px;font-size:10px;font-weight:700;letter-spacing:.08em;padding:4px 8px;border-radius:99px;background:rgba(0,0,0,.6);color:#fff}
+.ph.res:before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.65),transparent 42%)}
+.ph .tt{position:absolute;left:9%;top:9%;right:6%;color:#fff}
+.ph .tt i{display:block;font-family:"Instrument Serif",serif;font-size:17px;opacity:0;animation:fadeup 5s infinite}
+.ph .tt b{display:block;font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:26px;line-height:1.02;letter-spacing:-.02em;opacity:0;animation:fadeup 5s .25s infinite}
+.ph .tt b span{background:linear-gradient(90deg,#2f7bff,#7cc4ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.ph .cap{position:absolute;left:0;right:0;bottom:22%;text-align:center;font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:15px;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.8)}
+.ph .cap span{opacity:.55;animation:lit 5s infinite}
+.ph .cap span:nth-child(2){animation-delay:.35s}.ph .cap span:nth-child(3){animation-delay:.7s}
+@keyframes fadeup{0%,4%{opacity:0;transform:translateY(8px)}14%,88%{opacity:1;transform:none}100%{opacity:0}}
+@keyframes lit{0%,10%{opacity:.55;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.8)}16%,30%{opacity:1;color:var(--grn);text-shadow:0 0 14px rgba(92,245,138,.9)}36%,100%{opacity:1;color:#fff}}
+section.blk{padding:88px 0}
+.blk h2{font-size:clamp(30px,4vw,46px);font-weight:800;line-height:1.05;text-wrap:balance;margin-bottom:12px}
+.blk h2 .it{color:var(--acc)}
+.blk .sub{color:var(--mut);max-width:600px;font-size:17px}
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:40px}
+.mode{border:1px solid var(--line);background:var(--p1);border-radius:22px;padding:28px}
+.mode.rec{border-color:rgba(198,244,50,.45);background:linear-gradient(180deg,#141610,var(--p1))}
+.mode .lab{display:inline-block;font-size:12px;font-weight:700;padding:4px 10px;border-radius:99px;background:var(--p3);color:var(--mut);margin-bottom:16px}
+.mode.rec .lab{background:rgba(198,244,50,.14);color:var(--acc)}
+.mode h3{font-size:24px;margin-bottom:8px}
+.mode p{color:var(--mut)}
+.mode ul{list-style:none;margin-top:16px;display:grid;gap:8px;font-size:15px}
+.mode li{display:flex;gap:10px}.mode li:before{content:"";flex:none;width:6px;height:6px;border-radius:50%;background:var(--acc);margin-top:9px}
+.feat{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;margin-top:40px;background:var(--line);border:1px solid var(--line);border-radius:22px;overflow:hidden}
+.feat div{background:var(--p1);padding:26px}
+.feat em{font-style:normal;font-family:"Instrument Serif",serif;font-size:30px;color:var(--acc);line-height:1}
+.feat b{display:block;margin:10px 0 6px;font-size:17px}.feat p{color:var(--mut);font-size:14px}
+.types{display:flex;flex-wrap:wrap;gap:10px;margin-top:32px}
+.types span{border:1px solid var(--line);background:var(--p1);border-radius:14px;padding:12px 18px;font-size:22px;color:#fff}
 details{border-bottom:1px solid var(--line);padding:18px 0}
-summary{cursor:pointer;font-weight:700;list-style:none;display:flex;justify-content:space-between}
-summary:after{content:"+";color:var(--acc)}details[open] summary:after{content:"−"}
+summary{cursor:pointer;font-weight:600;list-style:none;display:flex;justify-content:space-between;gap:12px}
+summary::-webkit-details-marker{display:none}
+summary:after{content:"+";color:var(--acc);font-size:20px;line-height:1}details[open]>summary:after{content:"−"}
 details p{color:var(--mut);margin-top:10px}
 footer{border-top:1px solid var(--line);padding:30px 0;color:var(--mut);font-size:13px}
 /* ---------- app ---------- */
 #app{position:fixed;inset:0;z-index:50;background:var(--bg);display:none;flex-direction:column}
 #app.on{display:flex}
-.bar{height:54px;flex:none;display:flex;align-items:center;gap:8px;padding:0 12px;border-bottom:1px solid var(--line);background:#0c0c0f;overflow-x:auto}
+.bar{height:58px;flex:none;display:flex;align-items:center;gap:10px;padding:0 14px;border-bottom:1px solid var(--line);background:#0b0b0e}
 .bar .sp{flex:1}
-.pill{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:9px;background:var(--p2);border:1px solid var(--line);font-size:13px;white-space:nowrap;cursor:pointer}
-.pill.on{border-color:rgba(198,244,50,.6);color:#fff;background:rgba(198,244,50,.12)}
-.pill.save{color:#fbbf24;cursor:default}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:8px 13px;border-radius:10px;background:var(--p2);border:1px solid var(--line);font-size:13px;white-space:nowrap;cursor:pointer}
+.pill.on{border-color:rgba(198,244,50,.55);background:rgba(198,244,50,.1)}
 #status{display:flex;align-items:center;gap:10px;min-width:0}
-#status .track{width:120px;height:6px;border-radius:9px;background:var(--line);overflow:hidden;flex:none}
-#status .track i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--acc2),var(--acc));transition:width .25s}
-#msg{font-size:13px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:46vw}
-/* config view */
-#cfg{flex:1;overflow:auto;padding:28px 16px}
-.cfgc{max-width:1060px;margin:0 auto;background:var(--p1);border:1px solid var(--line);border-radius:20px;padding:24px}
-.cfgc h2{font-size:22px}.cfgc>p{color:var(--mut);font-size:14px;margin-bottom:20px}
-.cfgg{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.4fr);gap:20px}
-.tg{display:flex;align-items:center;gap:12px;padding:12px;border-radius:12px;background:var(--p2);border:1px solid var(--line);margin-bottom:8px}
-.tg i{font-style:normal;width:30px;height:30px;border-radius:8px;display:grid;place-items:center;background:#1f1f26;flex:none}
-.tg div{flex:1;min-width:0}.tg b{display:block;font-size:14px}.tg small{color:var(--mut);font-size:12px}
-.sw{position:relative;width:42px;height:24px;flex:none}
-.sw input{position:absolute;inset:0;opacity:0;cursor:pointer;z-index:1;margin:0}
-.sw span{position:absolute;inset:0;border-radius:99px;background:#33333d;transition:background .2s}
-.sw span:after{content:"";position:absolute;left:3px;top:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .2s}
-.sw input:checked+span{background:var(--acc)}.sw input:checked+span:after{background:var(--ink)}.sw input:checked+span:after{transform:translateX(18px)}
-.box{background:var(--p2);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:14px}
-.box h3{font-size:15px;display:flex;align-items:center;gap:8px;justify-content:space-between}
-.box h3 small{font-weight:400;color:var(--mut);font-size:12px}
-.tag{font-size:11px;padding:2px 8px;border-radius:99px;background:rgba(198,244,50,.15);color:var(--acc)}
-.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:12px}
-.cards.ov{grid-template-columns:repeat(3,minmax(0,1fr))}
-.card{position:relative;border-radius:12px;overflow:hidden;border:2px solid transparent;cursor:pointer;background:#000;padding:0}
-.card canvas{display:block;width:100%;aspect-ratio:9/16}
-.cards.ov canvas{aspect-ratio:16/10}
-.card span{position:absolute;left:0;right:0;bottom:0;padding:18px 8px 7px;font-size:12px;font-weight:700;background:linear-gradient(transparent,rgba(0,0,0,.85));text-align:left;color:#fff}
-.card.sel{border-color:var(--acc);box-shadow:var(--glow)}
-.card.sel:after{content:"✓";position:absolute;top:6px;right:6px;width:20px;height:20px;border-radius:6px;background:var(--acc);display:grid;place-items:center;font-size:12px;color:var(--ink)}
-.cfgf{display:flex;align-items:center;gap:16px;margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
-.cfgf .grow{flex:1;min-width:0}
-.cfgf .bigtrack{height:6px;border-radius:9px;background:var(--line);overflow:hidden;margin-top:6px}
-.cfgf .bigtrack i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--acc2),var(--acc));transition:width .25s}
-/* editor view */
-#ed{flex:1;min-height:0;display:none;grid-template-columns:minmax(0,1fr) 380px;grid-template-rows:minmax(0,1fr) 92px}
-.panel{display:flex;flex-direction:column;min-height:0;border-left:1px solid var(--line);background:#0d1016}
-.ptabs{display:flex;gap:6px;padding:10px;border-bottom:1px solid var(--line)}
-.ptabs button{flex:1;padding:10px;border-radius:999px;border:1px solid var(--line);background:var(--p2);font-weight:700;cursor:pointer}
-.ptabs button.sel{background:var(--acc);color:var(--ink);border-color:var(--acc)}
-#ed.on{display:grid}
-.side{flex:1;overflow:auto;padding:14px}
+#status .track{width:140px;height:5px;border-radius:9px;background:var(--line);overflow:hidden;flex:none}
+#status .track i{display:block;height:100%;width:0;background:var(--acc);transition:width .25s}
+#msg{font-size:13px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:42vw}
+#ed{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 400px;grid-template-rows:minmax(0,1fr) 88px}
+.stage{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px;min-width:0;min-height:0;background:radial-gradient(ellipse at 50% 40%,rgba(255,255,255,.04),transparent 65%)}
+#cv{height:min(100%,calc(100vh - 240px));max-height:100%;max-width:100%;aspect-ratio:9/16;border-radius:18px;box-shadow:0 30px 80px -20px rgba(0,0,0,.85),0 0 0 1px var(--line);background:#000}
+.ctl{display:flex;gap:10px;align-items:center}
+.round{width:46px;height:46px;border-radius:50%;border:0;background:var(--acc);color:var(--ink);font-size:16px;cursor:pointer;display:grid;place-items:center}
+.round.g{background:var(--p2);border:1px solid var(--line);color:var(--tx);width:40px;height:40px;font-size:14px}
+.panel{display:flex;flex-direction:column;min-height:0;border-left:1px solid var(--line);background:#0d0d10}
+.ptabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:10px;margin:0;border-bottom:1px solid var(--line)}
+.ptabs button{padding:11px 8px;border-radius:12px;border:1px solid transparent;background:transparent;font-weight:600;cursor:pointer;color:var(--mut);font-size:14px}
+.ptabs button small{display:block;font-weight:500;font-size:11px;opacity:.8}
+.ptabs button.sel{background:var(--p2);border-color:var(--line);color:var(--tx)}
+.ptabs button.sel small{color:var(--acc);opacity:1}
+.side{flex:1;overflow:auto;padding:16px}
 .side.hide{display:none}
-.side h4{font-size:15px;display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
-.side h5{font-size:11px;letter-spacing:.12em;color:var(--mut);margin:14px 0 8px}
-.vs{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.vs button{text-align:left;padding:10px;border-radius:10px;background:var(--p2);border:1px solid var(--line);cursor:pointer}
-.vs button b{display:block;font-size:13px}.vs button small{font-size:11px;color:var(--mut)}
-.vs button.sel{border-color:var(--acc);background:rgba(198,244,50,.1)}
-.fld{display:grid;gap:5px;margin-bottom:10px;font-size:12px;color:var(--mut)}
-.fld select,.fld input[type=text],.fld textarea,.fld input:not([type]){width:100%;padding:9px 10px;border-radius:9px;border:1px solid var(--line);background:var(--p2);font-size:14px;color:var(--tx)}
-.fld textarea{resize:vertical;min-height:84px}
+.side h5{font-size:11px;letter-spacing:.12em;color:var(--mut);margin:22px 0 10px;font-weight:600}
+.side h5:first-child{margin-top:4px}
+.aicard{border:1px solid rgba(198,244,50,.35);background:linear-gradient(180deg,#141610,#101012);border-radius:var(--r);padding:16px}
+.aicard .hd{display:flex;align-items:center;gap:8px;font-weight:700;margin-bottom:6px}
+.aicard .hd:before{content:"";width:8px;height:8px;border-radius:50%;background:var(--acc);box-shadow:0 0 10px var(--acc)}
+.aicard p{font-size:14px;color:#d4d4d8}
+.steps{display:grid;gap:6px;margin-top:12px;font-size:13px;color:var(--mut)}
+.steps span{display:flex;gap:8px;align-items:center}
+.steps span:before{content:"";width:14px;height:14px;border-radius:50%;border:1.5px solid #44444c;flex:none}
+.steps span.done{color:var(--tx)}.steps span.done:before{background:var(--acc);border-color:var(--acc)}
+.steps span.now{color:var(--tx)}.steps span.now:before{border-color:var(--acc);border-top-color:transparent;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.now-typo{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px;padding:12px;border-radius:12px;background:var(--p2);border:1px solid var(--line)}
+.now-typo b{font-size:20px;line-height:1.1}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.fld{display:grid;gap:6px;margin-bottom:10px;font-size:12px;color:var(--mut)}
+.fld select,.fld textarea,.fld input:not([type]),.fld input[type=text]{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--p2);font-size:14px;color:var(--tx)}
+.fld textarea{resize:vertical;min-height:80px}
 .fld input[type=range]{accent-color:var(--acc);width:100%}
+.vs{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.vs button{text-align:left;padding:11px 12px;border-radius:12px;background:var(--p2);border:1px solid var(--line);cursor:pointer}
+.vs button b{display:block;font-size:13px}.vs button small{font-size:11px;color:var(--mut)}
+.vs button.sel{border-color:var(--acc);background:rgba(198,244,50,.08)}
+.tys{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tys button{position:relative;text-align:left;padding:12px;border-radius:12px;background:#0f0f12;border:1px solid var(--line);cursor:pointer;overflow:hidden;min-height:86px}
+.tys button i{display:block;color:#fff;font-style:normal;opacity:.9}
+.tys button b{display:block;color:#fff;line-height:1.05;margin-top:2px}
+.tys button small{position:absolute;right:10px;bottom:8px;font-size:10px;color:var(--mut);font-family:Inter,sans-serif}
+.tys button.sel{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc) inset}
+.tys button.auto{display:flex;flex-direction:column;justify-content:center;font-weight:700}
+.tys button.auto small{position:static;margin-top:4px}
+.sw{position:relative;width:40px;height:23px;flex:none}
+.sw input{position:absolute;inset:0;opacity:0;cursor:pointer;z-index:1;margin:0}
+.sw span{position:absolute;inset:0;border-radius:99px;background:#33333b;transition:background .2s}
+.sw span:after{content:"";position:absolute;left:3px;top:3px;width:17px;height:17px;border-radius:50%;background:#fff;transition:transform .2s}
+.sw input:checked+span{background:var(--acc)}.sw input:checked+span:after{background:var(--ink);transform:translateX(17px)}
+.tg{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:12px;background:var(--p1);border:1px solid var(--line);margin-bottom:6px}
+.tg div{flex:1;min-width:0}.tg b{display:block;font-size:14px;font-weight:600}.tg small{color:var(--mut);font-size:12px;line-height:1.35;display:block}
+.acc{border-bottom:1px solid var(--line);padding:0}
+.acc>summary{padding:13px 2px;font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px}
+.acc>summary .on-dot{width:7px;height:7px;border-radius:50%;background:var(--grn);display:none}
+.acc.live>summary .on-dot{display:inline-block}
+.acc>summary:after{margin-left:auto}
+.acc .in{padding:2px 2px 16px;font-size:13px;color:var(--mut);display:grid;gap:10px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px;color:var(--tx)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chips button{padding:7px 11px;border-radius:9px;border:1px solid var(--line);background:var(--p2);cursor:pointer;font-size:12px;color:var(--tx)}
+.chips button.sel{border-color:var(--acc);background:rgba(198,244,50,.12)}
 .sws{display:flex;gap:6px;flex-wrap:wrap}
 .sws button{width:26px;height:26px;border-radius:8px;border:2px solid var(--line);cursor:pointer}
 .sws button.sel{border-color:#fff}
-.acc{border-bottom:1px solid var(--line)}
-.acc>summary{padding:11px 2px;font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px}
-.acc>summary .on-dot{width:7px;height:7px;border-radius:50%;background:var(--ok);display:none}
-.acc.live>summary .on-dot{display:inline-block}
-.acc>summary:after{margin-left:auto}
-.acc .in{padding:4px 2px 14px;font-size:13px;color:var(--mut);display:grid;gap:10px}
-.row{display:flex;align-items:center;justify-content:space-between;gap:10px;color:var(--tx)}
-.chips{display:flex;gap:6px;flex-wrap:wrap}
-.chips button{padding:8px 10px;border-radius:9px;border:1px solid var(--line);background:var(--p2);cursor:pointer;font-size:12px;color:var(--tx)}
-.chips button.sel{border-color:var(--acc);background:rgba(198,244,50,.14)}
-.stage{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:14px;min-width:0;min-height:0;background:radial-gradient(ellipse at 50% 40%,rgba(198,244,50,.08),transparent 65%)}
-#cv{height:min(100%,calc(100vh - 230px));max-height:100%;max-width:100%;aspect-ratio:9/16;border-radius:16px;box-shadow:0 30px 80px -20px rgba(0,0,0,.8),0 0 0 1px var(--line);background:#000}
-.ctl{display:flex;gap:10px;align-items:center}
-.round{width:48px;height:48px;border-radius:50%;border:0;background:var(--acc);color:var(--ink);font-size:18px;cursor:pointer;box-shadow:var(--glow)}
-.round.g{background:var(--p2);box-shadow:none;border:1px solid var(--line);width:40px;height:40px;font-size:15px}
-.tlw{grid-column:1/-1;border-top:1px solid var(--line);background:#0c0c0f;padding:8px 12px;display:flex;gap:10px;align-items:stretch}
+.tlw{grid-column:1/-1;border-top:1px solid var(--line);background:#0b0b0e;padding:8px 12px;display:flex;gap:10px;align-items:stretch}
 .tlw .lbl{display:grid;grid-template-rows:1fr 1fr;font-size:11px;color:var(--mut);align-items:center}
 #tl{flex:1;min-width:0;height:100%;cursor:pointer;border-radius:8px}
-.rec{background:linear-gradient(90deg,rgba(198,244,50,.12),rgba(94,234,212,.08));border:1px solid rgba(198,244,50,.35);border-radius:12px;padding:10px 12px;font-size:13px;line-height:1.45;margin-bottom:14px}
-.ask{display:grid;gap:8px;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--line)}
-.dlbox{position:fixed;right:16px;bottom:110px;z-index:60;background:var(--p1);border:1px solid rgba(198,244,50,.6);box-shadow:var(--glow);border-radius:16px;padding:16px;display:grid;gap:10px;max-width:300px}
+.dlbox{position:fixed;right:16px;bottom:110px;z-index:60;background:var(--p1);border:1px solid rgba(198,244,50,.6);border-radius:18px;padding:18px;display:grid;gap:10px;max-width:300px;box-shadow:0 30px 60px -20px rgba(0,0,0,.8)}
 .dlbox[hidden]{display:none}
 @media(max-width:900px){
- .trio{grid-template-columns:1fr;gap:20px}.trio>div:first-child{display:none}.trio>div:last-child{order:-1;width:180px;margin:0 auto}.arrow{display:none}
- .feat{grid-template-columns:1fr 1fr}.styles{grid-template-columns:repeat(3,minmax(0,1fr))}
- .cfgg{grid-template-columns:1fr}.cards{grid-template-columns:repeat(2,minmax(0,1fr))}
- #ed.on{display:flex;flex-direction:column;overflow:auto}
- .stage{order:1;padding:10px}#cv{height:auto;width:min(100%,360px)}
- .panel{order:2;border:0}.ptabs{position:sticky;top:0;background:var(--bg);z-index:2}
- .tlw{order:3;height:84px;flex:none}
- #msg{max-width:none}
- .bar{flex-wrap:wrap;height:auto;padding:8px 12px;row-gap:8px;overflow:visible}
- #status{order:9;width:100%}#status .track{flex:1;width:auto}
+ .hgrid{grid-template-columns:1fr;gap:36px}.hero{padding-top:40px}
+ .phones{order:-1}.ph{width:42%}
+ .modes,.feat{grid-template-columns:1fr}
+ #ed{display:flex;flex-direction:column;overflow:auto}
+ .stage{order:1;padding:10px;flex:none}#cv{height:auto;width:min(100%,340px)}
+ .panel{order:2;border:0;flex:none;min-height:auto}.ptabs{position:sticky;top:0;background:var(--bg);z-index:2}
+ .side{overflow:visible}
+ .tlw{order:3;height:80px;flex:none}
+ .bar{flex-wrap:wrap;height:auto;padding:8px 12px;row-gap:8px}
+ #status{order:9;width:100%}#status .track{flex:1;width:auto}#msg{max-width:none}
 }
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -186,57 +186,61 @@ footer{border-top:1px solid var(--line);padding:30px 0;color:var(--mut);font-siz
 <body>
 
 <div class="top"><div class="w">
-  <a class="logo" href="#"><i>▶</i>Videora</a>
+  <a class="logo" href="#"><i></i>Videora</a>
   <label class="btn sm" style="position:relative">Subir video<input type="file" accept="video/*" class="sr" id="file2"></label>
 </div></div>
 
-<header class="hero"><div class="w">
-  <h1>Tu video crudo, <em>editado como un pro</em> en minutos</h1>
-  <p class="lead">Subtítulos animados, hooks, motion graphics, texto detrás tuyo, b-rolls, zooms y sonidos. La IA escucha tu video y edita todo sola. Gratis, en tu navegador.</p>
-  <div class="trio">
-    <div><span class="lbl2"><span class="dot"></span>TU VIDEO</span><div class="ph raw" role="img" aria-label="Video crudo"><span class="chip"><i></i>REC 0:42</span><span class="foot">Sin editar</span></div><span class="arrow">→</span></div>
-    <div>
-      <label class="drop" id="drop">
-        <input type="file" id="file" accept="video/*" class="sr">
-        <span class="up">⇪</span>
-        <strong>Arrastrá tu video vertical (9:16)</strong>
-        <span class="mut" style="font-size:14px">o tocá para elegirlo</span>
-        <span class="chips"><span>⏱ Máx. 3 min</span><span>▯ 9:16</span><span>⛁ Máx. 1 GB</span><span>MP4 recomendado</span></span>
-      </label>
-      <p class="free"><b>Gratis</b> · sin marca de agua · tu video no sale de tu dispositivo</p>
-    </div>
-    <div><span class="lbl2"><span class="dot"></span>RESULTADO</span><div class="ph res" role="img" aria-label="Video editado"><span class="big">16 AÑOS</span><span class="acc">guardá este video</span><span class="cap"><span>esto&nbsp;</span><span>te&nbsp;</span><span>puede&nbsp;</span><span>ahorrar&nbsp;</span><span>años</span></span><span class="bar"></span></div><span class="arrow">←</span></div>
+<header class="hero"><div class="w hgrid">
+  <div>
+    <span class="kick"><b></b>Edición automática con IA · gratis</span>
+    <h1 class="disp">Tu video crudo, editado como <span class="it">un profesional.</span></h1>
+    <p class="lead">Subís tu video hablando a cámara y la IA lo edita: imágenes a pantalla completa con títulos, frases clave, subtítulos sincronizados y tipografías de diseñador. Vos solo descargás.</p>
+    <label class="drop" id="drop">
+      <input type="file" id="file" accept="video/*" class="sr">
+      <span class="up"></span>
+      <span><strong>Subí tu video vertical</strong><small>Arrastralo acá o tocá para elegirlo · hasta 3 min · MP4 o MOV</small></span>
+    </label>
+    <p class="free"><b>Gratis</b> y sin marca de agua. Tu video se procesa en tu dispositivo.</p>
   </div>
-  <div class="marq"><div id="mq"></div></div>
+  <div class="phones">
+    <div class="ph raw" role="img" aria-label="Video sin editar"><span class="tag2">ANTES</span></div>
+    <div class="ph res" role="img" aria-label="Video editado"><span class="tag2">DESPUÉS</span>
+      <span class="tt"><i>Sigue tu progreso</i><b>Desbloqueá el <span>siguiente</span> nivel</b></span>
+      <span class="cap"><span>cuando </span><span>lo </span><span>pasás</span></span>
+    </div>
+  </div>
 </div></header>
 
 <section class="blk"><div class="w">
-  <h2>Todo lo que hace un editor. <em>Automático.</em></h2>
-  <p class="sub">Si no tocás nada, la IA decide sola: qué palabra va gigante, dónde va cada pantalla, qué fotos usar y qué sonido poner.</p>
-  <div class="feat">
-    <div><i>💬</i><b>Subtítulos animados</b><p>Palabra por palabra, con la palabra clave destacada.</p></div>
-    <div><i>🅰</i><b>Texto detrás de ti</b><p>Letras gigantes detrás de tu silueta y una cursiva cruzando adelante.</p></div>
-    <div><i>🎬</i><b>Motion graphics</b><p>Listas, números y frases clave en pantallas animadas.</p></div>
-    <div><i>🪪</i><b>Smart overlays</b><p>Tarjetas con datos e insights sobre tu video.</p></div>
-    <div><i>🖼</i><b>B-rolls automáticos</b><p>Fotos relacionadas con lo que decís, semitransparentes.</p></div>
-    <div><i>🪝</i><b>Hooks</b><p>Flash, blur o modo cine, con texto y sonido de impacto.</p></div>
-    <div><i>✂️</i><b>Cortes y zooms</b><p>Saca silencios y hace zooms en los momentos clave.</p></div>
-    <div><i>⚡</i><b>Export rápido</b><p>Arma el video cuadro por cuadro, sin esperar en tiempo real.</p></div>
+  <h2 class="disp">Dos formas de editar. <span class="it">Vos elegís.</span></h2>
+  <p class="sub">Dejá que la IA arme todo, o tomá el control de cada detalle. Podés pasar de una a la otra cuando quieras.</p>
+  <div class="modes">
+    <div class="mode rec"><span class="lab">Recomendado</span><h3 class="disp">Automático</h3><p>La IA escucha tu video y decide la mejor edición para ese tema.</p>
+      <ul><li>Elige la tipografía según el tono de tu video</li><li>Busca los momentos para cada imagen y frase clave</li><li>Corrige palabras mal escuchadas y escribe los títulos</li></ul></div>
+    <div class="mode"><span class="lab">Personalizado</span><h3 class="disp">A tu manera</h3><p>Elegí vos el estilo, la tipografía y qué querés que aparezca.</p>
+      <ul><li>7 combinaciones de tipografías profesionales</li><li>Activá o apagá cada capa: imágenes, frases, sonidos, zooms</li><li>O pedile cambios a la IA con tus palabras</li></ul></div>
   </div>
 </div></section>
 
 <section class="blk" style="padding-top:0"><div class="w">
-  <h2>Pantallas animadas <em>con estilo</em></h2>
-  <p class="sub">Elegí el look de las pantallas animadas o dejá que la IA elija según tu estilo.</p>
-  <div class="styles" id="lgStyles"></div>
+  <h2 class="disp">Todo lo que hace <span class="it">un editor.</span></h2>
+  <div class="feat">
+    <div><em>01</em><b>Imágenes con títulos</b><p>Imágenes de IA a pantalla completa, con movimiento suave y un título elegante arriba.</p></div>
+    <div><em>02</em><b>Frases clave</b><p>Las frases más fuertes aparecen solas en pantalla, palabra por palabra.</p></div>
+    <div><em>03</em><b>Subtítulos sincronizados</b><p>Cada palabra se ilumina justo cuando la decís.</p></div>
+    <div><em>04</em><b>Tipografías de diseñador</b><p>Combinaciones profesionales, distintas en cada video.</p></div>
+    <div><em>05</em><b>Cortes y ritmo</b><p>Saca los silencios y suma zooms suaves, sin efectos raros.</p></div>
+    <div><em>06</em><b>Exporta en minutos</b><p>Descargás el video listo para TikTok, Reels o Shorts.</p></div>
+  </div>
+  <div class="types" id="typesShow"></div>
 </div></section>
 
 <section class="blk" style="padding-top:0"><div class="w" style="max-width:760px">
-  <h2>Preguntas frecuentes</h2>
+  <h2 class="disp">Preguntas frecuentes</h2>
   <details><summary>¿Tengo que instalar algo?</summary><p>No. Funciona en Chrome o Safari, en la compu o el celu. Para la mejor calidad usá la compu.</p></details>
-  <details><summary>¿Mi video se sube a algún servidor?</summary><p>No. Todo se procesa en tu dispositivo. Solo se descargan los modelos de IA la primera vez.</p></details>
-  <details><summary>¿Cuánto tarda?</summary><p>Los cambios se ven al instante en la vista previa. Exportar en la compu suele tardar menos que la duración del video.</p></details>
-  <details><summary>¿Es gratis?</summary><p>Sí, sin marca de agua y sin límite de videos.</p></details>
+  <details><summary>¿Mi video se sube a algún servidor?</summary><p>No. El video se procesa en tu dispositivo. Solo se envía el texto de lo que decís para que la IA elija la edición y genere las imágenes.</p></details>
+  <details><summary>¿Cuánto tarda?</summary><p>La edición aparece en uno o dos minutos. Exportar en la compu suele tardar menos que lo que dura el video.</p></details>
+  <details><summary>¿Es gratis?</summary><p>Sí, sin marca de agua.</p></details>
 </div></section>
 
 <footer><div class="w" style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px"><span>© 2026 Videora</span><span>Hecho para creadores</span></div></footer>
@@ -245,52 +249,12 @@ footer{border-top:1px solid var(--line);padding:30px 0;color:var(--mut);font-siz
 <div id="app">
   <div class="bar">
     <button class="pill" id="back">← Volver</button>
-    <span class="pill save" id="saved">● Guardado</span>
     <div id="status"><span class="track"><i id="prog"></i></span><span id="msg">Preparando…</span></div>
     <span class="sp"></span>
-    <button class="pill" id="btnCut">✂ Recortar silencios</button>
-    <button class="btn sm" id="go" disabled>⬇ Exportar</button>
+    <button class="pill" id="btnCut">Recortar silencios</button>
+    <button class="btn sm" id="go" disabled>Exportar video</button>
   </div>
 
-  <!-- step 1: configure -->
-  <div id="cfg">
-    <div class="cfgc">
-      <h2>Armá tu edición</h2>
-      <p>La IA arma la mejor edición sola. Si querés, cambiá lo que quieras: todo se puede tocar después.</p>
-      <div class="rec" id="aiRec">✨ Cuando termine de escucharte, la IA va a elegir la mejor edición para tu video.</div>
-      <div class="cfgg">
-        <div>
-          <div class="tg"><i>💬</i><div><b>Subtítulos animados</b><small>Palabra por palabra con énfasis automático.</small></div><label class="sw"><input type="checkbox" id="optCaps" checked><span></span></label></div>
-          <div class="tg"><i>🪞</i><div><b>Espejar video</b><small>Activalo si la cámara te grabó al revés (las letras de la ropa se leen invertidas).</small></div><label class="sw"><input type="checkbox" id="optFlip"><span></span></label></div>
-          <div class="tg"><i>🅰</i><div><b>Énfasis de texto</b><small>Palabras gigantes, detrás tuyo, con cursiva cruzando.</small></div><label class="sw"><input type="checkbox" id="optBig"><span></span></label></div>
-          <div class="tg"><i>🎞</i><div><b>B-Rolls automáticos</b><small>Fotos de apoyo en los momentos que lo piden.</small></div><label class="sw"><input type="checkbox" id="optPhotos" checked><span></span></label></div>
-          <div class="tg"><i>🪄</i><div><b>Imágenes IA (gratis)</b><small>Genera imágenes del tema de tu video para pantallas y b-rolls.</small></div><label class="sw"><input type="checkbox" id="optAI" checked><span></span></label></div>
-          <div class="tg"><i>🪝</i><div><b>Hook textual</b><small>Frase de gancho inicial para frenar el scroll.</small></div><label class="sw"><input type="checkbox" id="optHook" checked><span></span></label></div>
-          <div class="tg"><i>🔍</i><div><b>Zooms automáticos</b><small>Acercamientos dinámicos a lo largo del video.</small></div><label class="sw"><input type="checkbox" id="optZoom" checked><span></span></label></div>
-          <div class="tg"><i>🔊</i><div><b>Efectos de sonido</b><small>Sincronizados con transiciones y énfasis.</small></div><label class="sw"><input type="checkbox" id="optSfx" checked><span></span></label></div>
-          <div class="tg"><i>✂️</i><div><b>Cortar silencios</b><small>Ritmo rápido sin pausas muertas.</small></div><label class="sw"><input type="checkbox" id="optCut" checked><span></span></label></div>
-        </div>
-        <div>
-          <div class="box">
-            <h3><span>🎬 Pantallas animadas <span class="tag">Recomendado</span></span><label class="sw"><input type="checkbox" id="optMG"><span></span></label></h3>
-            <small class="mut">Pantallas animadas sobre el tema de tu video: listas, números y frases clave.</small>
-            <div class="cards" id="mgCards"></div>
-          </div>
-          <div class="box">
-            <h3><span>🪪 Tarjetas de ideas</span><label class="sw"><input type="checkbox" id="optOverlay"><span></span></label></h3>
-            <small class="mut">Tarjetas con datos, citas e insights generadas desde lo que decís.</small>
-            <div class="cards ov" id="ovCards"></div>
-          </div>
-        </div>
-      </div>
-      <div class="cfgf">
-        <div class="grow"><span id="cfgMsg" class="mut" style="font-size:13px">Detectando los momentos clave…</span><div class="bigtrack"><i id="cfgProg"></i></div></div>
-        <button class="btn" id="cont">Continuar →</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- step 2: editor -->
   <div id="ed">
     <div class="stage">
       <canvas id="cv" width="720" height="1280"></canvas>
@@ -298,115 +262,116 @@ footer{border-top:1px solid var(--line);padding:30px 0;color:var(--mut);font-siz
     </div>
 
     <div class="panel">
-    <div class="ptabs"><button data-tab="r" class="sel">✦ Capas</button><button data-tab="l">Aa Estilo y texto</button></div>
-    <aside class="side hide" id="sideL">
-      <h4>Estilo y texto</h4>
-      <h5>LOOK DE SUBTÍTULOS</h5>
-      <div class="vs" id="vs">
-        <button data-v="viro"><b>Pro</b><small>Como viroedit: palabra en verde con brillo</small></button>
-        <button data-v="hormozi"><b>Impacto</b><small>Fuerte, con recuadro</small></button>
-        <button data-v="editorial"><b>Historia</b><small>Cursiva narrativa</small></button>
-        <button data-v="viral"><b>Creador</b><small>Limpio con palabra clave</small></button>
-        <button data-v="coral"><b>Coral</b><small>Tarjeta y tonos cálidos</small></button>
-        <button data-v="minimal"><b>Franja</b><small>Texto sobre banda oscura</small></button>
-      </div>
-      <select id="style" hidden><option value="viro" selected>viro</option><option value="viral">viral</option><option value="hormozi">hormozi</option><option value="editorial">editorial</option><option value="coral">coral</option><option value="minimal">minimal</option></select>
+      <div class="ptabs"><button data-tab="a" class="sel">Automático<small>Recomendado por la IA</small></button><button data-tab="p">Personalizado<small>Elegís vos</small></button></div>
 
-      <h5>TIPOGRAFÍA Y COLOR</h5>
-      <label class="fld">Texto base<select id="fBase" class="fontsel"></select></label>
-      <label class="fld">Tamaño del texto base<input type="range" id="sBase" min=".7" max="1.5" step=".05" value="1"></label>
-      <label class="fld">Palabra destacada (texto gigante)<select id="fKey" class="fontsel"></select></label>
-      <label class="fld">Tamaño de la palabra destacada<input type="range" id="sKey" min=".6" max="1.4" step=".05" value="1"></label>
-      <label class="fld">Acento cursivo<select id="fAccent" class="fontsel"></select></label>
-      <label class="fld">Tamaño del acento<input type="range" id="sAccent" min=".6" max="1.5" step=".05" value="1"></label>
-      <div class="fld">Color del texto<div class="sws" data-for="cBase"></div></div>
-      <div class="fld">Color de la palabra clave<div class="sws" data-for="cKey"></div></div>
-      <input type="hidden" id="cBase" value="auto"><input type="hidden" id="cKey" value="auto">
-      <label class="fld">Color del video<select id="grade"><option value="none">Natural</option><option value="warm">Cálido</option><option value="teal">Cine (teal & orange)</option><option value="punch">Contraste vivo</option><option value="film">Película</option><option value="bw">Blanco y negro</option></select></label>
-      <label class="fld">Importar tu fuente (.ttf .otf .woff)<input type="file" id="fontFile" accept=".ttf,.otf,.woff,.woff2"></label>
+      <aside class="side" id="sideA">
+        <div class="aicard">
+          <div class="hd">Edición de la IA</div>
+          <p id="aiRec">Cuando termine de escucharte, la IA elige la mejor edición para tu video.</p>
+          <div class="steps" id="steps"><span data-s="0">Escuchando tu video</span><span data-s="1">Eligiendo el estilo y la tipografía</span><span data-s="2">Creando imágenes y títulos</span><span data-s="3">Listo para exportar</span></div>
+        </div>
+        <div class="now-typo"><div><small class="mut" style="font-size:11px">TIPOGRAFÍA</small><b id="typoNow">—</b></div><button class="btn sm ghost" id="typoNext">Probar otra</button></div>
+        <div class="row2"><button class="btn sm ghost" id="aiAuto">Recomendar de nuevo</button><button class="btn sm ghost" id="toP">Ajustar a mano</button></div>
+        <h5>PEDILE UN CAMBIO A LA IA</h5>
+        <label class="fld"><textarea id="aiAsk" rows="3" placeholder="Ej: más elegante · tipografía de lujo · menos imágenes · más energía"></textarea></label>
+        <button class="btn sm full" id="aiGo">Aplicar cambio</button>
+      </aside>
 
-      <h5>TEXTO Y AUDIO</h5>
-      <label class="fld">Idioma del video<select id="lang"><option value="spanish">Español</option><option value="english">Inglés</option><option value="portuguese">Portugués</option></select></label>
-      <label class="fld">Precisión<select id="quality"><option value="base">Rápida (80 MB)</option><option value="small">Alta (250 MB)</option></select></label>
-      <label class="fld">Subtítulos<select id="task"><option value="transcribe">Mismo idioma</option><option value="translate">Traducir al inglés</option></select></label>
-      <label class="fld">Lo que decís (podés corregirlo)<textarea id="txt" placeholder="Acá aparece lo que decís en el video."></textarea></label>
-      <label class="fld">Palabra para comentar al final (opcional)<input id="ctaWord" maxlength="20" placeholder="Ej: INFO (si lo decís, se detecta solo)"></label>
-      <button class="btn sm ghost" id="ai">↻ Transcribir de nuevo</button>
-    </aside>
+      <aside class="side hide" id="sideP">
+        <h5>ESTILO</h5>
+        <div class="vs" id="vs">
+          <button data-v="viro"><b>Pro</b><small>Imágenes con títulos y frases clave</small></button>
+          <button data-v="viral"><b>Creador</b><small>Limpio, palabra clave destacada</small></button>
+          <button data-v="hormozi"><b>Impacto</b><small>Fuerte, con recuadro</small></button>
+          <button data-v="editorial"><b>Historia</b><small>Cursiva narrativa</small></button>
+          <button data-v="coral"><b>Coral</b><small>Tarjetas en tonos cálidos</small></button>
+          <button data-v="minimal"><b>Franja</b><small>Texto sobre banda oscura</small></button>
+        </div>
+        <select id="style" hidden><option value="viro" selected>viro</option><option value="viral">viral</option><option value="hormozi">hormozi</option><option value="editorial">editorial</option><option value="coral">coral</option><option value="minimal">minimal</option></select>
 
-    <aside class="side r" id="sideR">
-      <h4>Capas de edición</h4>
-      <div class="ask">
-        <div class="rec" id="aiRec2">✨ Cuando termine de escucharte, la IA elige la mejor edición para tu video.</div>
-        <label class="fld">Pedile un cambio a la IA<textarea id="aiAsk" rows="2" placeholder="Ej: más elegante y en tonos rosas · más energía · estilo de película"></textarea></label>
-        <div class="row"><button class="btn sm" id="aiGo">✨ Aplicar</button><button class="btn sm ghost" id="aiAuto">↻ Recomendar de nuevo</button></div>
-      </div>
-      <details class="acc" open><summary><span class="on-dot"></span>Arranque (hook)</summary><div class="in">
-        <div class="row">Activar efecto<label class="sw"><input type="checkbox" data-mirror="optHook"><span></span></label></div>
-        <span class="mut">Efecto visual</span>
-        <div class="chips" data-sel="hookFx"><button data-v="flash">⚡ Flash</button><button data-v="zoom">🔍 Zoom</button><button data-v="iris">◯ Círculo</button><button data-v="swipe">⇡ Deslizar</button><button data-v="glitch">▦ Glitch</button><button data-v="blackout">■ Título en negro</button><button data-v="blur">◎ Blur</button><button data-v="cine">🎬 Cine</button><button data-v="none">Ninguno</button></div>
-        <div class="row">Collage de fotos al arrancar<label class="sw"><input type="checkbox" id="optGallery"><span></span></label></div>
-        <span class="mut">Texto del gancho</span>
-        <div class="chips" data-sel="hookText"><button data-v="auto">Auto</button><button data-v="big">Texto gigante</button><button data-v="card">Tarjeta</button><button data-v="question">Pregunta</button><button data-v="none">Sin texto</button></div>
-        <input type="hidden" id="hookText" value="auto">
-        <span class="mut">Sonido del gancho</span>
-        <div class="chips" data-sel="hookSfx"><button data-v="auto">Auto</button><button data-v="impact">💥 Golpe</button><button data-v="riser">⤴ Subida + golpe</button><button data-v="whoosh">💨 Whoosh</button><button data-v="scratch">💿 Scratch</button><button data-v="notif">🔔 Notificación</button><button data-v="drop">🔉 Caída de bajo</button><button data-v="zap">⚡ Zap</button><button data-v="none">Sin sonido</button></div>
-        <input type="hidden" id="hookSfx" value="auto">
-        <input type="hidden" id="hookFx" value="blur">
-      </div></details>
-      <details class="acc"><summary><span class="on-dot"></span>Marco con título</summary><div class="in">
-        <div class="row">Video en tarjeta con título arriba<label class="sw"><input type="checkbox" id="optFrame"><span></span></label></div>
-      </div></details>
-      <details class="acc"><summary><span class="on-dot"></span>Zonas seguras</summary><div class="in">
-        <div class="row">Ver interfaz de TikTok/Reels (no se exporta)<label class="sw"><input type="checkbox" id="optSafe"><span></span></label></div>
-      </div></details>
-      <details class="acc"><summary><span class="on-dot"></span>Tarjetas de ideas</summary><div class="in">
-        <div class="row">Smart overlays<label class="sw"><input type="checkbox" data-mirror="optOverlay"><span></span></label></div>
-        <div class="chips" data-sel="ovStyle"><button data-v="auto">Auto</button><button data-v="glass">Vidrio</button><button data-v="neon">Neón</button><button data-v="mono">Revista</button><button data-v="graph">Cuaderno</button><button data-v="femtech">Rosa</button><button data-v="cyber">Terminal</button></div>
-        <input type="hidden" id="ovStyle" value="auto">
-      </div></details>
-      <details class="acc"><summary><span class="on-dot"></span>Texto detrás tuyo</summary><div class="in">
-        <div class="row">Palabras gigantes detrás tuyo<label class="sw"><input type="checkbox" data-mirror="optBig"><span></span></label></div>
-      </div></details>
-      <details class="acc"><summary><span class="on-dot"></span>Números animados</summary><div class="in">
-        <div class="row">Números que cuentan (ej: "30 días")<label class="sw"><input type="checkbox" id="optStats"><span></span></label></div>
-      </div></details>
-      <details class="acc"><summary><span class="on-dot"></span>Pantallas animadas</summary><div class="in">
-        <div class="row">Pantallas animadas<label class="sw"><input type="checkbox" data-mirror="optMG"><span></span></label></div>
-        <div class="chips" data-sel="mg"><button data-v="auto">Auto</button><button data-v="bw">Prensa</button><button data-v="cine">Noir</button><button data-v="photo">Foto real</button><button data-v="vintage">Collage</button><button data-v="coral">Coral</button><button data-v="noir">Negro</button><button data-v="dark">Noche</button><button data-v="neonpink">Neón rosa</button><button data-v="clean">Claro</button></div>
-        <input type="hidden" id="mg" value="auto">
-      </div></details>
-      <details class="acc"><summary><span class="on-dot"></span>Fotos de apoyo</summary><div class="in">
-        <div class="row">Fotos automáticas<label class="sw"><input type="checkbox" data-mirror="optPhotos"><span></span></label></div>
-        <span class="mut">Cómo se muestran</span>
-        <div class="chips" data-sel="brollLayout"><button data-v="split">▤ Pantalla dividida</button><button data-v="card">▣ Tarjeta arriba</button><button data-v="full">▮ Pantalla completa</button></div>
-        <input type="hidden" id="brollLayout" value="full">
-        <label class="fld">Tus fotos (opcional; si no subís, las busca solas)<input type="file" id="photos" accept="image/*" multiple></label>
-      </div></details>
-      <details class="acc"><summary><span class="on-dot"></span>Efectos visuales</summary><div class="in">
-        <div class="row">Glitch, destellos y zoom látigo<label class="sw"><input type="checkbox" id="optFx"><span></span></label></div>
-        <input type="checkbox" id="optEmoji" hidden>
-        <div class="row">Barra de progreso<label class="sw"><input type="checkbox" id="optBar"><span></span></label></div>
-        <div class="row">Zooms automáticos<label class="sw"><input type="checkbox" data-mirror="optZoom"><span></span></label></div>
-        <div class="row">Zoom in / zoom out en frases clave<label class="sw"><input type="checkbox" id="optPunch"><span></span></label></div>
-        <div class="row">Final en loop (empalma con el inicio)<label class="sw"><input type="checkbox" id="optLoop"><span></span></label></div>
-      </div></details>
-      <details class="acc"><summary><span class="on-dot"></span>Subtítulos y sonido</summary><div class="in">
-        <div class="row">Subtítulos<label class="sw"><input type="checkbox" data-mirror="optCaps"><span></span></label></div>
-        <div class="row">Subtítulos que siguen tu cabeza<label class="sw"><input type="checkbox" id="optFollow"><span></span></label></div>
-        <div class="row">Efectos de sonido<label class="sw"><input type="checkbox" data-mirror="optSfx"><span></span></label></div>
-        <div class="row">Cortar silencios<label class="sw"><input type="checkbox" data-mirror="optCut"><span></span></label></div>
-      </div></details>
-    </aside>
+        <h5>TIPOGRAFÍA</h5>
+        <div class="tys" id="tys"></div>
+        <input type="hidden" id="typo" value="auto">
 
+        <h5>QUÉ INCLUIR</h5>
+        <div class="tg"><div><b>Subtítulos</b><small>Palabra por palabra, sincronizados.</small></div><label class="sw"><input type="checkbox" id="optCaps" checked><span></span></label></div>
+        <div class="tg"><div><b>Imágenes de apoyo</b><small>A pantalla completa, con título.</small></div><label class="sw"><input type="checkbox" id="optPhotos" checked><span></span></label></div>
+        <div class="tg"><div><b>Imágenes creadas con IA</b><small>Si lo apagás, usa solo tus fotos.</small></div><label class="sw"><input type="checkbox" id="optAI" checked><span></span></label></div>
+        <div class="tg"><div><b>Arranque con impacto</b><small>Efecto y sonido en el primer segundo.</small></div><label class="sw"><input type="checkbox" id="optHook" checked><span></span></label></div>
+        <div class="tg"><div><b>Zooms suaves</b><small>Acercamientos lentos entre cortes.</small></div><label class="sw"><input type="checkbox" id="optZoom" checked><span></span></label></div>
+        <div class="tg"><div><b>Efectos de sonido</b><small>Sutiles, en transiciones.</small></div><label class="sw"><input type="checkbox" id="optSfx" checked><span></span></label></div>
+        <div class="tg"><div><b>Cortar silencios</b><small>Ritmo ágil, sin pausas muertas.</small></div><label class="sw"><input type="checkbox" id="optCut" checked><span></span></label></div>
+        <div class="tg"><div><b>Espejar video</b><small>Si la cámara te grabó al revés.</small></div><label class="sw"><input type="checkbox" id="optFlip"><span></span></label></div>
+
+        <h5>MÁS OPCIONES</h5>
+        <details class="acc"><summary><span class="on-dot"></span>Arranque</summary><div class="in">
+          <span>Efecto visual</span>
+          <div class="chips" data-sel="hookFx"><button data-v="blur">Desenfoque</button><button data-v="flash">Flash</button><button data-v="zoom">Zoom</button><button data-v="iris">Círculo</button><button data-v="swipe">Deslizar</button><button data-v="cine">Cine</button><button data-v="blackout">Título en negro</button><button data-v="none">Ninguno</button></div>
+          <input type="hidden" id="hookFx" value="blur">
+          <span>Texto del gancho</span>
+          <div class="chips" data-sel="hookText"><button data-v="auto">Auto</button><button data-v="big">Texto gigante</button><button data-v="card">Tarjeta</button><button data-v="question">Pregunta</button><button data-v="none">Sin texto</button></div>
+          <input type="hidden" id="hookText" value="auto">
+          <span>Sonido del gancho</span>
+          <div class="chips" data-sel="hookSfx"><button data-v="auto">Auto</button><button data-v="impact">Golpe</button><button data-v="riser">Subida</button><button data-v="whoosh">Whoosh</button><button data-v="notif">Notificación</button><button data-v="none">Sin sonido</button></div>
+          <input type="hidden" id="hookSfx" value="auto">
+          <div class="row">Collage de fotos al arrancar<label class="sw"><input type="checkbox" id="optGallery"><span></span></label></div>
+        </div></details>
+        <details class="acc"><summary><span class="on-dot"></span>Imágenes de apoyo</summary><div class="in">
+          <span>Cómo se muestran</span>
+          <div class="chips" data-sel="brollLayout"><button data-v="full">Pantalla completa</button><button data-v="split">Pantalla dividida</button><button data-v="card">Tarjeta arriba</button></div>
+          <input type="hidden" id="brollLayout" value="full">
+          <label class="fld">Tus fotos (opcional)<input type="file" id="photos" accept="image/*" multiple></label>
+        </div></details>
+        <details class="acc"><summary><span class="on-dot"></span>Pantallas animadas y tarjetas</summary><div class="in">
+          <div class="row">Listas y frases en pantallas animadas<label class="sw"><input type="checkbox" id="optMG"><span></span></label></div>
+          <div class="chips" data-sel="mg"><button data-v="auto">Auto</button><button data-v="noir">Negro</button><button data-v="bw">Prensa</button><button data-v="cine">Noir</button><button data-v="photo">Foto real</button><button data-v="vintage">Collage</button><button data-v="coral">Coral</button><button data-v="dark">Noche</button><button data-v="clean">Claro</button></div>
+          <input type="hidden" id="mg" value="auto">
+          <div class="row">Números que cuentan<label class="sw"><input type="checkbox" id="optStats"><span></span></label></div>
+          <div class="row">Tarjetas de ideas<label class="sw"><input type="checkbox" id="optOverlay"><span></span></label></div>
+          <div class="chips" data-sel="ovStyle"><button data-v="auto">Auto</button><button data-v="glass">Vidrio</button><button data-v="neon">Neón</button><button data-v="mono">Revista</button><button data-v="graph">Cuaderno</button></div>
+          <input type="hidden" id="ovStyle" value="auto">
+          <div class="row">Palabras gigantes detrás tuyo<label class="sw"><input type="checkbox" id="optBig"><span></span></label></div>
+        </div></details>
+        <details class="acc"><summary><span class="on-dot"></span>Efectos</summary><div class="in">
+          <div class="row">Destellos y glitch<label class="sw"><input type="checkbox" id="optFx"><span></span></label></div>
+          <div class="row">Zoom en frases clave<label class="sw"><input type="checkbox" id="optPunch"><span></span></label></div>
+          <div class="row">Barra de progreso<label class="sw"><input type="checkbox" id="optBar"><span></span></label></div>
+          <div class="row">Final en loop<label class="sw"><input type="checkbox" id="optLoop"><span></span></label></div>
+          <div class="row">Video en marco con título<label class="sw"><input type="checkbox" id="optFrame"><span></span></label></div>
+          <div class="row">Subtítulos que siguen tu cabeza<label class="sw"><input type="checkbox" id="optFollow"><span></span></label></div>
+          <div class="row">Ver interfaz de TikTok (no se exporta)<label class="sw"><input type="checkbox" id="optSafe"><span></span></label></div>
+          <input type="checkbox" id="optEmoji" hidden>
+        </div></details>
+        <details class="acc"><summary>Letra y color a mano</summary><div class="in">
+          <label class="fld">Letra de los subtítulos<select id="fBase" class="fontsel"></select></label>
+          <label class="fld">Tamaño de los subtítulos<input type="range" id="sBase" min=".7" max="1.5" step=".05" value="1"></label>
+          <label class="fld">Letra de las palabras gigantes<select id="fKey" class="fontsel"></select></label>
+          <label class="fld">Tamaño de las palabras gigantes<input type="range" id="sKey" min=".6" max="1.4" step=".05" value="1"></label>
+          <label class="fld">Letra cursiva<select id="fAccent" class="fontsel"></select></label>
+          <label class="fld">Tamaño de la cursiva<input type="range" id="sAccent" min=".6" max="1.5" step=".05" value="1"></label>
+          <div class="fld">Color del texto<div class="sws" data-for="cBase"></div></div>
+          <div class="fld">Color de la palabra clave<div class="sws" data-for="cKey"></div></div>
+          <input type="hidden" id="cBase" value="auto"><input type="hidden" id="cKey" value="auto">
+          <label class="fld">Color del video<select id="grade"><option value="none">Natural</option><option value="warm">Cálido</option><option value="teal">Cine</option><option value="punch">Contraste vivo</option><option value="film">Película</option><option value="bw">Blanco y negro</option></select></label>
+          <label class="fld">Usar tu propia fuente (.ttf .otf .woff)<input type="file" id="fontFile" accept=".ttf,.otf,.woff,.woff2"></label>
+        </div></details>
+        <details class="acc"><summary>Texto y transcripción</summary><div class="in">
+          <label class="fld">Idioma del video<select id="lang"><option value="spanish">Español</option><option value="english">Inglés</option><option value="portuguese">Portugués</option></select></label>
+          <label class="fld">Precisión<select id="quality"><option value="base">Rápida</option><option value="small">Alta</option></select></label>
+          <label class="fld">Subtítulos<select id="task"><option value="transcribe">Mismo idioma</option><option value="translate">Traducir al inglés</option></select></label>
+          <label class="fld">Lo que decís (podés corregirlo)<textarea id="txt" placeholder="Acá aparece lo que decís en el video."></textarea></label>
+          <label class="fld">Palabra para comentar al final (opcional)<input id="ctaWord" maxlength="20" placeholder="Ej: INFO"></label>
+          <button class="btn sm ghost" id="ai">Transcribir de nuevo</button>
+        </div></details>
+      </aside>
     </div>
-    <div class="tlw"><div class="lbl"><span>Video</span><span>Subtítulos</span></div><canvas id="tl" height="76"></canvas></div>
+    <div class="tlw"><div class="lbl"><span>Video</span><span>Texto</span></div><canvas id="tl" height="76"></canvas></div>
   </div>
 
   <div class="dlbox" id="dlbox" hidden>
-    <b>¡Tu video está listo!</b>
+    <b>Tu video está listo</b>
     <span class="mut" style="font-size:13px">Descargalo y subilo a TikTok, Reels o Shorts.</span>
-    <a class="btn" id="dl" hidden>⬇ Descargar video</a>
+    <a class="btn" id="dl" hidden>Descargar video</a>
     <button class="btn sm ghost" id="dlx">Cerrar</button>
   </div>
 </div>

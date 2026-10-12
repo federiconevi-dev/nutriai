@@ -1,4 +1,4 @@
-// Page UI: landing → configure → editor. The engine (editor.js) exposes window.VE.
+// Page UI: landing → editor (Automático / Personalizado tabs). The engine (editor.js) exposes window.VE.
 const $ = q => document.querySelector(q);
 const $$ = q => [...document.querySelectorAll(q)];
 const VE = window.VE, v = VE.video;
@@ -48,22 +48,14 @@ const vsSync = () => $$('#vs button').forEach(b => b.classList.toggle('sel', b.d
 $('#vs').onclick = e => { const b = e.target.closest('button'); if (!b) return; $('#style').value = b.dataset.v; vsSync(); fire($('#style')); };
 $('#style').addEventListener('change', vsSync);
 
-// ---- Mirrored switches (same option shown in two places) ----
-$$('[data-mirror]').forEach(m => {
-  const real = $('#' + m.dataset.mirror);
-  m.checked = real.checked;
-  m.onchange = () => { real.checked = m.checked; real.dispatchEvent(new Event('change')); syncAll(); };
-  real.addEventListener('change', () => { m.checked = real.checked; });
-});
 function syncAll() {
-  $$('[data-mirror]').forEach(m => { m.checked = $('#' + m.dataset.mirror).checked; });
   $$('.acc').forEach(d => { const c = d.querySelector('input[type=checkbox]'); d.classList.toggle('live', !!c && c.checked); });
   $('#btnCut').classList.toggle('on', $('#optCut').checked);
 }
 $('#btnCut').onclick = () => { const c = $('#optCut'); c.checked = !c.checked; c.dispatchEvent(new Event('change')); syncAll(); };
 
 // ---- Autosave settings (this browser only) ----
-const KEY = 'videora-settings-v2';
+const KEY = 'videora-settings-v3';
 const saveable = () => $$('#app input[id], #app select[id]').filter(el => el.type !== 'file' && el.id !== 'ctaWord');
 function restore() {
   let s = null; try { s = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { /* storage blocked */ }
@@ -82,47 +74,40 @@ document.addEventListener('change', e => {
 });
 restore(); syncAll(); vsSync();
 
-// ---- Look previews (drawn by the same engine that renders your video) ----
-const MG = [['auto', 'Automático'], ['noir', 'Negro'], ['bw', 'Prensa'], ['cine', 'Noir'], ['photo', 'Foto real'], ['vintage', 'Collage'], ['coral', 'Coral'], ['dark', 'Noche'], ['neonpink', 'Neón rosa'], ['clean', 'Claro']];
-const OVS = [['auto', 'Automático'], ['glass', 'Vidrio'], ['neon', 'Neón'], ['mono', 'Revista'], ['graph', 'Cuaderno'], ['femtech', 'Rosa'], ['cyber', 'Terminal']];
-function makeCards(box, list, kind, input) {
-  box.innerHTML = list.map(([k, n]) => `<button type="button" class="card" data-v="${k}"><canvas width="${kind === 'ov' ? 320 : 180}" height="${kind === 'ov' ? 200 : 320}"></canvas><span>${n}</span></button>`).join('');
-  const paint = () => box.querySelectorAll('.card').forEach((c, i) => VE.thumb(c.querySelector('canvas'), kind, c.dataset.v, i));
-  const sync = () => box.querySelectorAll('.card').forEach(c => c.classList.toggle('sel', c.dataset.v === input.value));
-  box.onclick = e => { const c = e.target.closest('.card'); if (!c) return; input.value = c.dataset.v; fire(input); sync(); };
-  input.addEventListener('change', sync); sync();
-  return paint;
-}
-const paintMG = makeCards($('#mgCards'), MG, 'mg', $('#mg'));
-const paintOV = makeCards($('#ovCards'), OVS, 'ov', $('#ovStyle'));
-const lg = $('#lgStyles');
-lg.innerHTML = MG.slice(1, 6).map(([k, n]) => `<div><canvas width="180" height="320" data-v="${k}"></canvas><span>${n}</span></div>`).join('');
-const paintLanding = () => lg.querySelectorAll('canvas').forEach((c, i) => VE.thumb(c, 'mg', c.dataset.v, i));
-const repaint = () => { paintMG(); paintOV(); paintLanding(); };
-(document.fonts ? document.fonts.ready : Promise.resolve()).then(() => setTimeout(repaint, 300));
-setTimeout(repaint, 2500);
-['fKey', 'fAccent', 'fBase', 'sKey', 'sAccent', 'cKey'].forEach(id => $('#' + id).addEventListener('change', () => setTimeout(repaint, 200)));
-
-// ---- Marquee of what it does (no fake reviews) ----
-const items = ['Subtítulos palabra por palabra', 'Texto gigante detrás tuyo', 'Listas animadas automáticas', 'Números que cuentan', 'Frases clave en pantalla', 'Fotos b-roll semitransparentes', 'Hook con flash, blur o cine', 'Cortes de silencios', 'Zooms en momentos clave', 'Glitch y destellos', 'Overlays tipo Apple Glass', 'Exportación rápida'];
-$('#mq').innerHTML = [...items, ...items].map(t => `<div class="cm"><small>Videora hace</small><b>${t}</b></div>`).join('');
+// ---- Typography cards (Personalizado) and showcase (landing) ----
+const TY = VE.typos;
+const tyHtml = (k, T) => `<button type="button" data-v="${k}"><i style="font:${T.kicker}">Tu viaje comienza</i><b style="font:${T.title}">Aprendé lo <span style="background:linear-gradient(90deg,${T.key[0]},${T.key[1]});-webkit-background-clip:text;background-clip:text;color:transparent">esencial</span></b><small>${T.name}</small></button>`;
+$('#tys').innerHTML = `<button type="button" class="auto" data-v="auto">Automática<small class="mut">La IA elige según tu video</small></button>` + Object.entries(TY).map(([k, T]) => tyHtml(k, T)).join('');
+const tySync = () => {
+  $$('#tys button').forEach(b => b.classList.toggle('sel', b.dataset.v === $('#typo').value));
+  const k = VE.typoKey; $('#typoNow').textContent = TY[k] ? TY[k].name : '—'; if (TY[k]) $('#typoNow').style.font = TY[k].title.replace(/\d+(\.\d+)?px/, '22px');
+};
+$('#tys').onclick = e => { const b = e.target.closest('button'); if (!b) return; $('#typo').value = b.dataset.v; fire($('#typo')); };
+$('#typo').addEventListener('change', tySync);
+$('#typoNext').onclick = () => { const ks = Object.keys(TY), i = ks.indexOf(VE.typoKey); $('#typo').value = ks[(i + 1) % ks.length]; fire($('#typo')); };
+$('#typesShow').innerHTML = Object.values(TY).map(T => `<span style="font:${T.title.replace(/\d+(\.\d+)?px/, '22px')}">${T.name}</span>`).join('');
+const repaint = () => tySync();
+(document.fonts ? document.fonts.ready : Promise.resolve()).then(tySync);
 
 // ---- Flow ----
 const app = $('#app');
 function view(name) {
   app.classList.add('on'); document.body.style.overflow = 'hidden';
-  $('#cfg').hidden = name !== 'cfg';
-  $('#ed').classList.toggle('on', name === 'ed');
-  if (name === 'cfg') setTimeout(repaint, 50);
-  if (name === 'ed') { resizeTl(); v.play().catch(() => {}); }
+  resizeTl(); v.play().catch(() => {});
 }
-window.onLoaded = () => { view('cfg'); $('#dlbox').hidden = true; };
+window.onLoaded = () => { view('ed'); $('#dlbox').hidden = true; tab('a'); setStep(0); setRec('Cuando termine de escucharte, la IA elige la mejor edición para tu video.'); };
 $('#file2').onchange = e => { const f = e.target.files[0]; if (f) VE.load(f); };
-$('#cont').onclick = () => view('ed');
 $('#back').onclick = () => { app.classList.remove('on'); document.body.style.overflow = ''; v.pause(); };
-// Mirror engine status into the configure step.
-new MutationObserver(() => { $('#cfgMsg').textContent = $('#msg').textContent; }).observe($('#msg'), { childList: true, characterData: true, subtree: true });
-new MutationObserver(() => { $('#cfgProg').style.width = $('#prog').style.width; }).observe($('#prog'), { attributes: true });
+// Last step is done when every image of the edit has arrived (or after a while, whatever is there).
+let artT = 0;
+function waitArt() { clearInterval(artT); const t0 = Date.now(); artT = setInterval(() => { const P = VE.plan, ph = P && P.beats ? P.beats.photos : []; if ((P && ph.every(p => p.img)) || Date.now() - t0 > 60000) { clearInterval(artT); setStep(3); } }, 1000); }
+// Progress steps in the Automático tab, read from the engine status.
+function setStep(n) { $$('#steps span').forEach(sp => { const i = +sp.dataset.s; sp.className = i < n ? 'done' : i === n ? 'now' : ''; }); if (n >= 3) $$('#steps span').forEach(sp => { sp.className = 'done'; }); }
+new MutationObserver(() => {
+  const m = $('#msg').textContent;
+  if (/escuch|transcrib|modelo|descarg|audio/i.test(m)) setStep(0);
+  else if (/imagen|foto/i.test(m)) setStep(2);
+}).observe($('#msg'), { childList: true, characterData: true, subtree: true });
 
 // ---- Player controls ----
 const pp = $('#pp');
@@ -132,12 +117,13 @@ v.addEventListener('play', ppSync); v.addEventListener('pause', ppSync);
 $('#rw').onclick = () => { const p = VE.plan; v.currentTime = p ? p.segs[0].s : 0; };
 $('#mute').onclick = () => { v.muted = !v.muted; $('#mute').textContent = v.muted ? '🔇' : '🔊'; if (!v.muted) v.play().catch(() => {}); };
 
-// ---- Mobile tabs ----
-$$('.ptabs button').forEach(b => b.onclick = () => {
-  const l = b.dataset.tab === 'l';
-  $('#sideL').classList.toggle('hide', !l); $('#sideR').classList.toggle('hide', l);
-  $$('.ptabs button').forEach(x => x.classList.toggle('sel', x === b));
-});
+// ---- Automático / Personalizado tabs ----
+function tab(t) {
+  $('#sideA').classList.toggle('hide', t !== 'a'); $('#sideP').classList.toggle('hide', t !== 'p');
+  $$('.ptabs button').forEach(x => x.classList.toggle('sel', x.dataset.tab === t));
+}
+$$('.ptabs button').forEach(b => b.onclick = () => tab(b.dataset.tab));
+$('#toP').onclick = () => tab('p');
 
 // ---- Timeline ----
 const tl = $('#tl'), tcx = tl.getContext('2d');
@@ -169,8 +155,7 @@ window.onExported = () => { $('#dlbox').hidden = false; };
 $('#dlx').onclick = () => { $('#dlbox').hidden = true; };
 
 // ---- AI director: picks the whole edit after transcription, and applies changes asked in plain words ----
-const recEls = [$('#aiRec'), $('#aiRec2')];
-const setRec = t => recEls.forEach(el => { el.textContent = t; });
+const setRec = t => { $('#aiRec').textContent = t; };
 function currentSettings() {
   const s = {};
   saveable().forEach(el => { s[el.id] = el.type === 'checkbox' ? el.checked : el.value; });
@@ -180,22 +165,23 @@ let directing = false;
 async function direct(request = '') {
   if (directing) return;
   directing = true; $('#aiGo').disabled = $('#aiAuto').disabled = true;
-  setRec(request ? '✨ Aplicando tu pedido…' : '✨ La IA está eligiendo la mejor edición para tu video…');
+  setRec(request ? 'Aplicando tu pedido…' : 'La IA está eligiendo la mejor edición para tu video…'); if (!request) setStep(1);
   try {
     const r = await fetch('/api/ai-direct', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: $('#txt').value, request, current: currentSettings() }) });
     const j = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(j.error || 'La IA no respondió.');
     // In automatic mode keep our curated typography and colors; fonts/colors change only when asked.
-    for (const [k, val] of Object.entries(j.settings || {})) { if (!request && k !== 'hookSfx') continue; const el = $('#' + k); if (el && el.value !== val) { el.value = val; fire(el); } }
+    if (j.settings && j.settings.typo) VE.setTypo(j.settings.typo);
+    for (const [k, val] of Object.entries(j.settings || {})) { if (k === 'typo' ? !request : !request && k !== 'hookSfx') continue; const el = $('#' + k); if (el && el.value !== val) { el.value = val; fire(el); } }
     // In automatic mode the AI can only switch extra features on (the full edit stays); turning things off needs a request.
     for (const [k, val] of Object.entries(j.toggles || {})) { if (!request) continue; const el = $('#' + k); if (el && el.checked !== val) { el.checked = val; el.dispatchEvent(new Event('change', { bubbles: true })); } }
     if (j.fixes) VE.fixWords(j.fixes);
     if (j.hookTitle) VE.setHook(j.hookTitle);
-    syncAll(); vsSync(); setTimeout(repaint, 100);
-    setRec('✨ ' + (j.reason || 'Listo, apliqué la edición.'));
+    syncAll(); vsSync(); tySync();
+    setRec(j.reason || 'Listo, apliqué la edición.'); setStep(2); waitArt();
     if (request) $('#aiAsk').value = '';
   } catch (e) {
-    setRec('La IA no pudo responder ahora (' + e.message + '). Tu edición automática sigue lista.');
+    setRec('La IA no pudo responder ahora (' + e.message + '). Tu edición automática sigue lista.'); waitArt();
   }
   directing = false; $('#aiGo').disabled = $('#aiAuto').disabled = false;
 }

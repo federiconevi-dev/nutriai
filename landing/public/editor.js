@@ -229,13 +229,28 @@ const blur = px => { if (HAS_FILTER) cx.filter = px > .3 ? `blur(${px.toFixed(1)
 const isNum = s => /\d/.test(s);
 // Dark accents (e.g. deep blue) are hard to read over video: mix them with white until they are bright enough.
 // Canvas text only uses web fonts that are already loaded: warm up the ones the looks draw with.
-if (document.fonts) ['800 40px "Plus Jakarta Sans"', '110px "Great Vibes"', 'italic 46px "Instrument Serif"', '900 40px Nunito', '400 80px Anton'].forEach(f => document.fonts.load(f).catch(() => {}));
+// Professional type pairings for the Pro look: title, elegant kicker, captions and the key-word colors.
+// Each video gets one (chosen by the AI or from its words), so edits never look all the same.
+const TYPO = {
+  nova: { name: 'Nova', title: s => `800 ${s}px "Bricolage Grotesque", sans-serif`, kicker: s => `italic 400 ${s}px "Instrument Serif", serif`, cap: s => `800 ${s}px "Bricolage Grotesque", sans-serif`, key: ['#2F7BFF', '#7CC4FF'], hi: '#5CF58A' },
+  lujo: { name: 'Lujo', title: s => `800 ${s}px Syne, sans-serif`, kicker: s => `italic 600 ${s * 1.1}px "Cormorant Garamond", serif`, cap: s => `800 ${s}px Manrope, sans-serif`, key: ['#D9A441', '#F6E3A8'], hi: '#F4D58D' },
+  revista: { name: 'Revista', title: s => `800 ${s}px Fraunces, serif`, kicker: s => `italic 400 ${s}px "Instrument Serif", serif`, cap: s => `800 ${s}px "Inter Tight", sans-serif`, key: ['#FF5A36', '#FFA07A'], hi: '#FF8A5B' },
+  tech: { name: 'Tech', title: s => `800 ${s * .86}px Unbounded, sans-serif`, kicker: s => `600 ${s * .62}px "JetBrains Mono", monospace`, cap: s => `700 ${s}px Sora, sans-serif`, key: ['#7C5CFF', '#C9A7FF'], hi: '#B69CFF' },
+  suave: { name: 'Suave', title: s => `800 ${s}px "Plus Jakarta Sans", sans-serif`, kicker: s => `italic 400 ${s}px "DM Serif Display", serif`, cap: s => `900 ${s}px Nunito, sans-serif`, key: ['#FF3D6E', '#FF9BB5'], hi: '#FF7BA3' },
+  clasico: { name: 'Clásico', title: s => `400 ${s * .92}px "Archivo Black", sans-serif`, kicker: s => `italic 700 ${s * .9}px "Playfair Display", serif`, cap: s => `700 ${s}px "DM Sans", sans-serif`, key: ['#FFC21A', '#FFE58A'], hi: '#FFD23F' },
+  urbano: { name: 'Urbano', title: s => `700 ${s}px "Space Grotesk", sans-serif`, kicker: s => `700 ${s * 1.15}px Caveat, cursive`, cap: s => `700 ${s}px "Space Grotesk", sans-serif`, key: ['#16C964', '#9BF6B9'], hi: '#5CF58A' }
+};
+let aiTypo = '';
+const typoKey = () => { const v2 = val('typo', 'auto'); if (TYPO[v2]) return v2; if (TYPO[aiTypo]) return aiTypo; const ks = Object.keys(TYPO), h = [...words.slice(0, 12).map(w => w.t).join('')].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 3); return ks[h % ks.length]; };
+const typo = () => TYPO[typoKey()];
+if (document.fonts) Object.values(TYPO).flatMap(T => [T.title(60), T.kicker(46), T.cap(36)]).concat(['400 40px Anton']).forEach(f => document.fonts.load(f).catch(() => {}));
 const lift = hex => { const n = parseInt(hex.slice(1), 16); let r = n >> 16 & 255, g = n >> 8 & 255, b = n & 255; const L = (.2126 * r + .7152 * g + .0722 * b) / 255; if (L >= .5) return hex; const m = Math.min(.6, (.55 - L) / (1 - L)); r += (255 - r) * m; g += (255 - g) * m; b += (255 - b) * m; return `rgb(${r | 0},${g | 0},${b | 0})`; };
 const style = () => {
-  const st = fontOverride(STYLES[$('#style').value] || STYLES.viral);
+  const st = { ...fontOverride(STYLES[$("#style").value] || STYLES.viral) };
   const k = val('cKey', 'auto'), b = val('cBase', 'auto');
   const th = THEMES[themeKey()];
-  return { ...st, size: st.size * +val('sBase', 1), hi: k !== 'auto' ? k : st.pill || st.viro ? st.hi : lift(th.accent), glowC: st.viro ? '#22E36B' : th.glow || th.accent, base: b === 'auto' ? '#fff' : b };
+  if (st.viro) { const T = typo(); if (val('fBase', 'auto') === 'auto') st.font = T.cap; st.hi = T.hi; }
+  return { ...st, size: st.size * +val('sBase', 1), hi: k !== 'auto' ? k : st.pill || st.viro ? st.hi : lift(th.accent), glowC: st.viro ? st.hi : th.glow || th.accent, base: b === 'auto' ? '#fff' : b };
 };
 
 function wordsLayout(list, st) {
@@ -694,7 +709,7 @@ const AI_STYLE = {
   clean: 'clean minimal 3D illustration, white background, soft blue accents, soft shadows'
 };
 const aiCache = new Map(), promptCache = new Map();
-let aiDown = false, aiFails = 0, aiQuotaWarned = false;
+let aiDown = false, aiFails = 0;
 let brollPicks = [], brollFor = null;
 function sentences() {
   const out = []; let cur = [];
@@ -743,10 +758,20 @@ function aiImage(subject) {
     if (aiDown) return null;
     await aiSlot();
     try {
-      const r = await fetch(`/api/ai-image?p=${encodeURIComponent(prompt)}`);
-      if (r.status === 503 || r.status === 404) { aiDown = true; return null; }      // not configured
-      if (r.status === 429) { aiDown = true; if (!aiQuotaWarned) { aiQuotaWarned = true; msg('Se terminó el cupo gratis de imágenes IA de hoy (se renueva a las 21 h de Argentina). El resto de la edición sigue igual.'); } return null; }
-      if (!r.ok) { aiCache.delete(prompt); return null; }                            // one refused image: just skip it
+      let r = await fetch(`/api/ai-image?p=${encodeURIComponent(prompt)}`).catch(() => null);
+      // Server busy or out of free quota: ask the free backup generator straight from the browser.
+      if (!r || !r.ok) {
+        const seed = [...prompt].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7) % 100000;
+        r = await fetch(`https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=720&height=1400&nologo=true&model=flux&seed=${seed}`).catch(() => null);
+        if (r && r.ok) {
+          // The backup stamps a small logo in the bottom corner: crop it off.
+          const raw = new Image(); raw.src = URL.createObjectURL(await r.blob()); await raw.decode();
+          const c2 = document.createElement('canvas'); c2.width = raw.naturalWidth; c2.height = Math.round(raw.naturalHeight * .9);
+          c2.getContext('2d').drawImage(raw, 0, 0); URL.revokeObjectURL(raw.src);
+          return c2;
+        }
+      }
+      if (!r || !r.ok) { aiCache.delete(prompt); return null; }
       const img = new Image(); img.src = URL.createObjectURL(await r.blob()); await img.decode();
       return img;
     } catch (e) { if (++aiFails >= 5) aiDown = true; aiCache.delete(prompt); return null; }
@@ -998,10 +1023,11 @@ function viroPhotoText(ph, t, k) {
     const g = cx.createLinearGradient(0, 0, 0, H * .5); g.addColorStop(0, 'rgba(0,0,0,.6)'); g.addColorStop(1, 'rgba(0,0,0,0)'); cx.fillStyle = g; cx.fillRect(0, 0, W, H * .5);
     const x0 = W * .08; let y = H * .1;
     cx.textBaseline = 'alphabetic'; cx.textAlign = 'left'; cx.shadowColor = 'rgba(0,0,0,.45)'; cx.shadowBlur = 18;
-    if (ph.kicker) { const a = ease((age - .1) / .4); cx.globalAlpha = k * a; cx.font = SERIF(46); cx.fillStyle = '#fff'; cx.fillText(ph.kicker, x0, y + 12 * (1 - a)); y += 70; }
+    const T = typo();
+    if (ph.kicker) { const a = ease((age - .1) / .4); cx.globalAlpha = k * a; cx.font = T.kicker(46); cx.fillStyle = '#fff'; cx.fillText(ph.kicker, x0, y + 12 * (1 - a)); y += 70; }
     const ws = ph.label.split(' '), key = ws.reduce((b, w) => clean(w).length >= clean(b).length ? w : b, ws[0]);
-    let fs = 70; cx.font = `800 ${fs}px "Plus Jakarta Sans", Inter, sans-serif`;
-    while (ws.some(w => cx.measureText(w).width > W * .84) && fs > 40) { fs -= 4; cx.font = `800 ${fs}px "Plus Jakarta Sans", Inter, sans-serif`; }
+    let fs = 70; cx.font = T.title(fs);
+    while (ws.some(w => cx.measureText(w).width > W * .84) && fs > 40) { fs -= 4; cx.font = T.title(fs); }
     if ('letterSpacing' in cx) cx.letterSpacing = '-0.02em';
     const lines = [[]]; let lw = 0; const sp = fs * .26;
     ws.forEach(w => { const ww = cx.measureText(w).width; if (lw + ww > W * .84 && lines.at(-1).length) { lines.push([]); lw = 0; } lines.at(-1).push(w); lw += ww + sp; });
@@ -1009,7 +1035,7 @@ function viroPhotoText(ph, t, k) {
     lines.forEach((l, li) => { let x = x0; const yy = y + li * fs * 1.05;
       l.forEach(w => { const a = ease((age - .25 - n++ * .12) / .35), ww = cx.measureText(w).width;
         if (a > 0) { cx.globalAlpha = k * a;
-          if (w === key) { const gg = cx.createLinearGradient(x, 0, x + ww, 0); gg.addColorStop(0, '#2F7BFF'); gg.addColorStop(1, '#7CC4FF'); cx.fillStyle = gg; } else cx.fillStyle = '#fff';
+          if (w === key) { const gg = cx.createLinearGradient(x, 0, x + ww, 0); gg.addColorStop(0, T.key[0]); gg.addColorStop(1, T.key[1]); cx.fillStyle = gg; } else cx.fillStyle = '#fff';
           cx.fillText(w, x, yy + 18 * (1 - a)); }
         x += ww + sp; }); });
     if ('letterSpacing' in cx) cx.letterSpacing = '0px';
@@ -1017,7 +1043,7 @@ function viroPhotoText(ph, t, k) {
   } else if (ph.word) {
     const a = ease((age - .1) / .45);
     cx.save(); cx.globalAlpha = k * a; cx.textAlign = 'center'; cx.textBaseline = 'middle';
-    let fs = 110; cx.font = `${fs}px "Great Vibes", "Instrument Serif", cursive`; while (cx.measureText(ph.word).width > W * .8 && fs > 50) { fs -= 6; cx.font = `${fs}px "Great Vibes", cursive`; }
+    const T = typo(); let fs = 104; cx.font = T.kicker(fs); while (cx.measureText(ph.word).width > W * .8 && fs > 44) { fs -= 6; cx.font = T.kicker(fs); }
     cx.shadowColor = 'rgba(0,0,0,.6)'; cx.shadowBlur = 24; cx.fillStyle = '#fff';
     cx.save(); cx.beginPath(); cx.rect(0, 0, W * .1 + W * .9 * a, H); cx.clip(); cx.fillText(ph.word, W / 2, H * .55); cx.restore();
     cx.restore();
@@ -1031,7 +1057,7 @@ function drawKin(kn, t) {
   const g = cx.createRadialGradient(W / 2, H * .45, 50, W / 2, H * .5, H * .75);
   if (white) { g.addColorStop(0, '#ffffff'); g.addColorStop(1, '#d9d9d6'); } else { g.addColorStop(0, '#1a1a1a'); g.addColorStop(1, '#000'); }
   cx.fillStyle = g; cx.fillRect(0, 0, W, H);
-  let fs = 82; const F = s2 => `800 ${s2}px "Plus Jakarta Sans", Inter, sans-serif`; cx.font = F(fs);
+  const T = typo(); let fs = 82; const F = T.title; cx.font = F(fs);
   if ('letterSpacing' in cx) cx.letterSpacing = '-0.04em';
   const tx = kn.words.map(w => w.t.replace(/[.,;:!?¿¡]+/g, '').toLowerCase());
   const sp = fs * .22, tw = () => tx.reduce((q, w) => q + cx.measureText(w).width, 0) + sp * (tx.length - 1);
@@ -1041,7 +1067,7 @@ function drawKin(kn, t) {
     const a = ease((t - w.s + .08) / .18), ww = cx.measureText(tx[i]).width;
     if (a > 0) {
       cx.save(); cx.globalAlpha = k * a; cx.translate(x + ww / 2, H * .5 + 14 * (1 - a)); cx.scale(.9 + .1 * a, .9 + .1 * a);
-      if (w === kn.key) { cx.shadowColor = '#22E36B'; cx.shadowBlur = 34; cx.fillStyle = white ? '#111' : '#fff'; cx.fillText(tx[i], -ww / 2, 0); cx.shadowBlur = 16; }
+      if (w === kn.key) { cx.shadowColor = T.hi; cx.shadowBlur = 34; cx.fillStyle = white ? '#111' : '#fff'; cx.fillText(tx[i], -ww / 2, 0); cx.shadowBlur = 16; }
       cx.fillStyle = white ? '#111' : '#fff'; cx.fillText(tx[i], -ww / 2, 0); cx.restore();
     }
     x += ww + sp;
@@ -1887,6 +1913,9 @@ const SAMPLE = 'Lo que nadie te dice sobre crecer en redes'.split(' ').map((t, i
 window.VE = {
   load, build, video: v,
   setHook(t) { aiHookTitle = t; build(); },
+  setTypo(k) { if (TYPO[k]) { aiTypo = k; dirty = true; } },
+  get typoKey() { return typoKey(); },
+  typos: Object.fromEntries(Object.entries(TYPO).map(([k, T]) => [k, { name: T.name, title: T.title(30), kicker: T.kicker(22), cap: T.cap(16), key: T.key, hi: T.hi }])),
   // Fix words the transcription got wrong (e.g. "desloqueas" → "desbloqueás"), keeping punctuation.
   fixWords(map) {
     const m = new Map(Object.entries(map || {}).map(([a, b]) => [norm(a), String(b)]).filter(([a, b]) => a && b && !/\s/.test(b)));
