@@ -803,7 +803,7 @@ async function loadAiArt(P) {
   if (P !== plan) return;
   // Never show the same picture twice in one video.
   const used = new Set();
-  await Promise.all(items.map(x => aiImage(x.subj).then(img => { if (img && !used.has(img)) { used.add(img); x.o.img = img; dirty = true; } })));
+  await Promise.all(items.map(x => aiImage(x.subj).then(img => { if (img && !used.has(img)) { used.add(img); x.o.img = img; } else x.o.failed = true; dirty = true; })));
 }
 function contextAround(i, n = 5) { return words.slice(Math.max(0, i - n), i + n).map(w => w.t.replace(/[.,;:!?]+$/, '')).join(' '); }
 let curScreen = null;
@@ -1014,8 +1014,13 @@ function photoCard(img, x, y, maxW, maxH, rot, k, age, cover) {
   cx.restore(); cx.restore();
 }
 function drawPhoto(ph, t) {
-  if (!ph.img) return false;
   const age = t - ph.s, left = ph.e - t, k = Math.min(ease(age / .3), ease(left / .3));
+  if (!ph.img) {
+    // No picture available: the title still lands, over a soft, darkened copy of your shot.
+    cx.save(); cx.globalAlpha = k; blur(26); cx.drawImage(cv, -W * .06, -H * .06, W * 1.12, H * 1.12); blur(0);
+    cx.fillStyle = 'rgba(0,0,0,.55)'; cx.fillRect(0, 0, W, H); cx.restore();
+    viroPhotoText(ph, t, k); return false;
+  }
   if (val('brollLayout', 'split') === 'full') {
     const dur = Math.max(1, ph.e - ph.s), p = Math.min(1, age / dur), dir = ph.n % 2 ? 1 : -1;
     cx.save(); cx.globalAlpha = k; cx.fillStyle = '#000'; cx.fillRect(0, 0, W, H);
@@ -1134,7 +1139,7 @@ function fxLayer(t, ot, P, x, y, w, h, coral) {
   const kn = (B.kin || []).find(q => t >= q.s && t <= q.e);
   if (kn) { drawKin(kn, t); return { hide: true }; }
   const big = B.big.find(b => t >= b.s && t <= b.e);
-  const photo = B.photos.find(p => t >= p.s && t <= p.e && p.img);
+  const photo = B.photos.find(p => t >= p.s && t <= p.e && (p.img || (p.failed && p.label && style().viro)));
   let doubleExp = false;
   if (photo && val('brollLayout', 'split') !== 'split') doubleExp = drawPhoto(photo, t, coral);
   if (big) drawBig(big, t, coral);

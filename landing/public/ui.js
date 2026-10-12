@@ -101,7 +101,7 @@ $('#file2').onchange = e => { const f = e.target.files[0]; if (f) VE.load(f); };
 $('#back').onclick = () => { app.classList.remove('on'); document.body.style.overflow = ''; v.pause(); };
 // Last step is done when every image of the edit has arrived (or after a while, whatever is there).
 let artT = 0;
-function waitArt() { clearInterval(artT); const t0 = Date.now(); artT = setInterval(() => { const P = VE.plan, ph = P && P.beats ? P.beats.photos : []; if ((P && ph.every(p => p.img)) || Date.now() - t0 > 60000) { clearInterval(artT); setStep(3); } }, 1000); }
+function waitArt() { clearInterval(artT); const t0 = Date.now(); artT = setInterval(() => { const P = VE.plan, ph = P && P.beats ? P.beats.photos : []; if ((P && ph.every(p => p.img || p.failed)) || Date.now() - t0 > 60000) { clearInterval(artT); setStep(3); } }, 1000); }
 // Progress steps in the Automático tab, read from the engine status.
 function setStep(n) { $$('#steps span').forEach(sp => { const i = +sp.dataset.s; sp.className = i < n ? 'done' : i === n ? 'now' : ''; }); if (n >= 3) $$('#steps span').forEach(sp => { sp.className = 'done'; }); }
 new MutationObserver(() => {
