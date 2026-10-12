@@ -121,14 +121,16 @@ function view(name) {
   app.classList.add('on'); document.body.style.overflow = 'hidden';
   resizeTl(); v.play().catch(() => {});
 }
-window.onLoaded = () => { view('ed'); $('#dlbox').hidden = true; tab('a'); setStep(0); setRec('Cuando termine de escucharte, la IA elige la mejor edición para tu video.'); };
+window.onLoaded = () => { setStep.played = false; view('ed'); $('#dlbox').hidden = true; tab('a'); setStep(0); setRec('Cuando termine de escucharte, la IA elige la mejor edición para tu video.'); };
 $('#file2').onchange = e => { const f = e.target.files[0]; if (f) VE.load(f); };
 $('#back').onclick = () => { app.classList.remove('on'); document.body.style.overflow = ''; v.pause(); };
 // Last step is done when every image of the edit has arrived (or after a while, whatever is there).
 let artT = 0;
 function waitArt() { clearInterval(artT); const t0 = Date.now(); artT = setInterval(() => { const P = VE.plan, ph = P && P.beats ? P.beats.photos : []; if ((P && ph.every(p => p.img || p.failed)) || Date.now() - t0 > 60000) { clearInterval(artT); setStep(3); } }, 1000); }
 // Progress steps in the Automático tab, read from the engine status.
-function setStep(n) { $$('#steps span').forEach(sp => { const i = +sp.dataset.s; sp.className = i < n ? 'done' : i === n ? 'now' : ''; }); if (n >= 3) $$('#steps span').forEach(sp => { sp.className = 'done'; }); }
+function setStep(n) {
+  $('#readyBox').hidden = n < 3;
+  if (n >= 3 && !setStep.played) { setStep.played = true; const P = VE.plan; if (P) { v.currentTime = P.segs[0].s; v.play().catch(() => {}); } } $$('#steps span').forEach(sp => { const i = +sp.dataset.s; sp.className = i < n ? 'done' : i === n ? 'now' : ''; }); if (n >= 3) $$('#steps span').forEach(sp => { sp.className = 'done'; }); }
 new MutationObserver(() => {
   const m = $('#msg').textContent;
   if (/escuch|transcrib|modelo|descarg|audio/i.test(m)) setStep(0);
@@ -226,3 +228,5 @@ $('#aiAuto').onclick = () => direct();
 // Alternative hooks and post text from the AI.
 $('#hookAlts').onclick = e => { const b = e.target.closest('button'); if (!b) return; VE.setHook(b.textContent); $$('#hookAlts button').forEach(x => x.classList.toggle('sel', x === b)); };
 $('#postCopy').onclick = async () => { try { await navigator.clipboard.writeText($('#postTxt').value); $('#postCopy').textContent = '¡Copiado!'; } catch (e) { $('#postTxt').select(); } setTimeout(() => { $('#postCopy').textContent = 'Copiar texto y hashtags'; }, 1500); };
+
+$('#go2').onclick = () => $('#go').click();

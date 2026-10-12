@@ -5,6 +5,8 @@ const $ = q => document.querySelector(q);
 const W = 720, H = 1280, MODELS = { base: 'onnx-community/whisper-base_timestamped', small: 'onnx-community/whisper-small_timestamped' };
 const cv = $('#cv');
 let cx = cv.getContext('2d');
+// Draw in 720x1280 coordinates, render at 1080x1920 (sharper text and video, Full HD export).
+const SC = matchMedia('(pointer: coarse)').matches ? 1 : 1.5; cv.width = W * SC; cv.height = H * SC; cx.setTransform(SC, 0, 0, SC, 0, 0);
 const v = document.createElement('video');
 v.playsInline = true; v.muted = true; v.loop = true; v.setAttribute('playsinline', '');
 
@@ -377,7 +379,7 @@ function drawCaption(ch, t) {
 // Keeps captions readable: if the area behind them is bright, a soft dark glow goes under the text.
 function capShade(ch) {
   if (ch.bright === undefined) {
-    try { const d = cx.getImageData(W * .15, Math.max(0, capY - 40), W * .7, 80).data; let L = 0, n = 0; for (let i = 0; i < d.length; i += 64) { L += .2126 * d[i] + .7152 * d[i + 1] + .0722 * d[i + 2]; n++; } ch.bright = L / n / 255 > .55; } catch (e) { ch.bright = false; }
+    try { const d = cx.getImageData(W * .15 * SC, Math.max(0, capY - 40) * SC, W * .7 * SC, 80 * SC).data; let L = 0, n = 0; for (let i = 0; i < d.length; i += 64) { L += .2126 * d[i] + .7152 * d[i + 1] + .0722 * d[i + 2]; n++; } ch.bright = L / n / 255 > .55; } catch (e) { ch.bright = false; }
   }
   if (!ch.bright) return;
   cx.save(); const g = cx.createRadialGradient(capX, capY, 10, capX, capY, W * .5); g.addColorStop(0, 'rgba(0,0,0,.45)'); g.addColorStop(1, 'rgba(0,0,0,0)'); cx.fillStyle = g; cx.fillRect(0, capY - H * .12, W, H * .24); cx.restore();
@@ -601,7 +603,7 @@ let loopReady = false;
 function loopBlend(ot, total) {
   // Reference frame taken right after the opening effects, so the ending dissolves into a clean shot of you.
   if (ot < .1) loopReady = false;
-  if (!loopReady && ot > 1.2 && ot < 1.6) { loopCv.getContext('2d').drawImage(cv, 0, 0); loopReady = true; return; }
+  if (!loopReady && ot > 1.2 && ot < 1.6) { loopCv.getContext('2d').drawImage(cv, 0, 0, W, H); loopReady = true; return; }
   if (!loopReady || ot < total - .45) return;
   cx.save(); cx.globalAlpha = ease((ot - (total - .45)) / .45); cx.drawImage(loopCv, 0, 0); cx.restore();
 }
@@ -1309,10 +1311,10 @@ const mixDark = (hex, m) => { const n = parseInt(hex.slice(1), 16); return `rgb(
 function cutFx(kind, k, si) {
   const e = 1 - easeQ(k);
   if (kind === 'flash') { cx.fillStyle = `rgba(255,255,255,${.8 * e})`; cx.fillRect(0, 0, W, H); }
-  else if (kind === 'whip') { const d = (si % 2 ? 1 : -1) * W * .18 * e; cx.save(); blur(18 * e); cx.globalAlpha = .85; cx.drawImage(cv, d, 0); cx.globalAlpha = .5; cx.drawImage(cv, d * .5, 0); blur(0); cx.restore(); }
+  else if (kind === 'whip') { const d = (si % 2 ? 1 : -1) * W * .18 * e; cx.save(); blur(18 * e); cx.globalAlpha = .85; cx.drawImage(cv, d, 0, W, H); cx.globalAlpha = .5; cx.drawImage(cv, d * .5, 0, W, H); blur(0); cx.restore(); }
   else if (kind === 'rgb') glitch(k);
   else if (kind === 'leak') warmLeak(k * .4);
-  else if (kind === 'zoomblur') { cx.save(); blur(14 * e); cx.drawImage(cv, 0, 0); blur(0); cx.restore(); }
+  else if (kind === 'zoomblur') { cx.save(); blur(14 * e); cx.drawImage(cv, 0, 0, W, H); blur(0); cx.restore(); }
 }
 // Viro checklist: when you list things ("primero, segundo…"), a card with checks fills in as you say them.
 function drawChecklist(L, t) {
@@ -1459,10 +1461,10 @@ function glitch(k) {
   const n = 7, amp = 60 * (1 - k);
   for (let i = 0; i < n; i++) {
     const sy = Math.random() * H, sh = 10 + Math.random() * 70, dx = (Math.random() - .5) * amp * 2;
-    cx.drawImage(cv, 0, sy, W, sh, dx, sy, W, sh);
+    cx.drawImage(cv, 0, sy * SC, W * SC, sh * SC, dx, sy, W, sh);
   }
   cx.save(); cx.globalCompositeOperation = 'screen'; cx.globalAlpha = .35 * (1 - k);
-  cx.drawImage(cv, -10 * (1 - k), 0); cx.fillStyle = rgba(theme().a2, .22); cx.fillRect(0, 0, W, H);
+  cx.drawImage(cv, -10 * (1 - k), 0, W, H); cx.fillStyle = rgba(theme().a2, .22); cx.fillRect(0, 0, W, H);
   cx.globalCompositeOperation = 'source-over'; cx.restore();
 }
 
@@ -1896,7 +1898,7 @@ function drawOverlays(t, P) {
   o.words.forEach(w => { const ww = cx.measureText(w.t + ' ').width; if (lw + ww > cw - 60 && lines.at(-1).length) { lines.push([]); lw = 0; } lines.at(-1).push({ w, ww }); lw += ww; });
   const chh = 84 + lines.length * fs * 1.3, y0 = H * .1;
   cx.globalAlpha = k; cx.translate(0, -30 * (1 - k));
-  if (S.blur && HAS_FILTER) { cx.save(); rrect(x0, y0, cw, chh, 26); cx.clip(); blur(S.blur); cx.drawImage(cv, x0 - 30, y0 - 30, cw + 60, chh + 60, x0 - 30, y0 - 30, cw + 60, chh + 60); blur(0); cx.restore(); }
+  if (S.blur && HAS_FILTER) { cx.save(); rrect(x0, y0, cw, chh, 26); cx.clip(); blur(S.blur); cx.drawImage(cv, (x0 - 30) * SC, (y0 - 30) * SC, (cw + 60) * SC, (chh + 60) * SC, x0 - 30, y0 - 30, cw + 60, chh + 60); blur(0); cx.restore(); }
   if (S.glow) { cx.shadowColor = S.glow; cx.shadowBlur = 30; }
   rrect(x0, y0, cw, chh, 26); cx.fillStyle = S.bg; cx.fill(); cx.shadowColor = 'transparent';
   cx.lineWidth = 2; cx.strokeStyle = S.border; cx.stroke();
@@ -2051,11 +2053,11 @@ function drawFrame(t, src, sw, sh) {
     const hs = hookSound();
     if (hs === 'riser') { sfx('riser'); sfx('impact', .5); } else if (hs !== 'none') sfx(hs);
   }
-  if (hookOn && hk === 'blur' && ot < .6) { const k = 1 - ease(ot / .6); cx.save(); blur(18 * k); cx.drawImage(cv, 0, 0); blur(0); cx.restore(); }
+  if (hookOn && hk === 'blur' && ot < .6) { const k = 1 - ease(ot / .6); cx.save(); blur(18 * k); cx.drawImage(cv, 0, 0, W, H); blur(0); cx.restore(); }
   if (hookOn && hk === 'cine' && st.viro && ot < .5) { const k = 1 - easeQ(ot / .5); cx.save(); cx.globalCompositeOperation = 'saturation'; cx.fillStyle = `rgba(128,128,128,${k})`; cx.fillRect(0, 0, W, H); cx.restore(); cx.fillStyle = `rgba(0,0,0,${.5 * k})`; cx.fillRect(0, 0, W, H); }
   if (hookOn && hk === 'cine' && !st.viro && ot < 1.4) { const k = 1 - ease(ot / 1.4), bh = H * .13 * k; cx.fillStyle = '#000'; cx.fillRect(0, 0, W, bh); cx.fillRect(0, H - bh, W, bh); }
   if (hookOn && hk === 'iris' && ot < .8) { const r = Math.hypot(W, H) * .6 * ease(ot / .8); cx.save(); cx.beginPath(); cx.rect(0, 0, W, H); cx.arc(W / 2, H * .4, Math.max(1, r), 0, Math.PI * 2); cx.fillStyle = '#000'; cx.fill('evenodd'); cx.restore(); }
-  if (hookOn && hk === 'swipe' && ot < .5) { const off = H * (1 - ease(ot / .5)); const sc = scrCv.getContext('2d'); sc.clearRect(0, 0, W, H); sc.drawImage(cv, 0, 0); cx.fillStyle = '#000'; cx.fillRect(0, 0, W, H); cx.drawImage(scrCv, 0, off); }
+  if (hookOn && hk === 'swipe' && ot < .5) { const off = H * (1 - ease(ot / .5)); const sc = scrCv.getContext('2d'); sc.clearRect(0, 0, W, H); sc.drawImage(cv, 0, 0, W, H); cx.fillStyle = '#000'; cx.fillRect(0, 0, W, H); cx.drawImage(scrCv, 0, off); }
   if (hookOn && hk === 'glitch' && ot < .45) glitch(ot / .45);
   if (hookOn && hk === 'blackout' && P && P.hook && ot < 1.1) drawBlackout(P.hook, ot);
   if (P && on('optLoop')) loopBlend(ot, P.total);
@@ -2192,7 +2194,7 @@ async function fastExport() {
   const fps = 30;
   let vcfg = null;
   for (const codec of ['avc1.640028', 'avc1.4d0028', 'avc1.42001f', 'vp09.00.40.08']) {
-    const c = { codec, width: W, height: H, bitrate: 8e6, framerate: fps };
+    const c = { codec, width: W * SC, height: H * SC, bitrate: 12e6, framerate: fps };
     if ((await VideoEncoder.isConfigSupported(c).catch(() => ({}))).supported) { vcfg = c; break; }
   }
   let acfg = null;
@@ -2215,7 +2217,7 @@ async function fastExport() {
   let err = null;
   const muxer = new Mux.Muxer({
     target: new Mux.ArrayBufferTarget(), fastStart: 'in-memory', firstTimestampBehavior: 'offset',
-    video: { codec: vcfg.codec.startsWith('avc') ? 'avc' : 'vp9', width: W, height: H },
+    video: { codec: vcfg.codec.startsWith('avc') ? 'avc' : 'vp9', width: W * SC, height: H * SC },
     audio: { codec: acfg.codec === 'opus' ? 'opus' : 'aac', numberOfChannels: 2, sampleRate: 48000 }
   });
   const venc = new VideoEncoder({ output: (c, md) => muxer.addVideoChunk(c, md), error: e => { err = e; } });

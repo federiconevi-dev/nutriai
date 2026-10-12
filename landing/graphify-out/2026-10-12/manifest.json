@@ -54,9 +54,9 @@
     "semantic_hash": ""
   },
   "public/editor.js": {
-    "mtime": 1791840621.120086,
-    "seen": 1791840624.2194686,
-    "ast_hash": "77d90368bacacd32747ef9014d95c1b8",
+    "mtime": 1791841280.7437973,
+    "seen": 1791841356.6627703,
+    "ast_hash": "596653466e4b7c8b7425cc8712041906",
     "semantic_hash": ""
   },
   "public/ui.js": {
@@ -66,9 +66,9 @@
     "semantic_hash": ""
   },
   "public/index.html": {
-    "mtime": 1791840464.2446942,
-    "seen": 1791840624.2194715,
-    "ast_hash": "343975921162c8f55945f86f044fe0ec",
+    "mtime": 1791841280.7446592,
+    "seen": 1791841356.662775,
+    "ast_hash": "79b5ee2cb960985adc7172b14daa99b6",
     "semantic_hash": ""
   },
   "public/broll.jpg": {
