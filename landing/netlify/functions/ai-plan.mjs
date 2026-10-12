@@ -32,7 +32,7 @@ async function broll(account, token, sentences, text, max) {
   const picks = [];
   for (const line of out.split('\n')) {
     const m = line.match(/^\s*(\d+)\s*[:.)-]\s*(.+)$/);
-    if (m && picks.length < max) { const i = Number(m[1]) - 1; if (sentences[i] && !picks.some(p => p.i === i)) { const [pr, a, b] = m[2].split('||').map(x => x.replace(/^[\s"']+|[\s"']+$/g, '')); picks.push({ i, prompt: pr, kicker: b ? a : '', label: (b || a || '') }); } }
+    if (m && picks.length < max) { const i = Number(m[1]) - 1; if (sentences[i] && !picks.some(p => p.i === i)) { const [pr, a, b] = m[2].split('||').map(x => x.replace(/[*_#`]/g, '').replace(/^[\s"']+|[\s"']+$/g, '')); picks.push({ i, prompt: pr, kicker: b ? a : '', label: (b || a || '') }); } }
   }
   return Response.json({ picks });
 }

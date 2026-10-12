@@ -228,6 +228,8 @@ const HAS_FILTER = 'filter' in cx;
 const blur = px => { if (HAS_FILTER) cx.filter = px > .3 ? `blur(${px.toFixed(1)}px)` : 'none'; };
 const isNum = s => /\d/.test(s);
 // Dark accents (e.g. deep blue) are hard to read over video: mix them with white until they are bright enough.
+// Canvas text only uses web fonts that are already loaded: warm up the ones the looks draw with.
+if (document.fonts) ['800 40px "Plus Jakarta Sans"', '110px "Great Vibes"', 'italic 46px "Instrument Serif"', '900 40px Nunito', '400 80px Anton'].forEach(f => document.fonts.load(f).catch(() => {}));
 const lift = hex => { const n = parseInt(hex.slice(1), 16); let r = n >> 16 & 255, g = n >> 8 & 255, b = n & 255; const L = (.2126 * r + .7152 * g + .0722 * b) / 255; if (L >= .5) return hex; const m = Math.min(.6, (.55 - L) / (1 - L)); r += (255 - r) * m; g += (255 - g) * m; b += (255 - b) * m; return `rgb(${r | 0},${g | 0},${b | 0})`; };
 const style = () => {
   const st = fontOverride(STYLES[$('#style').value] || STYLES.viral);
@@ -304,7 +306,7 @@ function drawCaption(ch, t) {
 // a strong last word drops to its own line, big and glowing.
 function viroCaption(ch, t, st) {
   const age = t - ch.s, a = ease(age / .18), solo = ch.emph && ch.length > 1 && ch.at(-1) === ch.key && clean(ch.key.t).length >= 4;
-  const main = solo ? ch.slice(0, -1) : ch, low = w => w.t.toLowerCase();
+  const main = solo ? ch.slice(0, -1) : ch, low = w => w.t.toLowerCase().replace(/[.,;:!?¿¡"]+/g, '');
   cx.save(); cx.globalAlpha = a; cx.translate(capX, capY + 10 * (1 - a));
   cx.textBaseline = 'middle'; cx.textAlign = 'left'; cx.lineJoin = 'round';
   if ('letterSpacing' in cx) cx.letterSpacing = '-0.01em';
@@ -711,7 +713,7 @@ async function pickBroll() {
     const r = await fetch('/api/ai-plan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mode: 'broll', max, text: key, subjects: se.map(x => x.map(w => w.t).join(' ')) }) });
     if (!r.ok) throw new Error('broll ' + r.status);
     const j = await r.json();
-    brollPicks = (j.picks || []).filter(pk => se[pk.i]).map(pk => ({ s: se[pk.i][0].s, e: se[pk.i].at(-1).e + .3, prompt: pk.prompt, kicker: pk.kicker || '', label: pk.label || se[pk.i].slice(0, 5).map(w => w.t.replace(/[.,;:!?]+$/, '')).join(' ') }));
+    brollPicks = (j.picks || []).filter(pk => se[pk.i]).map(pk => ({ s: se[pk.i][0].s, e: se[pk.i].at(-1).e + .3, prompt: pk.prompt, kicker: (pk.kicker || '').replace(/[*_#`]/g, ''), label: (pk.label || '').replace(/[*_#`]/g, '').trim() || se[pk.i].slice(0, 5).map(w => w.t.replace(/[.,;:!?]+$/, '')).join(' ') }));
     brollPicks.forEach(pk => promptCache.set(pk.prompt, pk.prompt));
   } catch (e) { console.warn('b-roll plan unavailable', e); brollPicks = []; }
   if (plan) build();
@@ -1013,11 +1015,11 @@ function viroPhotoText(ph, t, k) {
     if ('letterSpacing' in cx) cx.letterSpacing = '0px';
     cx.restore();
   } else if (ph.word) {
-    const a = ease((age - .2) / .5);
+    const a = ease((age - .1) / .45);
     cx.save(); cx.globalAlpha = k * a; cx.textAlign = 'center'; cx.textBaseline = 'middle';
     let fs = 110; cx.font = `${fs}px "Great Vibes", "Instrument Serif", cursive`; while (cx.measureText(ph.word).width > W * .8 && fs > 50) { fs -= 6; cx.font = `${fs}px "Great Vibes", cursive`; }
     cx.shadowColor = 'rgba(0,0,0,.6)'; cx.shadowBlur = 24; cx.fillStyle = '#fff';
-    cx.save(); cx.beginPath(); cx.rect(-W, 0, W / 2 + (W) * a, H); cx.clip(); cx.fillText(ph.word, W / 2, H * .55); cx.restore();
+    cx.save(); cx.beginPath(); cx.rect(0, 0, W * .1 + W * .9 * a, H); cx.clip(); cx.fillText(ph.word, W / 2, H * .55); cx.restore();
     cx.restore();
   }
 }
