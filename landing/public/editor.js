@@ -277,12 +277,12 @@ const TYPO = {
 let aiTypo = '';
 // ---- Edit formats: each one changes captions, titles, transitions, phrase screens, hook and pace. The AI picks one per video. ----
 const RECIPES = {
-  cine: { name: 'Cine', desc: 'Imágenes a pantalla completa, títulos arriba, subtítulos con brillo', cap: 'glow', capY: .76, broll: 'full', titles: ['tl', 'tl', 'center'], trans: 'leak', kinBg: ['white', 'black'], kinGap: 6, kinMax: 3, brollSec: 5, hook: 'stack' },
-  podcast: { name: 'Podcast', desc: 'Pantalla dividida, subtítulos en franja blanca, ritmo tranquilo', cap: 'pill', capY: .72, broll: 'split', titles: ['center'], trans: 'slide', kinBg: ['blur', 'black'], kinGap: 9, kinMax: 2, brollSec: 6, hook: 'question' },
-  energia: { name: 'Energía', desc: 'Cortes rápidos, palabra en recuadro de color, destellos', cap: 'box', capY: .7, broll: 'full', titles: ['center', 'bottom'], trans: 'flash', kinBg: ['accent', 'black', 'white'], kinGap: 4.5, kinMax: 4, brollSec: 4, hook: 'stack' },
-  historia: { name: 'Historia', desc: 'Cursivas elegantes, imágenes en tarjeta, transiciones suaves', cap: 'serif', capY: .74, broll: 'card', titles: ['bottom', 'tl'], trans: 'zoom', kinBg: ['blur', 'white'], kinGap: 8, kinMax: 2, brollSec: 6, hook: 'viro' },
-  noticia: { name: 'Noticia', desc: 'Palabra por palabra en grande, apertura en negro, impacto', cap: 'word', capY: .66, broll: 'full', titles: ['tl', 'bottom'], trans: 'slide', kinBg: ['black', 'accent'], kinGap: 5, kinMax: 3, brollSec: 4.5, hook: 'blackout' },
-  minimal: { name: 'Minimal', desc: 'Limpio y sobrio, subtítulos chicos abajo, pocas pantallas', cap: 'glow', capY: .8, broll: 'card', titles: ['bottom'], trans: 'blur', kinBg: ['white'], kinGap: 10, kinMax: 1, brollSec: 7, hook: 'viro' }
+  cine: { cuts: ['leak', 'punch', 'whip'], name: 'Cine', desc: 'Imágenes a pantalla completa, títulos arriba, subtítulos con brillo', cap: 'glow', capY: .76, broll: 'full', titles: ['tl', 'tl', 'center'], trans: 'leak', kinBg: ['white', 'black'], kinGap: 6, kinMax: 3, brollSec: 5, hook: 'stack' },
+  podcast: { cuts: ['punch', 'zoomblur'], name: 'Podcast', desc: 'Pantalla dividida, subtítulos en franja blanca, ritmo tranquilo', cap: 'pill', capY: .72, broll: 'split', titles: ['center'], trans: 'slide', kinBg: ['blur', 'black'], kinGap: 9, kinMax: 2, brollSec: 6, hook: 'question' },
+  energia: { cuts: ['flash', 'whip', 'rgb', 'punch'], name: 'Energía', desc: 'Cortes rápidos, palabra en recuadro de color, destellos', cap: 'box', capY: .7, broll: 'full', titles: ['center', 'bottom'], trans: 'flash', kinBg: ['accent', 'black', 'white'], kinGap: 4.5, kinMax: 4, brollSec: 4, hook: 'stack' },
+  historia: { cuts: ['zoomblur', 'leak'], name: 'Historia', desc: 'Cursivas elegantes, imágenes en tarjeta, transiciones suaves', cap: 'serif', capY: .74, broll: 'card', titles: ['bottom', 'tl'], trans: 'zoom', kinBg: ['blur', 'white'], kinGap: 8, kinMax: 2, brollSec: 6, hook: 'viro' },
+  noticia: { cuts: ['whip', 'rgb', 'flash'], name: 'Noticia', desc: 'Palabra por palabra en grande, apertura en negro, impacto', cap: 'word', capY: .66, broll: 'full', titles: ['tl', 'bottom'], trans: 'slide', kinBg: ['black', 'accent'], kinGap: 5, kinMax: 3, brollSec: 4.5, hook: 'blackout' },
+  minimal: { cuts: ['punch', 'zoomblur'], name: 'Minimal', desc: 'Limpio y sobrio, subtítulos chicos abajo, pocas pantallas', cap: 'glow', capY: .8, broll: 'card', titles: ['bottom'], trans: 'blur', kinBg: ['white'], kinGap: 10, kinMax: 1, brollSec: 7, hook: 'viro' }
 };
 let aiRecipe = '';
 const recipeKey = () => { const v2 = val('recipe', 'auto'); if (RECIPES[v2]) return v2; if (RECIPES[aiRecipe]) return aiRecipe; const ks = Object.keys(RECIPES), h = [...words.slice(0, 8).map(w => w.t).join('')].reduce((a, c) => (a * 17 + c.charCodeAt(0)) >>> 0, 11); return ks[h % ks.length]; };
@@ -1265,6 +1265,15 @@ function viroPhotoText(ph, t, k, force) {
 }
 // Viro kinetic screen: a short phrase alone on a white or black screen, words land as you say them, key word glowing green.
 const mixDark = (hex, m) => { const n = parseInt(hex.slice(1), 16); return `rgb(${(n >> 16 & 255) * (1 - m) | 0},${(n >> 8 & 255) * (1 - m) | 0},${(n & 255) * (1 - m) | 0})`; };
+// Cut transitions drawn over the fresh shot (k goes 0 → 1 over ~0.3s).
+function cutFx(kind, k, si) {
+  const e = 1 - easeQ(k);
+  if (kind === 'flash') { cx.fillStyle = `rgba(255,255,255,${.8 * e})`; cx.fillRect(0, 0, W, H); }
+  else if (kind === 'whip') { const d = (si % 2 ? 1 : -1) * W * .18 * e; cx.save(); blur(18 * e); cx.globalAlpha = .85; cx.drawImage(cv, d, 0); cx.globalAlpha = .5; cx.drawImage(cv, d * .5, 0); blur(0); cx.restore(); }
+  else if (kind === 'rgb') glitch(k);
+  else if (kind === 'leak') warmLeak(k * .4);
+  else if (kind === 'zoomblur') { cx.save(); blur(14 * e); cx.drawImage(cv, 0, 0); blur(0); cx.restore(); }
+}
 // Warm light-leak flare used on b-roll cuts (orange to yellow glows, ~0.4s around the cut).
 function warmLeak(d) {
   if (d < 0 || d > .4) return;
@@ -1834,12 +1843,16 @@ function drawFrame(t, src, sw, sh) {
   }
 
   const zoomOn = on('optZoom');
+  // Transition on every cut (silence removed / new shot): punch-in, whip pan, flash, RGB glitch, light leak or zoom blur.
+  const cutK = st.viro && P && si > 0 && g && on('optFx2') && (si % 2 === 1 || recipeKey() === 'energia') ? recipe().cuts[si % recipe().cuts.length] : null, cdt = g ? t - g.s : 9;
+  if (busy && cutK && cdt < .05 && !fired.has('cut' + si)) { fired.add('cut' + si); sfx(cutK === 'flash' || cutK === 'rgb' ? 'zap' : cutK === 'punch' ? 'hit' : 'whoosh'); }
   let z = g && zoomOn ? (coral ? 1 + (g.z - 1) * .55 : g.z) : 1;
   const hk = hookFx();
   // Camera: a gentle opening settle, a slow push-in inside each shot and a light reframe on cuts. No shakes, no whips.
   if (hookOn && hk === 'zoom' && ot < .7) z *= 1 + .28 * (1 - ease(ot / .7));
   else if (hookOn && st.viro && /^(blur|flash|cine)$/.test(hk) && ot < .5) z *= 1 + .4 * (1 - easeQ(ot / .5));
   else if (hookOn && hk !== 'none' && ot < 1.2) z *= 1 + .08 * (1 - ease(ot / 1.2));
+  if (cutK && cdt < .28 && (cutK === 'punch' || cutK === 'zoomblur')) z *= 1 + (cutK === 'punch' ? .14 : .22) * (1 - easeQ(cdt / .28));
   if (zoomOn && g && !st.viro) z *= 1 + .035 * Math.min(1, (t - g.s) / Math.max(2, g.e - g.s));
   if (zoomOn && P && st.viro && ci >= 0) {
     const blk = Math.floor(ci / 7), inB = ci % 7, lv = [1.06, 1.1, 1.14, 1.08][blk % 4], kind = [0, 1, 2, 0, 2, 1][blk % 6];
@@ -1886,6 +1899,7 @@ function drawFrame(t, src, sw, sh) {
     cx.drawImage(src, x, y, w, h);
   }
   if (grade()) colorGrade();
+  if (cutK && cdt < .3) cutFx(cutK, cdt / .3, si);
   if (!coral && !framed) {
     const gr = cx.createRadialGradient(W / 2, H / 2, H * .35, W / 2, H / 2, H * .75);
     gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(0,0,0,.35)');
