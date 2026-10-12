@@ -8,7 +8,7 @@ const ALLOWED = {
   hookFx: ['flash', 'zoom', 'iris', 'swipe', 'glitch', 'blackout', 'blur', 'cine', 'none'],
   hookText: ['auto', 'stack', 'viro', 'big', 'card', 'question', 'none'],
   brollLayout: ['auto', 'split', 'card', 'full'],
-  hookSfx: ['auto', 'impact', 'riser', 'whoosh', 'scratch', 'notif', 'drop', 'zap', 'none'],
+  hookSfx: ['auto', 'impact', 'riser', 'whoosh', 'scratch', 'notif', 'drop', 'zap', 'bass', 'cash', 'glitch', 'suspense', 'heart', 'none'],
   grade: ['none', 'warm', 'teal', 'punch', 'film', 'bw'],
   fBase: ['auto', 'Plus Jakarta Sans', 'Inter Tight', 'Manrope', 'DM Sans', 'Sora', 'Montserrat', 'Poppins', 'Outfit', 'Space Grotesk', 'Bricolage Grotesque'],
   fKey: ['auto', 'Anton', 'Bebas Neue', 'Oswald', 'Big Shoulders Display', 'Archivo Black', 'Unbounded', 'Syne', 'Montserrat', 'Outfit'],
@@ -26,7 +26,7 @@ ovStyle (idea cards): auto|glass|neon|mono|graph|femtech|cyber
 hookFx (first second): flash (energetic) | zoom (punch-in) | iris (circle opening) | swipe (TikTok swipe-up) | glitch (tech) | blackout (title on black, then cut) | blur (soft, aesthetic) | cine (dramatic letterbox) | none
 brollLayout (how supporting images appear): split (image top, person bottom - great for explaining) | card (image card on top) | full (full-screen cutaway)
 hookText: stack (3 stacked mixed-font lines at the top, strongest) | viro (the hook title over the opening image) | big (giant word) | card (white card on top) | question (big question over the opening) | auto
-hookSfx (sound in the first second): impact | riser (build-up + hit) | whoosh | scratch (record scratch, funny) | notif (phone notification) | drop (bass drop) | zap | auto
+hookSfx (sound in the first second): impact | riser (build-up + hit) | whoosh | scratch (record scratch, funny) | notif (phone notification) | drop (bass drop) | zap | bass (808 hit) | cash (cash register, money topics) | glitch (tech/AI) | suspense (rising tension, secrets) | heart (heartbeat, emotional) | auto
 grade (video color): none|warm|teal|punch|film|bw
 fBase/fKey/fAccent fonts: ${['fBase', 'fKey', 'fAccent'].map(k => `${k}: ${ALLOWED[k].join(', ')}`).join('; ')}
 recipe (edit format, the most important choice; pick what will hold THIS audience best): cine=full-screen images with titles, glowing captions, warm light leaks (versatile, aspirational, business, lifestyle) | podcast=split screen, white pill captions, calm (interviews, explanations, long talks) | energia=fast cuts, colored box on the spoken word, flashes, many impact screens (sales, fitness, motivation, hype) | historia=elegant cursive captions, images in cards, soft zooms (stories, emotional, reflective, travel) | noticia=one big word at a time, black opening title, slides (news, facts, controversial takes, lists) | minimal=sober, small captions, few screens (premium, minimal, design, calm advice)\ntypo (type pairing for the pro look): nova=modern grotesk + serif italic, blue keys (business, growth, tech-light) | lujo=wide luxury display + classic italic, gold (premium, money, fashion) | revista=magazine serif, coral (stories, opinions, culture) | tech=geometric wide + mono, violet (AI, apps, programming) | suave=friendly rounded, pink (lifestyle, beauty, wellness, food) | clasico=heavy black + Playfair italic, yellow (motivation, sales, fitness) | urbano=grotesk + handwritten, green (casual, gaming, humor)

@@ -325,7 +325,8 @@ footer{border-top:1px solid var(--line);padding:30px 0;color:var(--mut);font-siz
         <div class="tg"><div><b>Imágenes creadas con IA</b><small>Si lo apagás, usa solo tus fotos.</small></div><label class="sw"><input type="checkbox" id="optAI" checked><span></span></label></div>
         <div class="tg"><div><b>Arranque con impacto</b><small>Efecto y sonido en el primer segundo.</small></div><label class="sw"><input type="checkbox" id="optHook" checked><span></span></label></div>
         <div class="tg"><div><b>Zooms suaves</b><small>Acercamientos lentos entre cortes.</small></div><label class="sw"><input type="checkbox" id="optZoom" checked><span></span></label></div>
-        <div class="tg"><div><b>Efectos de sonido</b><small>Sutiles, en transiciones.</small></div><label class="sw"><input type="checkbox" id="optSfx" checked><span></span></label></div>
+        <div class="tg"><div><b>Efectos de sonido</b><small>En el gancho, transiciones, zooms y pantallas.</small></div><label class="sw"><input type="checkbox" id="optSfx" checked><span></span></label></div>
+        <div class="tg"><div><b>Sonidos según lo que decís</b><small>Caja registradora con la plata, éxito, error, latido, glitch…</small></div><label class="sw"><input type="checkbox" id="optWordSfx" checked><span></span></label></div>
         <div class="tg"><div><b>Cortar silencios</b><small>Ritmo ágil, sin pausas muertas.</small></div><label class="sw"><input type="checkbox" id="optCut" checked><span></span></label></div>
         <div class="tg"><div><b>Espejar video</b><small>Si la cámara te grabó al revés.</small></div><label class="sw"><input type="checkbox" id="optFlip"><span></span></label></div>
 
@@ -338,7 +339,7 @@ footer{border-top:1px solid var(--line);padding:30px 0;color:var(--mut);font-siz
           <div class="chips" data-sel="hookText"><button data-v="auto">Auto</button><button data-v="stack">Título en 3 líneas</button><button data-v="viro">Título sobre imagen</button><button data-v="big">Texto gigante</button><button data-v="card">Tarjeta</button><button data-v="question">Pregunta</button><button data-v="none">Sin texto</button></div>
           <input type="hidden" id="hookText" value="auto">
           <span>Sonido del gancho</span>
-          <div class="chips" data-sel="hookSfx"><button data-v="auto">Auto</button><button data-v="impact">Golpe</button><button data-v="riser">Subida</button><button data-v="whoosh">Whoosh</button><button data-v="notif">Notificación</button><button data-v="none">Sin sonido</button></div>
+          <div class="chips" data-sel="hookSfx"><button data-v="auto">Auto</button><button data-v="impact">Golpe</button><button data-v="riser">Subida</button><button data-v="whoosh">Whoosh</button><button data-v="notif">Notificación</button><button data-v="bass">Bajo 808</button><button data-v="cash">Caja registradora</button><button data-v="glitch">Glitch</button><button data-v="suspense">Suspenso</button><button data-v="heart">Latido</button><button data-v="none">Sin sonido</button></div>
           <input type="hidden" id="hookSfx" value="auto">
           <div class="row">Collage de fotos al arrancar<label class="sw"><input type="checkbox" id="optGallery"><span></span></label></div>
         </div></details>

@@ -819,6 +819,8 @@ function drawPerson(x, y, w, h) {
 // ---- Beats: when each effect happens, decided from what you say ----
 const STOPW = new Set('para pero como cuando donde porque aunque entonces tambien todos todas estos estas esto esta este eso esas esos cosas cosa hacer hace tiene tenes tener puede pueden quiero queres siempre nunca mucho mucha muchos muchas ahora antes despues sobre entre desde hasta tengo vamos estan estas estoy video videos would there their about because really people thing things'.split(' '));
 const EMO = [[/plata|dinero|money|dolar|pesos|vend|cobr|ganar|ingreso/, '💰'], [/ano|anos|tiempo|reloj|hora|minuto|dia|dias/, '⏳'], [/video|grab|camara|reel|tiktok/, '🎥'], [/gente|amig|equipo|personas|clientes/, '👥'], [/ventaja|crec|subir|escal|rapido|exito/, '🚀'], [/idea|aprend|estudi|entend|cabeza|mente/, '🧠'], [/verguenza|miedo|nervio/, '😳'], [/arranc|empez|comenz|start/, '🏁'], [/fuego|viral|explot/, '🔥'], [/amor|corazon|quiero|encanta/, '❤️'], [/trabajo|negocio|empresa|emprend/, '💼'], [/error|mal|nunca|problema/, '❌'], [/bien|perfecto|listo|correcto|si$/, '✅'], [/secreto|truco|clave/, '🔑'], [/guard|salv/, '📌'], [/coment|mensaje|escrib|chat/, '💬'], [/celu|telefono|app/, '📱'], [/comida|comer|dieta|salud/, '🥗'], [/gym|entren|musculo|fuerza/, '💪'], [/casa|hogar/, '🏠'], [/auto|viaj/, '✈️']];
+// Sounds that react to what you say (money → register, success → chime, mistakes → buzzer, love → heartbeat...).
+const WORD_SFX = [[/plata|dinero|money|dolar|pesos|vend|cobr|ganar|ingreso|factur|millon|sueldo|precio/, 'cash'], [/logr|exito|consegui|gane|lo hice|meta|objetivo|resultado/, 'chime'], [/error|^mal$|fall|^nunca$|problema|perdi|mentira/, 'buzz'], [/amor|corazon|encanta|sentir|emocion|miedo/, 'heart'], [/^ia$|inteligencia|^apps?$|tecnolog|digital|internet|codigo|robot/, 'glitch'], [/secreto|magia|truco|clave|increible|brill/, 'sparkle'], [/escrib|mensaje|chat|coment|texto|mail/, 'typing'], [/tiempo|reloj|^horas?$|minuto|segundos?$|rapido/, 'clock'], [/importante|atencion|ojo|escucha|mira|nadie/, 'bass']];
 const userPhotos = [];
 const photoCache = new Map();
 // ---- Free AI images (Pollinations, no key). One request at a time; the corner logo is cropped off. ----
@@ -1389,6 +1391,19 @@ function fxTop(t, ot, P, si) {
 }
 // Extra synthesized sound hooks
 function sfxExtra(type, t0) {
+  const tone = (f0, f1, len, g0, wave = 'sine', at = t0) => { const o = ac.createOscillator(), g = ac.createGain(); o.type = wave; o.frequency.setValueAtTime(f0, at); if (f1 !== f0) o.frequency.exponentialRampToValueAtTime(f1, at + len); g.gain.setValueAtTime(g0, at); g.gain.exponentialRampToValueAtTime(.001, at + len); o.connect(g); g.connect(dest); o.start(at); o.stop(at + len + .02); };
+  const noise = (len, g0, ftype, f0, f1, at = t0, q = 1) => { const n = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain(); n.buffer = noiseBuf; f.type = ftype; f.Q.value = q; f.frequency.setValueAtTime(f0, at); if (f1 !== f0) f.frequency.exponentialRampToValueAtTime(f1, at + len); g.gain.setValueAtTime(g0, at); g.gain.exponentialRampToValueAtTime(.001, at + len); n.connect(f); f.connect(g); g.connect(dest); n.start(at); n.stop(at + len + .02); };
+  // Viral sound kit (all synthesized, no copyrighted samples).
+  if (type === 'cash') { noise(.06, .25, 'highpass', 3000, 3000); tone(2093, 2093, .7, .14, 'triangle', t0 + .05); tone(2637, 2637, .8, .12, 'triangle', t0 + .13); tone(4186, 4186, .5, .05, 'sine', t0 + .13); return true; }
+  if (type === 'chime') { [1047, 1319, 1568, 2093].forEach((f, i) => tone(f, f, .55, .11, 'sine', t0 + i * .07)); return true; }
+  if (type === 'buzz') { tone(110, 104, .38, .16, 'square'); tone(117, 110, .38, .12, 'sawtooth'); return true; }
+  if (type === 'heart') { tone(70, 38, .16, .7); tone(64, 36, .18, .55, 'sine', t0 + .22); return true; }
+  if (type === 'glitch') { for (let i = 0; i < 6; i++) noise(.035, .22, 'bandpass', 400 + Math.random() * 5000, 400 + Math.random() * 5000, t0 + i * .045, 4); tone(880, 220, .2, .06, 'square', t0 + .05); return true; }
+  if (type === 'sparkle') { for (let i = 0; i < 7; i++) { const f = 2600 + Math.random() * 2600; tone(f, f, .28, .045, 'sine', t0 + i * .045); } return true; }
+  if (type === 'typing') { let at = t0; for (let i = 0; i < 6; i++) { noise(.018, .22, 'highpass', 2500, 2500, at); at += .06 + Math.random() * .05; } return true; }
+  if (type === 'clock') { for (let i = 0; i < 3; i++) tone(i % 2 ? 1600 : 2000, i % 2 ? 1600 : 2000, .03, .16, 'triangle', t0 + i * .22); return true; }
+  if (type === 'bass') { tone(130, 46, .9, .75); tone(260, 92, .15, .2, 'triangle'); return true; }
+  if (type === 'suspense') { const o = ac.createOscillator(), g = ac.createGain(); o.type = 'sawtooth'; o.frequency.setValueAtTime(90, t0); o.frequency.exponentialRampToValueAtTime(320, t0 + .9); g.gain.setValueAtTime(.001, t0); g.gain.exponentialRampToValueAtTime(.09, t0 + .85); g.gain.exponentialRampToValueAtTime(.001, t0 + 1); const f = ac.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 1400; o.connect(f); f.connect(g); g.connect(dest); o.start(t0); o.stop(t0 + 1.05); return true; }
   if (type === 'tick') {
     const o = ac.createOscillator(), g = ac.createGain(); o.type = 'triangle'; o.frequency.setValueAtTime(1800, t0); o.frequency.exponentialRampToValueAtTime(900, t0 + .04);
     g.gain.setValueAtTime(.09, t0); g.gain.exponentialRampToValueAtTime(.001, t0 + .05); o.connect(g); g.connect(dest); o.start(t0); o.stop(t0 + .06); return true;
@@ -1804,10 +1819,16 @@ function drawFrame(t, src, sw, sh) {
   const hookOn = P && on('optHook');
   const ci = P ? P.chunks.findIndex(c => t >= c.s - .02 && t <= c.e + .2) : -1;
   const ch = ci >= 0 ? P.chunks[ci] : null;
-  if (ot < .05) fired.clear();
+  if (ot < .05) { fired.clear(); lastWordSfx = -9; }
 
   if (busy && si !== lastSeg) { if (lastSeg >= 0 && si % 2 === 1 && !coral) sfx('whoosh'); lastSeg = si; }
-  if (busy && ci !== lastChunk) { if (ci >= 0 && ch.emph) sfx('pop'); lastChunk = ci; }
+  if (busy && ci !== lastChunk) {
+    if (ci >= 0 && ch.emph) {
+      const hit = on('optWordSfx') && st.viro ? WORD_SFX.find(([re]) => ch.some(w => re.test(norm(w.t)))) : null;
+      if (hit && t - lastWordSfx > 3.5) { sfx(hit[1]); lastWordSfx = t; } else sfx('pop');
+    }
+    lastChunk = ci;
+  }
 
   const zoomOn = on('optZoom');
   let z = g && zoomOn ? (coral ? 1 + (g.z - 1) * .55 : g.z) : 1;
@@ -1918,7 +1939,7 @@ function drawFrame(t, src, sw, sh) {
   return ot;
 }
 
-let lastDraw = 0, lastT = -1, dirty = true;
+let lastDraw = 0, lastT = -1, dirty = true, lastWordSfx = -9;
 document.addEventListener('change', () => { dirty = true; });
 document.addEventListener('input', () => { dirty = true; });
 function render(now) {
