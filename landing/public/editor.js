@@ -421,9 +421,12 @@ function drawStackHook(text, ot, dur) {
     const a = easeQ((ot - .1 - i * .14) / .35), z = kd === 'big' ? size * 1.35 : size;
     cx.save(); cx.globalAlpha = (1 - out) * a; cx.translate(W / 2, y + 16 * (1 - a)); cx.scale(.9 + .1 * a, .9 + .1 * a);
     cx.font = F(kd, size);
-    if (kd === 'script') { cx.shadowColor = 'rgba(0,0,0,.7)'; cx.shadowBlur = 20; cx.fillStyle = '#fff'; }
-    else if (kd === 'big') { cx.shadowColor = T.hi; cx.shadowBlur = 26; cx.fillStyle = T.hi; }
-    else { cx.shadowColor = 'rgba(0,0,0,.7)'; cx.shadowBlur = 18; cx.fillStyle = '#fff'; }
+    // Each line's color can be changed (Arranque → colores del gancho); "auto" follows the typography.
+    const pc = (id, d) => { const v2 = val(id, 'auto'); return v2 === 'auto' ? d : v2; };
+    const hiC = pc('hkC3', val('cKey', 'auto') !== 'auto' ? val('cKey') : T.hi);
+    if (kd === 'script') { cx.shadowColor = 'rgba(0,0,0,.7)'; cx.shadowBlur = 20; cx.fillStyle = pc('hkC1', '#fff'); }
+    else if (kd === 'big') { cx.shadowColor = hiC; cx.shadowBlur = 26; cx.fillStyle = hiC; }
+    else { cx.shadowColor = 'rgba(0,0,0,.7)'; cx.shadowBlur = 18; cx.fillStyle = pc('hkC2', '#fff'); }
     cx.fillText(tx, 0, 0); if (kd === 'big') { cx.shadowBlur = 8; cx.fillText(tx, 0, 0); }
     cx.restore();
     y += z * (kd === 'script' ? .95 : .92);
@@ -1251,7 +1254,7 @@ function viroPhotoText(ph, t, k, force) {
       cx.font = tf(w, fs); const a = ease((age - .25 - n++ * .12) / .35);
       if (a > 0) {
         cx.globalAlpha = k * a;
-        if (w === key) { const gg = cx.createLinearGradient(x, 0, x + ww, 0); gg.addColorStop(0, T.key[0]); gg.addColorStop(1, T.key[1]); cx.fillStyle = gg; } else cx.fillStyle = '#fff';
+        if (w === key) { const ck = val('cKey', 'auto'), gg = cx.createLinearGradient(x, 0, x + ww, 0); gg.addColorStop(0, ck !== 'auto' ? ck : T.key[0]); gg.addColorStop(1, ck !== 'auto' ? ck : T.key[1]); cx.fillStyle = gg; } else cx.fillStyle = val('cBase', 'auto') !== 'auto' ? val('cBase') : '#fff';
         cx.fillText(w, x, yy + 18 * (1 - a));
       }
       x += ww + sp;

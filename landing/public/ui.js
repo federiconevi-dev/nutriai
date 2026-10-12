@@ -44,7 +44,8 @@ $('#fontFile').onchange = async e => {
 };
 
 // ---- Color swatches ----
-const COLS = { cBase: ['auto', '#ffffff', '#fff7e6', '#111111', '#ffe14d', '#e8d3a2'], cKey: ['auto', '#ffe14d', '#22e06b', '#ff4d6d', '#ef233c', '#ff6046', '#38bdf8', '#a855f7', '#f472b6', '#ffffff'] };
+const HK = ['auto', '#ffffff', '#5cf58a', '#22e06b', '#00ffee', '#38bdf8', '#2f7bff', '#a855f7', '#f472b6', '#ff4d6d', '#ef233c', '#ff6046', '#ffa200', '#ffd23f', '#fef4b4', '#111111'];
+const COLS = { hkC1: HK, hkC2: HK, hkC3: HK, cBase: ['auto', '#ffffff', '#fff7e6', '#111111', '#ffe14d', '#e8d3a2'], cKey: ['auto', '#ffe14d', '#22e06b', '#ff4d6d', '#ef233c', '#ff6046', '#38bdf8', '#a855f7', '#f472b6', '#ffffff'] };
 $$('.sws').forEach(box => {
   const id = box.dataset.for, input = $('#' + id);
   box.innerHTML = COLS[id].map(c => `<button type="button" data-v="${c}" title="${c === 'auto' ? 'Automático' : c}" style="background:${c === 'auto' ? 'conic-gradient(#c6f432,#ffe14d,#5eead4,#38bdf8,#a855f7,#c6f432)' : c}"></button>`).join('');
