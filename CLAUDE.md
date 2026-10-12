@@ -25,3 +25,6 @@ User: Spanish (Argentina), non-technical. Reply SHORT, in Spanish, only what's n
 ## Testing
 - Headless Chromium can't decode H.264: convert test videos to VP9 webm. Playwright: `executablePath: '/opt/pw-browsers/chromium'`.
 - Branch: `claude/viroedit-analysis-3n5slr`. No model names in commits.
+
+## Code graph
+- `landing/graphify-out/GRAPH_REPORT.md` + `graph.json`: map of the code. Use `graphify query "..."` / `graphify explain "X"` before reading files. Refresh with `graphify update landing` (no LLM).
