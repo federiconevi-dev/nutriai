@@ -456,12 +456,13 @@ function viroCaption(ch, t, st) {
   if (mode !== 'pill') capShade(ch);
   if (mode === 'pill' || mode === 'box' || mode === 'serif') return lineCaption(ch, t, st, mode);
   if (mode === 'word') return wordCaption(ch, t, st);
-  const age = t - ch.s, a = ease(age / .18), solo = ch.emph && ch.length > 1 && clean(ch.key.t).length >= 4;
+  // One clean line: every word the same size, the word being said lights up (no giant separate word).
+  const age = t - ch.s, a = ease(age / .18), solo = false;
   const main = solo ? ch.filter(w => w !== ch.key) : ch, low = w => w.t.toLowerCase().replace(/[.,;:!?¿¡"]+/g, '');
   const isK = w => w === ch.key && ch.emph;
   cx.save(); cx.globalAlpha = a; cx.translate(capX, capY + 10 * (1 - a));
   cx.textBaseline = 'middle'; cx.textAlign = 'left'; cx.lineJoin = 'round';
-  const fnt = (w, size) => isK(w) ? keyF(size * 1.18) : st.font(size);
+  const fnt = (w, size) => st.font(size);
   const word = (w, size, x, y, big) => {
     const on2 = t >= w.s - .03, tx = low(w);
     cx.font = big ? keyF(size) : fnt(w, size);
@@ -2256,6 +2257,9 @@ function makeNoise(ctx) {
 }
 
 // ---------- Fast export: decode → draw → encode frame by frame (WebCodecs), much faster than real time ----------
+// Any step that stops answering (some phones never fire an event or finish a flush) aborts the fast export,
+// and the page falls back to the real-time export instead of hanging at a percentage forever.
+const tmo = (p, ms) => Promise.race([p, new Promise((_, ko) => setTimeout(() => ko(new Error('stall')), ms))]);
 async function fastExport() {
   if (!window.VideoEncoder || !window.VideoDecoder || !window.AudioEncoder || !window.OfflineAudioContext) return null;
   if (!/\.(mp4|m4v|mov)$/i.test(file.name) && !/mp4|quicktime/.test(file.type)) return null;
@@ -2328,7 +2332,7 @@ async function fastExport() {
           dec.decode(new EncodedVideoChunk({ type: s.is_sync ? 'key' : 'delta', timestamp: s.cts * 1e6 / s.timescale, duration: s.duration * 1e6 / s.timescale, data: s.data }));
         }
         await new Promise(r => setTimeout(r, 0));
-      } else { await dec.flush(); flushed = true; }
+      } else { await tmo(dec.flush(), 10000).catch(() => {}); flushed = true; }
       if (err) throw err;
     }
   }
@@ -2339,7 +2343,7 @@ async function fastExport() {
       const ot = k / fps;
       const g = plan.segs.find(s => ot < s.o + (s.e - s.s)) || plan.segs.at(-1);
       const t = Math.min(g.e - .001, g.s + (ot - g.o));
-      const f = await frameAt(t);
+      const f = await tmo(frameAt(t), 15000);
       if (!f) break;
       let src = f, sw = f.displayWidth, sh = f.displayHeight;
       if (angle % 180) {
@@ -2350,15 +2354,15 @@ async function fastExport() {
         if (rot.width !== sw) { rot.width = sw; rot.height = sh; }
         rcx.save(); rcx.translate(sw / 2, sh / 2); rcx.rotate(Math.PI); rcx.drawImage(f, -sw / 2, -sh / 2); rcx.restore(); src = rot;
       }
-      await brollSeek(t);
+      await tmo(brollSeek(t), 3000).catch(() => {});
       drawFrame(t, src, sw, sh);
       const vf = new VideoFrame(cv, { timestamp: Math.round(ot * 1e6), duration: Math.round(1e6 / fps) });
       venc.encode(vf, { keyFrame: k % 60 === 0 }); vf.close();
-      if (venc.encodeQueueSize > 6) await new Promise(r => venc.addEventListener('dequeue', r, { once: true }));
+      for (let w = 0; venc.encodeQueueSize > 6; w++) { if (w > 3000) throw new Error('stall'); await new Promise(r => setTimeout(r, 4)); }
       if (k % 8 === 0) { prog(k / N * .92); msg(`Exportando… ${Math.round(k / N * 100)}%`); await new Promise(r => setTimeout(r, 0)); }
       if (err) throw err;
     }
-    await venc.flush();
+    await tmo(venc.flush(), 30000);
     if (current) current.close(); frames.forEach(f => f.close()); dec.close();
 
     // Audio: original voice cut to the same segments + all sound effects, rendered offline (instant).
@@ -2391,7 +2395,7 @@ async function fastExport() {
     sfxLog.forEach(e => playSfx(e.type, Math.max(0, e.at)));
     const mood = musicMood(); if (mood) makeMusic(off, total, mood);
     ({ ac, dest, noiseBuf } = save);
-    const ab = await off.startRendering();
+    const ab = await tmo(off.startRendering(), 90000);
     masterize(ab);
     const aenc = new AudioEncoder({ output: (c, md) => muxer.addAudioChunk(c, md), error: e => { err = e; } });
     aenc.configure(acfg);
@@ -2402,7 +2406,7 @@ async function fastExport() {
       const ad = new AudioData({ format: 'f32-planar', sampleRate: sr, numberOfFrames: n, numberOfChannels: 2, timestamp: Math.round(i / sr * 1e6), data });
       aenc.encode(ad); ad.close();
     }
-    await aenc.flush();
+    await tmo(aenc.flush(), 30000);
     if (err) throw err;
     muxer.finalize();
     console.log('fast export secs', (performance.now() - t0) / 1000);
@@ -2427,7 +2431,7 @@ $('#go').onclick = async () => {
   try {
     const blob = await fastExport();
     if (blob) { deliver(blob, 'mp4'); $('#go').disabled = $('#ai').disabled = false; v.currentTime = plan.segs[0].s; v.play().catch(() => {}); return; }
-  } catch (e) { console.warn('fast export failed, using real time', e); fastBusy = false; busy = false; }
+  } catch (e) { console.warn('fast export failed, using real time', e); fastBusy = false; busy = false; msg('Exportando en modo seguro (en tiempo real)…'); }
   realtimeExport();
 };
 async function exportFonts() {
