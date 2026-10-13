@@ -5,7 +5,7 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { buildDemoContent } from "@/lib/social/demo";
 import { SCHEMA_BY_KIND } from "@/lib/social/schemas";
-import { SOCIAL_KINDS } from "@/lib/social/types";
+import { NETWORKS, SOCIAL_KINDS, type SocialItem } from "@/lib/social/types";
 import { serializeItem } from "./serialize";
 
 export async function GET() {
@@ -23,7 +23,7 @@ export async function GET() {
   }
 
   const rows = await db.socialItem.findMany({ where: { userId }, orderBy: { createdAt: "desc" } });
-  return NextResponse.json({ items: rows.map(serializeItem) });
+  return NextResponse.json({ items: rows.map(serializeItem).flatMap(dropRetiredNetworks) });
 }
 
 const createSchema = z.object({ kind: z.enum(SOCIAL_KINDS), data: z.unknown() });
@@ -51,4 +51,12 @@ export async function POST(req: Request) {
     data: { userId: session.user.id, kind: body.data.kind, data: JSON.stringify(parsed.data) },
   });
   return NextResponse.json({ item: serializeItem(row) });
+}
+
+/** Posts on networks the hub no longer supports (e.g. YouTube) are hidden; ideas just lose the tag. */
+function dropRetiredNetworks(item: SocialItem): SocialItem[] {
+  const data = item.data as { network?: string };
+  if (!data.network || (NETWORKS as readonly string[]).includes(data.network)) return [item];
+  if (item.kind === "POST") return [];
+  return [{ ...item, data: { ...item.data, network: undefined } } as SocialItem];
 }

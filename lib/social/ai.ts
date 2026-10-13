@@ -45,22 +45,30 @@ async function chatJSON(system: string, user: string): Promise<unknown> {
 
 export type ScriptInput = { topic: string; audience?: string; network?: Network };
 
+const REEL_RULES = `Sos el mejor guionista de reels y TikToks del mundo: tus videos retienen hasta el último segundo y se comparten.
+Reglas que siempre cumplís:
+- Gancho en el primer segundo (máx. 12 palabras): curiosidad, contradicción, número concreto, resultado sorprendente o llamado directo a quien mira. Nunca arranques con "Hola", "Hoy les voy a hablar" ni presentaciones.
+- Además del gancho hablado, proponé un texto en pantalla corto (máx. 6 palabras) que refuerce el gancho.
+- Un solo mensaje por video. Cada punto es una idea, en frases cortas para decir a cámara, con un ejemplo concreto o un dato.
+- Cambio de ritmo cada 3-5 segundos: cada punto trae su texto en pantalla o indicación visual (plano, gesto, b-roll) entre corchetes cuando ayude.
+- Abrí un bucle al principio ("el último es el que más me cambió") y cerralo al final para que miren hasta el final.
+- Cierre que entregue la promesa del gancho en una frase.
+- Llamada a la acción específica y fácil: comentar una palabra clave, guardar o compartir con alguien puntual. Una sola acción.
+- Reel corto por defecto (20-45 s). Video largo solo si el tema realmente necesita explicación paso a paso (TikTok largo, 1-3 min). Historia si es algo cercano, del momento o de detrás de escena.`;
+
 export async function writeScript(input: ScriptInput): Promise<{ script: ScriptData; source: AISource }> {
   if (useRealAI()) {
     try {
-      const system = `Sos guionista de contenido para redes sociales. ${TONE}
+      const system = `${REEL_RULES}
+${TONE}
 Respondé SOLO con JSON válido con esta forma:
-{ "title": string, "hook": string, "points": { "title": string, "detail": string }[], "closing": string, "cta": string, "durationSec": number, "format": "reel" | "long" | "story", "formatReason": string }
-- "hook": el gancho de los primeros 3 segundos, literal, listo para decir a cámara.
-- "points": 3 a 5 puntos clave; "detail" es lo que se dice en ese punto (2-3 frases).
-- "closing": el cierre que resume la idea.
-- "cta": la llamada a la acción final, concreta.
-- "format": reel (15-90 s, ideas puntuales/virales), long (más de 4 min, tutoriales o temas profundos) o story (15-60 s, cercano, detrás de escena o encuestas).
-- "durationSec": duración sugerida en segundos, coherente con el formato.
+{ "title": string, "hook": string, "hookOnScreen": string, "points": { "title": string, "detail": string, "onScreen": string }[], "closing": string, "cta": string, "durationSec": number, "format": "reel" | "long" | "story", "formatReason": string }
+- "points": 3 a 5 puntos (3 para reels de menos de 40 s). "detail" es lo que se dice literal; "onScreen" es el texto en pantalla o la indicación visual.
+- "durationSec": duración sugerida en segundos, coherente con el formato y con la cantidad de texto.
 - "formatReason": una frase explicando por qué ese formato le conviene.`;
       const user = `Tema del video: ${input.topic}
 ${input.audience ? `Audiencia: ${input.audience}` : ""}
-${input.network ? `Red principal: ${input.network}` : ""}`;
+${input.network ? `Red principal: ${input.network === "tiktok" ? "TikTok" : "Instagram Reels"}` : "Red principal: Instagram Reels y TikTok"}`;
       const raw = (await chatJSON(system, user)) as Record<string, unknown>;
       const parsed = scriptSchema.parse({ ...raw, topic: input.topic, durationSec: Math.round(Number(raw.durationSec)) });
       return { script: parsed, source: "ai" };
@@ -71,26 +79,26 @@ ${input.network ? `Red principal: ${input.network}` : ""}`;
   return { script: demoScript(input), source: "demo" };
 }
 
-function pickFormat(topic: string, network?: Network): { format: ScriptFormat; durationSec: number; reason: string } {
+function pickFormat(topic: string): { format: ScriptFormat; durationSec: number; reason: string } {
   const t = topic.toLowerCase();
-  if (/(tutorial|guía|guia|paso a paso|completo|explic|cómo funciona|como funciona|review|análisis|analisis)/.test(t) || network === "youtube") {
+  if (/(paso a paso|guía completa|guia completa|tutorial completo|explicado a fondo|curso)/.test(t)) {
     return {
       format: "long",
-      durationSec: 480,
-      reason: "El tema necesita explicación y ejemplos: un video largo te deja ir a fondo y posicionarte como referente.",
+      durationSec: 120,
+      reason: "El tema necesita mostrar cada paso: un TikTok largo de 2 minutos te deja explicarlo bien y posicionarte como referente.",
     };
   }
   if (/(detrás|detras|mi día|mi dia|rutina|encuesta|novedad|anuncio|backstage|hoy)/.test(t)) {
     return {
       format: "story",
-      durationSec: 45,
+      durationSec: 30,
       reason: "Es un contenido cercano y del momento: en historias se siente auténtico y genera respuestas directas.",
     };
   }
   return {
     format: "reel",
-    durationSec: 45,
-    reason: "Es una idea concreta que se entiende rápido: un reel corto maximiza el alcance y las veces que lo comparten.",
+    durationSec: 35,
+    reason: "Es una idea concreta que se entiende rápido: un reel de 35 segundos maximiza retención, alcance y veces que lo comparten.",
   };
 }
 
@@ -100,45 +108,43 @@ function capitalize(s: string) {
 
 export function demoScript(input: ScriptInput): ScriptData {
   const topic = input.topic.trim().replace(/[.!?]+$/, "");
-  const rand = seededRandom(topic);
+  const rand = seededRandom(topic + Date.now());
   const pick = <T,>(arr: T[]) => arr[Math.floor(rand() * arr.length)];
-  const { format, durationSec, reason } = pickFormat(topic, input.network);
-  const who = input.audience?.trim() || "vos";
+  const { format, durationSec, reason } = pickFormat(topic);
+  const t = topic.toLowerCase();
 
-  const hooks = [
-    `Si estás con ${topic.toLowerCase()} y sentís que no avanzás, quedate 30 segundos porque esto te cambia la perspectiva.`,
-    `Nadie te cuenta esto sobre ${topic.toLowerCase()}, y es justamente lo que hace la diferencia.`,
-    `Me costó años entender esto de ${topic.toLowerCase()}. Te lo resumo en un minuto.`,
-    `Pará. Antes de hacer otra cosa con ${topic.toLowerCase()}, mirá esto.`,
+  const T = capitalize(topic);
+  const hooks: [string, string][] = [
+    [`¿${T}? El 90% lo hace mal. Mirá por qué.`, "El 90% falla acá"],
+    [`${T}: 3 cosas que nadie te cuenta. La última es la clave.`, "Nadie te dice esto 🤫"],
+    [`Me costó años entender esto. ${T}, resumido en 30 segundos.`, "Ojalá lo sabía antes"],
+    [`Si estás con esto, frená: ${t}. Hay un error que te está frenando.`, "Dejá de hacer esto ❌"],
   ];
+  const [hook, hookOnScreen] = pick(hooks);
 
   const points = [
-    { title: "El error más común", detail: `La mayoría arranca ${topic.toLowerCase()} copiando lo que ve. El problema es que no sabe por qué funciona. Primero entendé el objetivo, después elegí la forma.` },
-    { title: "Lo que realmente funciona", detail: `Enfocate en una sola cosa a la vez. Elegí el paso más simple, hacelo bien durante una semana y medí qué cambió. Eso vale más que diez tips sueltos.` },
-    { title: "Un ejemplo concreto", detail: `Te muestro cómo lo aplico yo: lo hago siempre a la misma hora, con una plantilla armada, y reviso los resultados cada viernes. Sin magia, con constancia.` },
-    { title: "El atajo que te ahorra tiempo", detail: `Armate una checklist de tres pasos y tenela a mano. Cuando tenés el proceso escrito, dejás de depender de la motivación.` },
+    { title: "El error", detail: "Todos copian lo que ven sin entender por qué funciona. Por eso no les da resultado.", onScreen: "[Plano cerrado] ERROR #1: copiar sin entender" },
+    { title: "Lo que sí funciona", detail: "Elegí una sola cosa, hacela siete días seguidos y medí qué cambió. Una cosa bien hecha le gana a diez a medias.", onScreen: "1 cosa × 7 días ✅" },
+    { title: "Ejemplo real", detail: "Yo lo hago siempre a la misma hora, con una plantilla armada, y reviso los números cada viernes.", onScreen: "[B-roll de tu pantalla/plantilla]" },
+    { title: "La clave (la última)", detail: "Escribí tu proceso en tres pasos. Cuando está escrito, dejás de depender de la motivación.", onScreen: "Proceso escrito = constancia" },
   ];
+  const usedPoints = format === "long" ? points : points.slice(0, 3).map((p, i) => (i === 2 ? points[3] : p));
 
   const ctas = [
-    "Guardá este video para tenerlo a mano y seguime para la parte 2.",
-    "Comentá «QUIERO» y te mando la plantilla que uso.",
-    "Mandáselo a alguien que lo necesita y seguime para más.",
+    "Comentá «PLAN» y te paso la plantilla que uso.",
+    "Guardalo para cuando lo necesites y mandáselo a alguien que lo tenga que ver.",
+    "Seguime para la parte 2: ahí te muestro cómo lo aplico paso a paso.",
   ];
 
-  const titleTemplates = [
-    `${capitalize(topic)}: lo que nadie te dice`,
-    `${capitalize(topic)} explicado fácil`,
-    `Cómo mejorar en ${topic.toLowerCase()} (sin complicarte)`,
-  ];
-
-  const usedPoints = format === "long" ? points : format === "story" ? points.slice(1, 3) : points.slice(0, 3);
+  const titles = [`${T}: lo que nadie te dice`, `${T}: el error #1`, `${T} en 30 segundos`];
 
   return {
     topic: input.topic,
-    title: pick(titleTemplates),
-    hook: pick(hooks),
+    title: pick(titles),
+    hook,
+    hookOnScreen,
     points: usedPoints,
-    closing: `En resumen: ${topic.toLowerCase()} no se trata de hacer más, sino de hacer lo correcto de forma constante. Si ${who === "vos" ? "empezás" : `${who} empieza`} hoy con un solo paso, en un mes vas a notar la diferencia.`,
+    closing: "No se trata de hacer más, sino de hacer lo correcto todos los días. Empezá hoy con un solo paso.",
     cta: pick(ctas),
     durationSec,
     format,
@@ -157,7 +163,9 @@ export async function writeCarousel(
 ): Promise<{ title: string; slides: CarouselSlide[]; source: AISource }> {
   if (useRealAI()) {
     try {
-      const system = `Sos estratega de contenido para carruseles de Instagram. ${TONE}
+      const system = `Sos el mejor estratega de carruseles de Instagram y TikTok del mundo: tus carruseles se guardan y se comparten. ${TONE}
+- El gancho frena el scroll: promesa concreta, número, contradicción o error común. Nada genérico.
+- Cada filmina deja con ganas de pasar a la siguiente; ideas accionables, ejemplos concretos, cero relleno.
 Respondé SOLO con JSON válido: { "title": string, "slides": { "kind": "hook" | "content" | "cta", "title": string, "body": string }[] }
 - Exactamente ${input.slideCount} filminas.
 - La primera es "hook": un gancho que frene el scroll (title máx 8 palabras, body una frase corta que genere curiosidad).
@@ -187,7 +195,7 @@ export function demoCarousel(input: CarouselInput): { title: string; slides: Car
   const middleCount = input.slideCount - 2;
 
   const content: CarouselSlide[] = [
-    { kind: "content", title: "Primero, el porqué", body: `Antes de meterte con ${t}, definí qué querés lograr. Un objetivo claro te dice qué hacer y, sobre todo, qué dejar de hacer.` },
+    { kind: "content", title: "Primero, el porqué", body: "Antes de arrancar, definí qué querés lograr. Un objetivo claro te dice qué hacer y, sobre todo, qué dejar de hacer." },
     { kind: "content", title: "Empezá por lo simple", body: "Elegí el paso más chico que puedas hacer hoy. La constancia le gana a la intensidad: diez minutos diarios valen más que un día perfecto." },
     { kind: "content", title: "El error que todos cometen", body: "Querer resultados en una semana. Los primeros cambios se notan después de un mes: medí, ajustá y seguí." },
     { kind: "content", title: "Armate un sistema", body: "Una checklist corta, un horario fijo y una plantilla. Cuando el proceso está escrito, no dependés de la motivación." },

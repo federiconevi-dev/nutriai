@@ -21,18 +21,9 @@ export function TikTokIcon({ className }: IconProps) {
   );
 }
 
-export function YouTubeIcon({ className }: IconProps) {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden>
-      <path d="M21.58 7.19a2.5 2.5 0 0 0-1.76-1.77C18.26 5 12 5 12 5s-6.26 0-7.82.42a2.5 2.5 0 0 0-1.76 1.77C2 8.75 2 12 2 12s0 3.25.42 4.81a2.5 2.5 0 0 0 1.76 1.77C5.74 19 12 19 12 19s6.26 0 7.82-.42a2.5 2.5 0 0 0 1.76-1.77C22 15.25 22 12 22 12s0-3.25-.42-4.81ZM10 15V9l5.2 3L10 15Z" />
-    </svg>
-  );
-}
-
 export function NetworkIcon({ network, className }: { network: Network } & IconProps) {
   if (network === "instagram") return <InstagramIcon className={className} />;
-  if (network === "tiktok") return <TikTokIcon className={className} />;
-  return <YouTubeIcon className={className} />;
+  return <TikTokIcon className={className} />;
 }
 
 /** Round chip with the network icon in its identity color. */

@@ -4,7 +4,7 @@ import { NETWORKS, type Network, type PostData, type ProfileData, type SocialIte
 
 export type FollowerPoint = { date: Date } & Record<Network, number>;
 
-const DAILY_GROWTH: Record<Network, number> = { instagram: 0.0032, tiktok: 0.0058, youtube: 0.0027 };
+const DAILY_GROWTH: Record<Network, number> = { instagram: 0.0032, tiktok: 0.0058 };
 
 /**
  * Daily follower history ending at the profile's current numbers. Until the
@@ -13,7 +13,7 @@ const DAILY_GROWTH: Record<Network, number> = { instagram: 0.0032, tiktok: 0.005
  */
 export function followerSeries(profile: ProfileData, days = 30, now = new Date()): FollowerPoint[] {
   const today = startOfDay(now);
-  const values: Record<Network, number[]> = { instagram: [], tiktok: [], youtube: [] };
+  const values: Record<Network, number[]> = { instagram: [], tiktok: [] };
   for (const n of NETWORKS) {
     const rand = seededRandom(`${profile.handle}-${n}`);
     let v = profile.followers[n];
@@ -29,7 +29,6 @@ export function followerSeries(profile: ProfileData, days = 30, now = new Date()
     date: addDays(today, i - days),
     instagram: values.instagram[i],
     tiktok: values.tiktok[i],
-    youtube: values.youtube[i],
   }));
 }
 

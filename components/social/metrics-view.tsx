@@ -48,7 +48,7 @@ export function MetricsView() {
       <PageHeader
         eyebrow="Rendimiento"
         title="Métricas"
-        description="Tus números de Instagram, TikTok y YouTube de un vistazo."
+        description="Tus números de Instagram y TikTok de un vistazo."
         actions={
           <Button variant="outline" className="border-white/10" onClick={() => setEditing(true)}>
             <Pencil /> Mis números
@@ -119,7 +119,7 @@ export function MetricsView() {
             <div>
               <h2 className="font-semibold">Crecimiento · últimos 30 días</h2>
               <p className="text-xs text-muted-foreground">
-                {lineMode === "total" ? "Seguidores sumando las tres redes" : "Crecimiento % de cada red desde hace 30 días"}
+                {lineMode === "total" ? "Seguidores sumando Instagram y TikTok" : "Crecimiento % de cada red desde hace 30 días"}
               </p>
             </div>
             <Segmented
@@ -150,7 +150,7 @@ export function MetricsView() {
         <section className="surface min-w-0 p-5 motion-safe:animate-rise-in sm:p-6 xl:col-span-2" style={{ animationDelay: "320ms" }}>
           <div className="mb-5 flex flex-col gap-3">
             <div>
-              <h2 className="font-semibold">Instagram vs. TikTok vs. YouTube</h2>
+              <h2 className="font-semibold">Instagram vs. TikTok</h2>
               <p className="text-xs text-muted-foreground">Rendimiento de los últimos 30 días</p>
             </div>
             <div className="no-scrollbar -mx-1 overflow-x-auto px-1">
@@ -178,7 +178,7 @@ export function MetricsView() {
       </div>
 
       {/* Per network */}
-      <div className="mt-4 grid gap-3 sm:gap-4 md:grid-cols-3">
+      <div className="mt-4 grid gap-3 sm:gap-4 md:grid-cols-2">
         {s.byNetwork.map((n, i) => (
           <div key={n.network} className="surface p-5 motion-safe:animate-rise-in sm:p-6" style={{ animationDelay: `${400 + i * 80}ms` }}>
             <div className="flex items-center gap-3">

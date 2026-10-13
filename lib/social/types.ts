@@ -1,4 +1,4 @@
-export const NETWORKS = ["instagram", "tiktok", "youtube"] as const;
+export const NETWORKS = ["instagram", "tiktok"] as const;
 export type Network = (typeof NETWORKS)[number];
 
 export const POST_STATUSES = ["draft", "ready", "published"] as const;
@@ -34,7 +34,9 @@ export type ScriptData = {
   topic: string;
   title: string;
   hook: string;
-  points: { title: string; detail: string }[];
+  /** Short text overlay for the first second. */
+  hookOnScreen?: string;
+  points: { title: string; detail: string; onScreen?: string }[];
   closing: string;
   cta: string;
   durationSec: number;
@@ -78,7 +80,6 @@ export const NETWORK_META: Record<Network, { label: string; color: string }> = {
   // Validated as a categorical set against the dark surface (CVD + contrast).
   instagram: { label: "Instagram", color: "#db2777" },
   tiktok: { label: "TikTok", color: "#0891b2" },
-  youtube: { label: "YouTube", color: "#ea580c" },
 };
 
 export const STATUS_META: Record<PostStatus, { label: string; className: string }> = {

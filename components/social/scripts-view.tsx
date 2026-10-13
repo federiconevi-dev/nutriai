@@ -40,9 +40,10 @@ function scriptToText(s: ScriptData) {
     "",
     "GANCHO",
     s.hook,
+    ...(s.hookOnScreen ? [`En pantalla: ${s.hookOnScreen}`] : []),
     "",
     "DESARROLLO",
-    ...s.points.map((p, i) => `${i + 1}. ${p.title}\n${p.detail}`),
+    ...s.points.map((p, i) => `${i + 1}. ${p.title}\n${p.detail}${p.onScreen ? `\nEn pantalla: ${p.onScreen}` : ""}`),
     "",
     "CIERRE",
     s.closing,
@@ -151,7 +152,7 @@ export function ScriptsView() {
                   if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) generate();
                 }}
                 rows={3}
-                placeholder="Ej: cómo organizar una semana de contenido en una sola tarde"
+                placeholder="Ej: cómo conseguir tus primeros 1.000 seguidores"
                 className="mt-2 w-full resize-none rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-base outline-none transition-colors placeholder:text-muted-foreground focus:border-brand-400/60 sm:text-[15px]"
               />
             </label>
@@ -368,6 +369,7 @@ function ScriptEditor({
       <div className="space-y-6 p-5 sm:p-6">
         <Block icon={Zap} color="text-amber-300 bg-amber-400/10" title="Gancho inicial" hint="primeros 3 segundos">
           <AutoTextarea value={script.hook} onChange={(v) => onChange({ hook: v })} className="-mx-2 px-2 py-1 text-[17px] font-medium leading-relaxed" />
+          <OnScreen value={script.hookOnScreen ?? ""} onChange={(v) => onChange({ hookOnScreen: v })} />
         </Block>
 
         <Block icon={Sparkles} color="text-brand-200 bg-brand-500/15" title="Puntos clave" hint={`${script.points.length} puntos`}>
@@ -385,6 +387,10 @@ function ScriptEditor({
                     value={p.detail}
                     onChange={(v) => onChange({ points: script.points.map((x, j) => (j === i ? { ...x, detail: v } : x)) })}
                     className="-mx-2 px-2 py-0.5 text-sm leading-relaxed text-muted-foreground"
+                  />
+                  <OnScreen
+                    value={p.onScreen ?? ""}
+                    onChange={(v) => onChange({ points: script.points.map((x, j) => (j === i ? { ...x, onScreen: v } : x)) })}
                   />
                 </div>
                 {script.points.length > 1 && (
@@ -433,6 +439,15 @@ function ScriptEditor({
         </div>
       </footer>
     </article>
+  );
+}
+
+function OnScreen({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  return (
+    <div className="mt-1.5 flex items-start gap-2 rounded-lg bg-white/[0.04] px-2 py-1 ring-1 ring-white/[0.06]">
+      <span className="mt-1 shrink-0 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">En pantalla</span>
+      <AutoTextarea value={value} onChange={onChange} className="px-1 text-xs font-medium" />
+    </div>
   );
 }
 

@@ -22,6 +22,7 @@ const TITLES: Record<Network, string[]> = {
     "Mi setup de trabajo 2026",
     "Antes y después: rediseño de marca",
     "Carrusel: errores al empezar en redes",
+    "Reel: 3 hooks que frenan el scroll",
     "Detrás de escena de la sesión de fotos",
     "Q&A: respondo sus preguntas",
     "Tips para fotos con el celular",
@@ -34,13 +35,8 @@ const TITLES: Record<Network, string[]> = {
     "3 apps que uso todos los días",
     "Este error me costó seguidores",
     "Respuesta a comentario: ¿cómo empiezo?",
-  ],
-  youtube: [
-    "Cómo crecí de 0 a 10K (guía completa)",
-    "Review honesta: la cámara que uso",
-    "Planifico un mes de contenido en 1 hora",
-    "Vlog: semana de lanzamiento",
-    "Tutorial de edición para principiantes",
+    "Tutorial rápido: editá un reel en 5 min",
+    "Lo que nadie te dice de crecer en TikTok",
   ],
 };
 
@@ -66,11 +62,11 @@ export function buildDemoContent(seed: string, now = new Date()) {
 
   const profile: ProfileData = {
     handle: "tumarca",
-    followers: { instagram: 48_250, tiktok: 126_400, youtube: 18_930 },
+    followers: { instagram: 48_250, tiktok: 126_400 },
   };
   items.push({ kind: "PROFILE", data: profile });
 
-  const networks: Network[] = ["instagram", "tiktok", "youtube"];
+  const networks: Network[] = ["instagram", "tiktok"];
   const used = new Set<string>();
   const nextTitle = (n: Network) => {
     const options = TITLES[n].filter((t) => !used.has(t));
@@ -82,8 +78,8 @@ export function buildDemoContent(seed: string, now = new Date()) {
   // Published posts across the last ~60 days, with performance numbers.
   const pastOffsets = [-58, -51, -46, -40, -33, -27, -22, -16, -12, -9, -6, -4, -2, -1];
   pastOffsets.forEach((offset, i) => {
-    const network = networks[i % 3];
-    const base = network === "tiktok" ? 42_000 : network === "youtube" ? 16_000 : 14_000;
+    const network = networks[i % 2];
+    const base = network === "tiktok" ? 42_000 : 16_000;
     const growth = 1 + (60 + offset) / 90; // recent posts perform a bit better
     const views = Math.round(base * growth * (0.55 + rand() * 1.1));
     const likes = Math.round(views * (0.04 + rand() * 0.05));
@@ -107,7 +103,7 @@ export function buildDemoContent(seed: string, now = new Date()) {
   // Upcoming posts this month and next.
   const futureOffsets = [0, 1, 2, 3, 5, 6, 8, 10, 13, 15, 18, 21, 24, 27];
   futureOffsets.forEach((offset, i) => {
-    const network = networks[(i + 1) % 3];
+    const network = networks[(i + 1) % 2];
     const status: PostStatus = offset <= 3 ? "ready" : i % 3 === 0 ? "ready" : "draft";
     const post: PostData = {
       title: nextTitle(network),
@@ -122,7 +118,7 @@ export function buildDemoContent(seed: string, now = new Date()) {
 
   const ideas: IdeaData[] = [
     { text: "Serie semanal: 'Lo que nadie te dice de…' con un tema distinto cada lunes", network: "tiktok", tag: "Serie", pinned: true },
-    { text: "Mostrar mi proceso de edición completo en tiempo real", network: "youtube", tag: "Tutorial" },
+    { text: "Mostrar mi proceso de edición completo en un reel acelerado", network: "tiktok", tag: "Reel" },
     { text: "Carrusel con las 7 herramientas gratis que más uso", network: "instagram", tag: "Carrusel" },
     { text: "Responder los 10 comentarios más repetidos en un solo video", tag: "Comunidad" },
     { text: "Colaboración con otra creadora del rubro — proponer live", network: "instagram", tag: "Collab" },

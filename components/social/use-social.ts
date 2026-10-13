@@ -23,7 +23,7 @@ async function send<T>(url: string, method: string, body?: unknown): Promise<T> 
   return json as T;
 }
 
-const DEFAULT_PROFILE: ProfileData = { handle: "tumarca", followers: { instagram: 0, tiktok: 0, youtube: 0 } };
+const DEFAULT_PROFILE: ProfileData = { handle: "tumarca", followers: { instagram: 0, tiktok: 0 } };
 
 /** Single source of truth for the social hub: every kind comes from one request. */
 export function useSocial() {

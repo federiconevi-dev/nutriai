@@ -25,7 +25,10 @@ export const scriptSchema = z.object({
   topic: z.string().max(500),
   title: z.string().min(1).max(200),
   hook: z.string().max(2000),
-  points: z.array(z.object({ title: z.string().max(200), detail: z.string().max(2000) })).max(12),
+  hookOnScreen: z.string().max(300).optional(),
+  points: z
+    .array(z.object({ title: z.string().max(200), detail: z.string().max(2000), onScreen: z.string().max(500).optional() }))
+    .max(12),
   closing: z.string().max(2000),
   cta: z.string().max(1000),
   durationSec: z.number().int().min(5).max(7200),
@@ -52,7 +55,7 @@ export const carouselSchema = z.object({
 
 export const profileSchema = z.object({
   handle: z.string().max(60),
-  followers: z.object({ instagram: count, tiktok: count, youtube: count }),
+  followers: z.object({ instagram: count, tiktok: count }),
 });
 
 export const SCHEMA_BY_KIND: Record<SocialKind, z.ZodTypeAny> = {

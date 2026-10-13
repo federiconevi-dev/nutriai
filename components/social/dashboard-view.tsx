@@ -58,7 +58,7 @@ export function DashboardView() {
       <PageHeader
         eyebrow={`${greeting} · @${profile.handle}`}
         title="Panel principal"
-        description="Todo tu contenido de Instagram, TikTok y YouTube en un solo lugar."
+        description="Todo tu contenido de Instagram y TikTok en un solo lugar."
         actions={
           <Button variant="gradient" onClick={() => setSheet({ date: new Date(), postId: "new" })}>
             <Plus /> Nuevo post
@@ -124,7 +124,7 @@ export function DashboardView() {
           <div className="mb-4 flex items-start justify-between gap-3">
             <div>
               <h2 className="font-semibold">Crecimiento de seguidores</h2>
-              <p className="text-xs text-muted-foreground">Total de las tres redes · últimos 30 días</p>
+              <p className="text-xs text-muted-foreground">Instagram + TikTok · últimos 30 días</p>
             </div>
             <Link href="/social/metricas" className="flex shrink-0 items-center gap-1 text-xs font-medium text-brand-300 hover:text-brand-200">
               Ver métricas <ArrowRight className="h-3.5 w-3.5" />

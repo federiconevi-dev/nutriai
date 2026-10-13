@@ -43,7 +43,7 @@ before connecting any paid API.
   configured).
 - **Settings** — profile, password change, sign out.
 - **Redes sociales** (`/social`, en español) — hub para gestionar el contenido
-  de Instagram, TikTok y YouTube:
+  de Instagram y TikTok:
   - **Panel principal** — posts de la semana, seguidores, visualizaciones,
     interacción, gráfico de crecimiento, mejores posts y tarjetas de cada
     publicación (imagen, título, fecha, estado borrador/listo/publicado).
@@ -52,7 +52,7 @@ before connecting any paid API.
   - **Ideas** (`/social/ideas`) — captura rápida, fijar, convertir en post,
     guion o carrusel.
   - **Métricas** (`/social/metricas`) — tarjetas grandes con tendencia,
-    gráfico de líneas de 30 días y barras comparando las tres redes.
+    gráfico de líneas de 30 días y barras comparando Instagram y TikTok.
   - **Guiones IA** (`/social/guiones`) — gancho, puntos clave, cierre y CTA,
     duración y formato sugeridos; biblioteca de guiones guardados.
   - **Carruseles IA** (`/social/carruseles`) — filminas generadas, 6 estilos
