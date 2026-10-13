@@ -47,6 +47,7 @@ model User {
   transactions  CreditTransaction[]
   subscription  Subscription?
   resetTokens   PasswordResetToken[]
+  socialItems   SocialItem[]
 }
 
 model Account {
@@ -308,4 +309,23 @@ model Subscription {
   updatedAt            DateTime  @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ---------------------------------------------------------------------------
+// Social content hub (posts, ideas, scripts, carousels, profile numbers)
+// ---------------------------------------------------------------------------
+
+model SocialItem {
+  id        String   @id @default(cuid())
+  userId    String
+  /// POST | IDEA | SCRIPT | CAROUSEL | PROFILE
+  kind      String
+  /// JSON payload, validated per kind in lib/social/schemas.ts
+  data      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, kind])
 }

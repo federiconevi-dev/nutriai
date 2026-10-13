@@ -76,3 +76,48 @@
     background-size: 24px 24px;
   }
 }
+
+/* Social hub surfaces */
+@layer components {
+  .surface {
+    @apply relative rounded-3xl border border-white/[0.07] bg-gradient-to-b from-white/[0.045] to-white/[0.015] shadow-[0_1px_0_0_rgba(255,255,255,0.05)_inset,0_20px_50px_-24px_rgba(0,0,0,0.7)];
+  }
+  .surface-hover {
+    @apply transition-all duration-300 hover:-translate-y-0.5 hover:border-white/[0.12] hover:shadow-[0_1px_0_0_rgba(255,255,255,0.07)_inset,0_28px_60px_-24px_rgba(0,0,0,0.85)];
+  }
+  .eyebrow {
+    @apply text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chart-draw,
+  .chart-grow {
+    animation: none !important;
+  }
+}
+
+@keyframes chart-draw {
+  from { stroke-dashoffset: var(--len); }
+  to { stroke-dashoffset: 0; }
+}
+@keyframes chart-grow {
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
+}
+@keyframes chart-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.chart-draw {
+  stroke-dasharray: var(--len);
+  animation: chart-draw 1.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.chart-grow {
+  transform-box: fill-box;
+  transform-origin: bottom;
+  animation: chart-grow 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.chart-fade {
+  animation: chart-fade 1.2s ease-out both;
+}

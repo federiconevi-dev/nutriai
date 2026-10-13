@@ -73,6 +73,9 @@ const config: Config = {
         "fade-in": { from: { opacity: "0" }, to: { opacity: "1" } },
         "fade-in-up": { from: { opacity: "0", transform: "translateY(8px)" }, to: { opacity: "1", transform: "translateY(0)" } },
         shimmer: { "0%": { backgroundPosition: "-1000px 0" }, "100%": { backgroundPosition: "1000px 0" } },
+        "sheet-up": { from: { transform: "translateY(100%)" }, to: { transform: "translateY(0)" } },
+        "sheet-left": { from: { transform: "translateX(100%)" }, to: { transform: "translateX(0)" } },
+        "rise-in": { from: { opacity: "0", transform: "translateY(14px) scale(0.985)" }, to: { opacity: "1", transform: "none" } },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -80,6 +83,9 @@ const config: Config = {
         "fade-in": "fade-in 0.4s ease-out",
         "fade-in-up": "fade-in-up 0.5s ease-out",
         shimmer: "shimmer 2s infinite linear",
+        "sheet-up": "sheet-up 0.32s cubic-bezier(0.32, 0.72, 0, 1)",
+        "sheet-left": "sheet-left 0.32s cubic-bezier(0.32, 0.72, 0, 1)",
+        "rise-in": "rise-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both",
       },
       backgroundImage: {
         "grid-pattern": "linear-gradient(to right, hsl(var(--border)) 1px, transparent 1px), linear-gradient(to bottom, hsl(var(--border)) 1px, transparent 1px)",

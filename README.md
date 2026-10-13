@@ -42,6 +42,24 @@ before connecting any paid API.
   Stripe-ready checkout (falls back to a demo upgrade when Stripe isn't
   configured).
 - **Settings** — profile, password change, sign out.
+- **Redes sociales** (`/social`, en español) — hub para gestionar el contenido
+  de Instagram, TikTok y YouTube:
+  - **Panel principal** — posts de la semana, seguidores, visualizaciones,
+    interacción, gráfico de crecimiento, mejores posts y tarjetas de cada
+    publicación (imagen, título, fecha, estado borrador/listo/publicado).
+  - **Calendario** (`/social/calendario`) — mes completo con miniaturas y red
+    de cada post; panel lateral para crear/editar; días completos con borde.
+  - **Ideas** (`/social/ideas`) — captura rápida, fijar, convertir en post,
+    guion o carrusel.
+  - **Métricas** (`/social/metricas`) — tarjetas grandes con tendencia,
+    gráfico de líneas de 30 días y barras comparando las tres redes.
+  - **Guiones IA** (`/social/guiones`) — gancho, puntos clave, cierre y CTA,
+    duración y formato sugeridos; biblioteca de guiones guardados.
+  - **Carruseles IA** (`/social/carruseles`) — filminas generadas, 6 estilos
+    visuales, vista previa, edición y descarga en ZIP de PNG 1080×1350.
+  - Usa `AI_API_KEY` (mismo proveedor que los guiones de video); sin clave o
+    con `DEMO_MODE=true` usa un redactor de demostración. Los datos se guardan
+    en la tabla `SocialItem`.
 - **Admin panel** (`/admin`, role-gated) — platform stats, user management
   (disable, change plan, grant credits), generation log with errors.
 - **Provider abstractions** — `AIProvider`, `VideoProvider`, `VoiceProvider`,

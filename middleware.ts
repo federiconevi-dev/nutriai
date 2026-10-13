@@ -13,6 +13,7 @@ const PROTECTED_PREFIXES = [
   "/admin",
   "/editor",
   "/projects",
+  "/social",
 ];
 
 const ADMIN_PREFIXES = ["/admin"];
@@ -50,5 +51,6 @@ export const config = {
     "/admin/:path*",
     "/editor/:path*",
     "/projects/:path*",
+    "/social/:path*",
   ],
 };
