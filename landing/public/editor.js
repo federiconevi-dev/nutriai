@@ -49,7 +49,7 @@ d.addEventListener('drop', e => load(e.dataTransfer.files[0]));
 
 // ---------- Transcription ----------
 // Returns a transcribe(audio, opts) function backed by a Web Worker (falls back to the main thread).
-let worker = null;
+let worker = null, voiceLvl = 0;
 async function getAsr() {
   const model = MODELS[$('#quality').value] || MODELS.base;
   msg('Preparando el motor de subtítulos…');
@@ -88,6 +88,7 @@ async function runAI() {
     msg('Escuchando tu video…'); prog(.55);
     const raw = await audio16k(file);
     speech = detectSpeech(raw);
+    { const F = 320, r = []; for (let i = 0; i + F <= raw.length; i += F) { let q = 0; for (let j = i; j < i + F; j++) q += raw[j] * raw[j]; r.push(Math.sqrt(q / F)); } r.sort((a, b) => a - b); voiceLvl = r[Math.floor(r.length * .85)] || 0; }
     words = await transcribeAll(model, louder(raw));
     $('#txt').value = words.map(w => w.t).join(' ');
     build();
@@ -2430,7 +2431,12 @@ async function realtimeExport() {
     if (!ac) {
       ac = new (window.AudioContext || window.webkitAudioContext)();
       dest = ac.createMediaStreamDestination();
-      ac.createMediaElementSource(v).connect(dest);
+      // Voice: level-matched, compressed and limited so it sounds loud and clear (same idea as the fast export).
+      const pre = ac.createGain(), comp = ac.createDynamicsCompressor(), lim = ac.createDynamicsCompressor();
+      pre.gain.value = Math.min(8, Math.max(.6, .14 / (voiceLvl || .14)));
+      comp.threshold.value = -22; comp.ratio.value = 3.5; comp.attack.value = .005; comp.release.value = .18;
+      lim.threshold.value = -2; lim.knee.value = 0; lim.ratio.value = 20; lim.attack.value = .002; lim.release.value = .1;
+      ac.createMediaElementSource(v).connect(pre); pre.connect(comp); comp.connect(lim); lim.connect(dest);
       noiseBuf = makeNoise(ac);
     }
     await ac.resume();
