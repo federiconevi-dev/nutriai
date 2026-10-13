@@ -24,4 +24,4 @@ export default async (req: Request) => {
   for (const h of ['content-length', 'content-range']) { const v = r.headers.get(h); if (v) out.set(h, v); }
   return new Response(req.method === 'HEAD' ? null : r.body, { status: r.status, headers: out });
 };
-export const config = { path: '/api/clip', method: ['GET', 'HEAD'] };
+export const config = { path: '/api/clip' };
