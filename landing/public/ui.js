@@ -86,7 +86,7 @@ document.addEventListener('change', e => {
   clearTimeout(saveT);
   saveT = setTimeout(() => {
     const s = {}; saveable().forEach(el => { s[el.id] = el.type === 'checkbox' ? el.checked : el.value; });
-    try { localStorage.setItem(KEY, JSON.stringify(s)); $('#saved').textContent = '● Guardado'; } catch (er) { /* ignore */ }
+    try { localStorage.setItem(KEY, JSON.stringify(s)); const sv = $('#saved'); if (sv) sv.textContent = '● Guardado'; } catch (er) { /* ignore */ }
   }, 300);
 });
 restore(); syncAll(); vsSync();
