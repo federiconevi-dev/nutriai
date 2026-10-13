@@ -3,7 +3,7 @@ import { ollamaChat } from '../lib/ollama.mjs';
 import { guard } from '../lib/guard.mjs';
 
 export default async (req) => {
-  const no = guard(req); if (no) return no;
+  const no = guard(req, { perMin: 4 }); if (no) return no;
   const account = Netlify.env.get('CF_ACCOUNT_ID'), token = Netlify.env.get('CF_API_TOKEN');
   const out = { cloudflare: 'sin configurar', ollama: Netlify.env.get('OLLAMA_API_KEY') ? 'configurado' : 'sin configurar' };
   if (account && token) {

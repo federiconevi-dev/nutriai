@@ -3,7 +3,7 @@ import { guard, fail } from '../lib/guard.mjs';
 // Finds a stock clip for a b-roll moment on Pexels (PEXELS_API_KEY) or Pixabay (PIXABAY_API_KEY), both free.
 // GET /api/broll-video?q=<english keywords>  →  { url, w, h, dur } (cached at the CDN per query)
 export default async (req) => {
-  const no = guard(req); if (no) return no;
+  const no = guard(req, { perMin: 30 }); if (no) return no;
   const sp = new URL(req.url).searchParams, q = (sp.get('q') || '').slice(0, 80).trim(), want2 = (sp.get('want') || '').slice(0, 300);
   if (q.length < 2) return Response.json({ error: 'Falta la búsqueda.' }, { status: 400 });
   const cache = { headers: { 'Cache-Control': 'public, max-age=86400', 'Netlify-CDN-Cache-Control': 'public, durable, max-age=604800' } };

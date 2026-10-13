@@ -4,7 +4,7 @@ import { guard, fail, readJson } from '../lib/guard.mjs';
 // POST /api/ai-plan  { text, subjects: string[] }  →  { prompts: string[] }
 
 export default async (req) => {
-  const no = guard(req); if (no) return no;
+  const no = guard(req, { perMin: 12 }); if (no) return no;
   let body;
   try { body = await readJson(req); } catch { return fail('Pedido inválido.', 400); }
   const subjects = Array.isArray(body.subjects) ? body.subjects.slice(0, 40).map(s => String(s).slice(0, 300)) : [];

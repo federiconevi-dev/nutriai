@@ -5,8 +5,18 @@ const NO_STORE = { 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosni
 
 export const fail = (msg, status) => Response.json({ error: msg }, { status, headers: NO_STORE });
 
+// Backup per-IP limit kept in the warm function instance (Netlify's own rateLimit also applies where the plan has it).
+const hits = new Map();
+function tooMany(req, perMin) {
+  const ip = req.headers.get('x-nf-client-connection-ip') || req.headers.get('x-forwarded-for') || '?', now = Date.now();
+  const k = new URL(req.url).pathname + '|' + ip.split(',')[0].trim(), h = (hits.get(k) || []).filter(t => now - t < 60000);
+  h.push(now); hits.set(k, h);
+  if (hits.size > 5000) for (const [key, v] of hits) if (now - v[v.length - 1] > 60000) hits.delete(key);
+  return h.length > perMin;
+}
+
 // Returns a Response to send back when the request must be refused, or null when it may go on.
-export function guard(req, { maxBody = 128 * 1024 } = {}) {
+export function guard(req, { maxBody = 128 * 1024, perMin = 30 } = {}) {
   // Browsers always send Origin (POST, CORS) or Referer (same-site GET) for our own page's requests.
   const from = req.headers.get('origin') || req.headers.get('referer') || '';
   let host = '';
@@ -14,6 +24,7 @@ export function guard(req, { maxBody = 128 * 1024 } = {}) {
   if (!SITE.test(host) || req.headers.get('sec-fetch-site') === 'cross-site') return fail('Acceso no permitido.', 403);
   const len = Number(req.headers.get('content-length') || 0);
   if (len > maxBody) return fail('Pedido demasiado grande.', 413);
+  if (tooMany(req, perMin)) return fail('Demasiados pedidos seguidos. Esperá un minuto.', 429);
   return null;
 }
 

@@ -37,7 +37,7 @@ toggles (true/false): ${TOGGLES.join(', ')} (optFrame = video inside a card with
 Keep colors coherent: when you pick mg, set cKey to "auto" unless the user asks for a color.`;
 
 export default async (req) => {
-  const no = guard(req); if (no) return no;
+  const no = guard(req, { perMin: 8 }); if (no) return no;
   let body;
   try { body = await readJson(req); } catch { return fail('Pedido inválido.', 400); }
   const text = String(body.text || '').slice(0, 4000), request = String(body.request || '').slice(0, 400);
