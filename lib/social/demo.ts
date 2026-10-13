@@ -61,7 +61,7 @@ export function buildDemoContent(seed: string, now = new Date()) {
   const pick = <T,>(arr: T[]) => arr[Math.floor(rand() * arr.length)];
 
   const profile: ProfileData = {
-    handle: "tumarca",
+    handle: "federicomarketingg",
     followers: { instagram: 48_250, tiktok: 126_400 },
   };
   items.push({ kind: "PROFILE", data: profile });

@@ -13,6 +13,7 @@ import {
   Loader2,
   Minus,
   Plus,
+  Send,
   Trash2,
   Wand2,
 } from "lucide-react";
@@ -80,6 +81,7 @@ export function CarouselView() {
   const [active, setActive] = useState(0);
   const [source, setSource] = useState<"ai" | "demo" | null>(null);
   const [exporting, setExporting] = useState(false);
+  const [scheduling, setScheduling] = useState(false);
   const stripRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<HTMLDivElement>(null);
 
@@ -99,7 +101,7 @@ export function CarouselView() {
     }
     setLoading(true);
     try {
-      const res = await postJSON<{ title: string; slides: CarouselSlide[]; source: "ai" | "demo" }>("/api/social/ai/carousel", {
+      const res = await postJSON<{ title: string; slides: CarouselSlide[]; caption: string; source: "ai" | "demo" }>("/api/social/ai/carousel", {
         topic: topic.trim(),
         audience: audience.trim() || undefined,
         slideCount: count,
@@ -108,8 +110,9 @@ export function CarouselView() {
         topic: topic.trim(),
         title: res.title,
         slides: res.slides,
+        caption: res.caption,
         styleId: d?.styleId ?? "noche",
-        handle: d?.handle ?? profile.handle,
+        handle: d?.handle ?? (profile.handle === "tumarca" ? "federicomarketingg" : profile.handle),
       }));
       setSource(res.source);
       setSavedId(null);
@@ -171,6 +174,40 @@ export function CarouselView() {
         toast.success("Carrusel guardado");
       }
     }
+  }
+
+  async function scheduleOnInstagram() {
+    if (!draft) return;
+    if (draft.slides.length > 10) {
+      toast.error("Instagram permite máximo 10 filminas por carrusel");
+      return;
+    }
+    setScheduling(true);
+    let id = savedId;
+    if (!id || dirty) {
+      const item = id ? await update<"CAROUSEL">(id, draft) : await create("CAROUSEL", draft);
+      if (!item) {
+        setScheduling(false);
+        return;
+      }
+      id = item.id;
+      setSavedId(item.id);
+      setDirty(false);
+    }
+    const when = new Date();
+    when.setDate(when.getDate() + 1);
+    when.setHours(18, 0, 0, 0);
+    const post = await create("POST", {
+      title: draft.title,
+      caption: draft.caption ?? "",
+      network: "instagram",
+      status: "ready",
+      scheduledAt: when.toISOString(),
+      carouselId: id,
+      autoPublish: true,
+    });
+    setScheduling(false);
+    if (post) toast.success("Programado para mañana a las 18:00", { description: "Se publica solo en Instagram. Podés cambiar la fecha en el calendario." });
   }
 
   async function downloadAll() {
@@ -442,6 +479,17 @@ export function CarouselView() {
                 </label>
               </div>
 
+              <label className="mt-3 block">
+                <span className="text-xs font-medium text-muted-foreground">Caption del post</span>
+                <textarea
+                  value={draft.caption ?? ""}
+                  onChange={(e) => edit({ caption: e.target.value })}
+                  rows={4}
+                  placeholder="Texto que acompaña al carrusel en Instagram"
+                  className="mt-1.5 w-full resize-none rounded-xl border border-white/10 bg-black/20 px-3.5 py-2.5 text-base leading-relaxed outline-none focus:border-brand-400/60 sm:text-sm"
+                />
+              </label>
+
               {source === "demo" && (
                 <p className="mt-3 text-[11px] text-amber-300/90">
                   Modo demo: configurá AI_API_KEY para textos generados por un modelo de IA real.
@@ -449,7 +497,11 @@ export function CarouselView() {
               )}
 
               <div className="mt-5 space-y-2 border-t border-white/[0.06] pt-5">
-                <Button variant="gradient" className="w-full" onClick={downloadAll} disabled={exporting}>
+                <Button variant="gradient" className="w-full" onClick={scheduleOnInstagram} disabled={scheduling}>
+                  {scheduling ? <Loader2 className="animate-spin" /> : <Send />}
+                  Programar en Instagram
+                </Button>
+                <Button variant="outline" className="w-full border-white/10" onClick={downloadAll} disabled={exporting}>
                   {exporting ? <Loader2 className="animate-spin" /> : <Download />}
                   {exporting ? "Preparando…" : `Descargar todo (${draft.slides.length} PNG)`}
                 </Button>

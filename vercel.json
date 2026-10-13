@@ -1,0 +1,6 @@
+{
+  "crons": [
+    { "path": "/api/cron/social?task=generate", "schedule": "0 12 * * *" },
+    { "path": "/api/cron/social?task=publish", "schedule": "0 20 * * *" }
+  ]
+}

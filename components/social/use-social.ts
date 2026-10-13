@@ -86,6 +86,10 @@ export function useSocial() {
     create,
     update,
     remove,
+    mutateAll: () => mutate(),
+    /** Replace one item in the cache (e.g. after publishing). */
+    replaceItem: (item: SocialItem) =>
+      mutate((cur) => ({ items: (cur?.items ?? []).map((i) => (i.id === item.id ? item : i)) }), { revalidate: false }),
   };
 }
 

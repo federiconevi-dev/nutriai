@@ -57,6 +57,12 @@ before connecting any paid API.
     duración y formato sugeridos; biblioteca de guiones guardados.
   - **Carruseles IA** (`/social/carruseles`) — filminas generadas, 6 estilos
     visuales, vista previa, edición y descarga en ZIP de PNG 1080×1350.
+  - **Piloto automático** (`/social/ajustes`) — perfil de marca (prefijado para
+    @federicomarketingg), generación diaria de carruseles y guiones, y
+    publicación directa de carruseles/imágenes/reels en Instagram (Instagram API
+    con inicio de sesión de Instagram; el token se pega en Ajustes). Crons en
+    `vercel.json` (`/api/cron/social`); opcional `CRON_SECRET`. Solo corren en
+    el deploy de producción.
   - Usa `AI_API_KEY` (mismo proveedor que los guiones de video); sin clave o
     con `DEMO_MODE=true` usa un redactor de demostración. Los datos se guardan
     en la tabla `SocialItem`.

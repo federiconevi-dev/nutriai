@@ -50,6 +50,7 @@ function scriptToText(s: ScriptData) {
     "",
     "LLAMADA A LA ACCIÓN",
     s.cta,
+    ...(s.caption || s.hashtags?.length ? ["", "CAPTION", [s.caption, s.hashtags?.join(" ")].filter(Boolean).join("\n")] : []),
   ].join("\n");
 }
 
@@ -422,6 +423,37 @@ function ScriptEditor({
         <Block icon={Megaphone} color="text-emerald-300 bg-emerald-400/10" title="Llamada a la acción">
           <AutoTextarea value={script.cta} onChange={(v) => onChange({ cta: v })} className="-mx-2 px-2 py-1 font-medium leading-relaxed" />
         </Block>
+
+        {!!script.altHooks?.length && (
+          <Block icon={Zap} color="text-amber-300 bg-amber-400/10" title="Ganchos alternativos" hint="para testear">
+            <ul className="space-y-1.5">
+              {script.altHooks.map((h, i) => (
+                <li key={i}>
+                  <button
+                    onClick={() => onChange({ hook: h, altHooks: script.altHooks!.map((x, j) => (j === i ? script.hook : x)) })}
+                    className="w-full rounded-xl bg-white/[0.03] px-3 py-2 text-left text-sm ring-1 ring-white/[0.06] transition-colors hover:bg-white/[0.06]"
+                    title="Usar este gancho"
+                  >
+                    {h}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </Block>
+        )}
+
+        {(script.caption || script.hashtags?.length) && (
+          <Block icon={FileText} color="text-pink-300 bg-pink-400/10" title="Caption y hashtags">
+            <AutoTextarea value={script.caption ?? ""} onChange={(v) => onChange({ caption: v })} className="-mx-2 px-2 py-1 text-sm leading-relaxed" />
+            {!!script.hashtags?.length && <p className="mt-1 text-sm text-brand-300">{script.hashtags.join(" ")}</p>}
+          </Block>
+        )}
+
+        {script.whyShare && (
+          <p className="rounded-2xl bg-white/[0.03] p-3 text-xs text-muted-foreground ring-1 ring-white/[0.06]">
+            <b className="text-foreground">Por qué lo van a guardar o compartir:</b> {script.whyShare}
+          </p>
+        )}
       </div>
 
       <footer className="flex flex-col gap-2 border-t border-white/[0.06] p-5 sm:flex-row sm:p-6">

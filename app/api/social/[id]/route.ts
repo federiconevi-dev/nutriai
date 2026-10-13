@@ -3,13 +3,13 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { SCHEMA_BY_KIND } from "@/lib/social/schemas";
-import type { SocialKind } from "@/lib/social/types";
+import { SOCIAL_KINDS, type SocialKind } from "@/lib/social/types";
 import { serializeItem } from "../serialize";
 
 async function findOwned(id: string) {
   const session = await getServerSession(authOptions);
   if (!session?.user) return { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
-  const row = await db.socialItem.findFirst({ where: { id, userId: session.user.id } });
+  const row = await db.socialItem.findFirst({ where: { id, userId: session.user.id, kind: { in: [...SOCIAL_KINDS] } } });
   if (!row) return { error: NextResponse.json({ error: "No encontrado" }, { status: 404 }) };
   return { row };
 }

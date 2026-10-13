@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { CalendarPlus, Loader2, Plus, Trash2, Upload, ChevronLeft } from "lucide-react";
+import { CalendarPlus, Loader2, Plus, Send, Trash2, Upload, ChevronLeft } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,7 +19,7 @@ import {
 } from "@/lib/social/types";
 import { NetworkBadge, NetworkIcon } from "./icons";
 import { PostImage, StatusBadge } from "./ui";
-import { useSocial } from "./use-social";
+import { postJSON, useSocial } from "./use-social";
 
 const field = "text-base sm:text-sm bg-white/[0.03] border-white/10";
 
@@ -137,12 +137,14 @@ function PostForm({
   onDone: () => void;
   onDeleted: () => void;
 }) {
-  const { create, update, remove } = useSocial();
+  const { create, update, remove, carousels, replaceItem } = useSocial();
+  const [publishing, setPublishing] = useState(false);
   const [data, setData] = useState<PostData>(() => post?.data ?? emptyPost(date));
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  const carousel = data.carouselId ? carousels.find((c) => c.id === data.carouselId) : undefined;
   const set = <K extends keyof PostData>(k: K, v: PostData[K]) => setData((d) => ({ ...d, [k]: v }));
   const metrics = data.metrics ?? { views: 0, likes: 0, comments: 0, shares: 0 };
 
@@ -178,6 +180,26 @@ function PostForm({
     if (ok) {
       toast.success(post ? "Post actualizado" : "Post programado");
       onDone();
+    }
+  }
+
+  async function publishNow() {
+    if (!post) return;
+    setPublishing(true);
+    try {
+      // Save pending edits first so Instagram gets the latest caption.
+      await update<"POST">(post.id, { ...data, title: data.title.trim() || post.data.title });
+      const res = await postJSON<{ item: SocialItem<"POST"> | null }>(`/api/social/${post.id}/publish`, {});
+      if (res.item) {
+        replaceItem(res.item);
+        setData(res.item.data);
+        if (res.item.data.ig?.mediaId) toast.success("¡Publicado en Instagram!");
+        else toast.message(res.item.data.ig?.error ?? "Instagram está procesando el post");
+      }
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setPublishing(false);
     }
   }
 
@@ -278,6 +300,51 @@ function PostForm({
       <Field label="Texto / caption">
         <Textarea className={field} rows={4} value={data.caption ?? ""} onChange={(e) => set("caption", e.target.value)} placeholder="Escribí el copy del post…" />
       </Field>
+
+      {data.network === "instagram" && (
+        <Field label="Publicación en Instagram">
+          <div className="space-y-3 rounded-2xl border border-white/10 bg-white/[0.02] p-3">
+            {carousel ? (
+              <p className="text-xs text-muted-foreground">
+                📎 Se publica el carrusel <b className="text-foreground">{carousel.data.title}</b> ({carousel.data.slides.length} filminas)
+              </p>
+            ) : (
+              <label className="block">
+                <span className="text-[11px] text-muted-foreground">Video del reel (link público a un .mp4) — opcional; si no, se usa la imagen</span>
+                <Input className={cn(field, "mt-1")} value={data.videoUrl ?? ""} onChange={(e) => set("videoUrl", e.target.value)} placeholder="https://…/mi-reel.mp4" />
+              </label>
+            )}
+            <label className="flex items-center justify-between gap-3 text-sm">
+              <span>Publicar solo en la fecha programada</span>
+              <input
+                type="checkbox"
+                checked={!!data.autoPublish}
+                onChange={(e) => set("autoPublish", e.target.checked)}
+                className="h-5 w-5 accent-emerald-500"
+              />
+            </label>
+            {data.autoPublish && data.status !== "ready" && !data.ig?.mediaId && (
+              <p className="text-[11px] text-amber-300">Para que se publique solo, poné el estado en «Listo».</p>
+            )}
+            {data.ig?.permalink ? (
+              <a href={data.ig.permalink} target="_blank" rel="noreferrer" className="block text-xs font-medium text-emerald-400 underline">
+                ✓ Publicado — ver en Instagram
+              </a>
+            ) : data.ig?.mediaId ? (
+              <p className="text-xs font-medium text-emerald-400">✓ Publicado en Instagram</p>
+            ) : (
+              <>
+                {data.ig?.error && <p className="text-xs text-red-400">Último intento: {data.ig.error}</p>}
+                {post && (
+                  <Button variant="outline" className="w-full border-white/10" onClick={publishNow} disabled={publishing}>
+                    {publishing ? <Loader2 className="animate-spin" /> : <Send />} Publicar ahora en Instagram
+                  </Button>
+                )}
+              </>
+            )}
+          </div>
+        </Field>
+      )}
 
       {data.status === "published" && (
         <Field label="Resultados">

@@ -12,6 +12,18 @@ export const postSchema = z.object({
   scheduledAt: z.string().datetime({ offset: true }),
   imageUrl: z.string().max(2000).optional(),
   metrics: z.object({ views: count, likes: count, comments: count, shares: count }).optional(),
+  carouselId: z.string().max(60).optional(),
+  videoUrl: z.string().max(2000).optional(),
+  autoPublish: z.boolean().optional(),
+  ig: z
+    .object({
+      containerId: z.string().max(100).optional(),
+      mediaId: z.string().max(100).optional(),
+      permalink: z.string().max(500).optional(),
+      error: z.string().max(1000).optional(),
+      publishedAt: z.string().max(40).optional(),
+    })
+    .optional(),
 });
 
 export const ideaSchema = z.object({
@@ -34,6 +46,10 @@ export const scriptSchema = z.object({
   durationSec: z.number().int().min(5).max(7200),
   format: z.enum(SCRIPT_FORMATS),
   formatReason: z.string().max(1000),
+  altHooks: z.array(z.string().max(500)).max(6).optional(),
+  caption: z.string().max(2200).optional(),
+  hashtags: z.array(z.string().max(60)).max(15).optional(),
+  whyShare: z.string().max(1000).optional(),
 });
 
 export const carouselSchema = z.object({
@@ -51,11 +67,36 @@ export const carouselSchema = z.object({
     )
     .min(1)
     .max(20),
+  caption: z.string().max(2200).optional(),
+});
+
+const brandText = z.string().max(2000);
+export const brandSchema = z.object({
+  name: brandText,
+  niche: brandText,
+  audience: brandText,
+  tone: brandText,
+  offer: brandText,
+  cta: z.string().max(200),
+  pains: brandText,
+  rules: brandText,
+  mix: brandText,
 });
 
 export const profileSchema = z.object({
   handle: z.string().max(60),
   followers: z.object({ instagram: count, tiktok: count }),
+  brand: brandSchema.optional(),
+});
+
+export const autopilotSchema = z.object({
+  enabled: z.boolean(),
+  carouselsPerDay: z.number().int().min(0).max(3),
+  scriptsPerDay: z.number().int().min(0).max(3),
+  publishHour: z.number().int().min(0).max(23),
+  styleId: z.string().max(40),
+  autoPublish: z.boolean(),
+  lastRunDay: z.string().max(20).optional(),
 });
 
 export const SCHEMA_BY_KIND: Record<SocialKind, z.ZodTypeAny> = {

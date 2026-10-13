@@ -5,6 +5,8 @@ export const POST_STATUSES = ["draft", "ready", "published"] as const;
 export type PostStatus = (typeof POST_STATUSES)[number];
 
 export const SOCIAL_KINDS = ["POST", "IDEA", "SCRIPT", "CAROUSEL", "PROFILE"] as const;
+/** Server-only kind (holds the Instagram token); never sent to the browser. */
+export const SETTINGS_KIND = "SETTINGS";
 export type SocialKind = (typeof SOCIAL_KINDS)[number];
 
 export type PostMetrics = { views: number; likes: number; comments: number; shares: number };
@@ -18,6 +20,21 @@ export type PostData = {
   scheduledAt: string;
   imageUrl?: string;
   metrics?: PostMetrics;
+  /** Carousel to publish (Instagram carousel post). */
+  carouselId?: string;
+  /** Public video link for a reel. */
+  videoUrl?: string;
+  /** Publish to Instagram automatically when its date arrives. */
+  autoPublish?: boolean;
+  ig?: InstagramPublishState;
+};
+
+export type InstagramPublishState = {
+  containerId?: string;
+  mediaId?: string;
+  permalink?: string;
+  error?: string;
+  publishedAt?: string;
 };
 
 export type IdeaData = {
@@ -42,6 +59,10 @@ export type ScriptData = {
   durationSec: number;
   format: ScriptFormat;
   formatReason: string;
+  altHooks?: string[];
+  caption?: string;
+  hashtags?: string[];
+  whyShare?: string;
 };
 
 export type CarouselSlideKind = "hook" | "content" | "cta";
@@ -53,11 +74,42 @@ export type CarouselData = {
   styleId: string;
   handle: string;
   slides: CarouselSlide[];
+  caption?: string;
+};
+
+export type BrandData = {
+  name: string;
+  niche: string;
+  audience: string;
+  tone: string;
+  offer: string;
+  cta: string;
+  pains: string;
+  rules: string;
+  mix: string;
 };
 
 export type ProfileData = {
   handle: string;
   followers: Record<Network, number>;
+  brand?: BrandData;
+};
+
+export type AutopilotSettings = {
+  enabled: boolean;
+  carouselsPerDay: number;
+  scriptsPerDay: number;
+  /** Hour of day (Argentina time) for scheduled posts. */
+  publishHour: number;
+  styleId: string;
+  autoPublish: boolean;
+  lastRunDay?: string;
+};
+
+/** What the browser sees of the settings (token never included). */
+export type PublicSettings = {
+  autopilot: AutopilotSettings;
+  instagram: { connected: boolean; username?: string; tokenUpdatedAt?: string };
 };
 
 export type SocialDataByKind = {

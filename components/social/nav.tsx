@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { BarChart3, CalendarDays, FileText, GalleryHorizontalEnd, Gauge, Lightbulb, LogOut, Sparkles } from "lucide-react";
+import { BarChart3, CalendarDays, FileText, GalleryHorizontalEnd, Gauge, Lightbulb, LogOut, Sparkles, Bot } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const SOCIAL_NAV = [
@@ -13,6 +13,7 @@ export const SOCIAL_NAV = [
   { href: "/social/metricas", label: "Métricas", icon: BarChart3 },
   { href: "/social/guiones", label: "Guiones IA", icon: FileText },
   { href: "/social/carruseles", label: "Carruseles IA", icon: GalleryHorizontalEnd },
+  { href: "/social/ajustes", label: "Piloto automático", icon: Bot },
 ];
 
 export function isSocialActive(pathname: string, href: string) {

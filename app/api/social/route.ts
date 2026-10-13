@@ -22,7 +22,7 @@ export async function GET() {
     });
   }
 
-  const rows = await db.socialItem.findMany({ where: { userId }, orderBy: { createdAt: "desc" } });
+  const rows = await db.socialItem.findMany({ where: { userId, kind: { in: [...SOCIAL_KINDS] } }, orderBy: { createdAt: "desc" } });
   return NextResponse.json({ items: rows.map(serializeItem).flatMap(dropRetiredNetworks) });
 }
 
