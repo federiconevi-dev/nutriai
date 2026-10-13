@@ -169,35 +169,48 @@ export type CarouselInput = { topic: string; audience?: string; slideCount: numb
 
 export async function writeCarousel(
   input: CarouselInput
-): Promise<{ title: string; slides: CarouselSlide[]; caption: string; source: AISource }> {
+): Promise<{ title: string; slides: CarouselSlide[]; caption: string; cta: string; source: AISource }> {
   const brand = input.brand ?? DEFAULT_BRAND;
+  const two = input.slideCount === 2;
   if (useRealAI()) {
     try {
-      const system = `Sos el mejor estratega de carruseles de Instagram del mundo: tus carruseles se guardan, se comparten y llenan los comentarios. ${TONE}
+      const system = `Sos el mejor estratega de carruseles de Instagram del mundo: tus carruseles frenan el scroll, se guardan, se comparten y llenan los comentarios de "${brand.cta.replace(/^comentá\s*/i, "")}". ${TONE}
 ${brandPrompt(brand)}
-- El gancho frena el scroll: dolor real, contradicción o promesa concreta (sin inventar cifras). Nada genérico.
-- Cada filmina deja con ganas de pasar a la siguiente; ideas simples, ejemplos concretos, cero relleno.
-Respondé SOLO con JSON válido: { "title": string, "caption": string, "slides": { "kind": "hook" | "content" | "cta", "title": string, "body": string }[] }
-- Exactamente ${input.slideCount} filminas.
-- La primera es "hook" (title máx. 8 palabras, body una frase corta que genere curiosidad).
-- Las del medio son "content": UNA idea cada una (title máx. 7 palabras, body máx. 30 palabras).
-- La última es "cta": cierre con "${brand.cta}" y una razón concreta.
-- "caption": caption para el post con 3-5 hashtags de nicho al final.`;
+
+CÓMO ESCRIBÍS (obligatorio):
+- Gancho que frena el scroll: elegí UNA palanca — curiosidad, contrarian (contradice algo que todos creen), tensión emocional, especificidad o autoridad sutil. Habla directo a un dolor real del público, en segunda persona. Máx. 8 palabras. Nada genérico ("tips para…", "cómo lograr…" están prohibidos).
+- Frases de menos de 12 palabras. Cada filmina engancha la siguiente.
+- Lenguaje de la calle argentina joven, voseo, sin palabras de gurú ("mindset", "abundancia", "éxito").
+- Nunca inventes ingresos, cifras, resultados ni testimonios.
+- Marcá con **doble asterisco** 1 o 2 palabras clave por título para resaltarlas en color.
+${
+  two
+    ? `FORMATO GANADOR (2 filminas, dolor → solución):
+- Filmina 1 ("hook"): el DOLOR. title = gancho; body = una frase que haga sentir "esto me pasa a mí" (máx. 18 palabras).
+- Filmina 2 ("cta"): la SOLUCIÓN en una idea simple y creíble. title máx. 8 palabras; body máx. 25 palabras que termine dando una razón concreta para "${brand.cta}".`
+    : `- Exactamente ${input.slideCount} filminas.
+- Filmina 1 ("hook"): title = gancho; body = una frase que genere curiosidad o identificación.
+- Filminas del medio ("content"): UNA idea por filmina (title máx. 7 palabras, body máx. 25 palabras).
+- Última ("cta"): title con la promesa/beneficio; body con una razón concreta para "${brand.cta}".`
+}
+- "caption": 2-4 líneas cortas que amplíen el dolor y pidan "${brand.cta}" con una razón; al final 3-5 hashtags de nicho.
+Respondé SOLO con JSON válido: { "title": string, "caption": string, "slides": { "kind": "hook" | "content" | "cta", "title": string, "body": string }[] }`;
       const user = `Tema: ${input.topic}${input.audience ? `\nAudiencia específica: ${input.audience}` : ""}`;
       const raw = (await chatJSON(system, user)) as { title?: string; caption?: string; slides?: CarouselSlide[] };
       const slides = (raw.slides ?? [])
         .filter((s) => s && typeof s.title === "string")
-        .slice(0, 20)
+        .slice(0, two ? 2 : 20)
         .map((s, i, arr) => ({
           kind: (i === 0 ? "hook" : i === arr.length - 1 ? "cta" : "content") as CarouselSlide["kind"],
           title: String(s.title).slice(0, 300),
           body: String(s.body ?? "").slice(0, 1200),
         }));
-      if (slides.length >= 3) {
+      if (slides.length >= 2) {
         return {
-          title: String(raw.title || input.topic).slice(0, 200),
+          title: String(raw.title || input.topic).replace(/\*\*/g, "").slice(0, 200),
           slides,
-          caption: String(raw.caption ?? "").slice(0, 2200),
+          caption: String(raw.caption ?? "").replace(/\*\*/g, "").slice(0, 2200),
+          cta: brand.cta,
           source: "ai",
         };
       }
@@ -206,7 +219,7 @@ Respondé SOLO con JSON válido: { "title": string, "caption": string, "slides":
       console.error("[social/ai] carousel falling back to demo writer:", err);
     }
   }
-  return { ...demoCarousel({ ...input, brand }), source: "demo" };
+  return { ...demoCarousel({ ...input, brand }), cta: brand.cta, source: "demo" };
 }
 
 export function demoCarousel(input: CarouselInput): { title: string; slides: CarouselSlide[]; caption: string } {
@@ -223,6 +236,16 @@ export function demoCarousel(input: CarouselInput): { title: string; slides: Car
     { kind: "content", title: "Sin humo", body: "No hay plata fácil. Hay aprender, constancia y paciencia." },
     { kind: "content", title: "Tu lugar", body: "Lo que querés es tu independencia. Se construye de a poco." },
   ];
+  if (input.slideCount === 2) {
+    return {
+      title: capitalize(topic),
+      slides: [
+        { kind: "hook", title: "Te da **vergüenza** pedirle plata a tus viejos", body: "Y sentís que todos avanzan menos vos. Te entiendo, yo estaba igual." },
+        { kind: "cta", title: "Aprendé algo que **pague**", body: `No es magia ni plata fácil. Es aprender y ser constante. ${brand.cta} y te cuento por dónde arranqué.` },
+      ],
+      caption: `Si te pasa esto, no sos el único.\nHay otra forma de arrancar. ${brand.cta} y te paso la info 👇\n\n#ganardinero #emprenderjoven #trabajodesdecasa #argentina`,
+    };
+  }
   return {
     title: capitalize(topic),
     slides: [

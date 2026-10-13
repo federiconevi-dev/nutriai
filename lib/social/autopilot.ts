@@ -90,8 +90,9 @@ export async function generateDailyContent(userId: string, opts: { force?: boole
   for (let i = 0; i < carousels; i++) {
     const topic = topics[i] ?? topics[0];
     if (!topic) break;
-    const c = await writeCarousel({ topic, slideCount: 6, brand });
-    const carousel: CarouselData = { topic, title: c.title, styleId: ap.styleId, handle, slides: c.slides, caption: c.caption };
+    // First of the day uses the best-performing format: 2 slides, pain → solution.
+    const c = await writeCarousel({ topic, slideCount: i === 0 ? 2 : 5, brand });
+    const carousel: CarouselData = { topic, title: c.title, styleId: ap.styleId, handle, slides: c.slides, caption: c.caption, cta: c.cta };
     const cRow = await db.socialItem.create({ data: { userId, kind: "CAROUSEL", data: JSON.stringify(carousel) } });
     const post: PostData = {
       title: c.title,

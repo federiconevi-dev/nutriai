@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 import sharp from "sharp";
-import { SLIDE_H, SLIDE_W, getStyle } from "./carousel-render";
+import { SLIDE_H, SLIDE_W, getStyle, plainText, richWords } from "./carousel-render";
 import type { CarouselData } from "./types";
 
 /**
@@ -32,15 +32,32 @@ function loadFonts(): Promise<Font[]> {
   return fontCache;
 }
 
-function titleSize(text: string, kind: string) {
-  const n = text.length;
+/** Word-by-word text so **highlighted** words can take the accent color. */
+function Rich({ text, accent, center }: { text: string; accent: string; center: boolean }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: center ? "center" : "flex-start" }}>
+      {richWords(text).map((words, p) => (
+        <div key={p} style={{ display: "flex", flexWrap: "wrap", justifyContent: center ? "center" : "flex-start" }}>
+          {words.map((w, i) => (
+            <span key={i} style={{ color: w.hl ? accent : undefined, marginRight: i < words.length - 1 ? "0.26em" : 0 }}>
+              {w.t}
+            </span>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function titleSize(raw: string, kind: string) {
+  const n = plainText(raw).length;
   if (kind === "content") return n < 28 ? 78 : n < 55 ? 64 : 52;
   if (kind === "hook") return n < 30 ? 112 : n < 60 ? 92 : n < 90 ? 76 : 62;
   return n < 30 ? 100 : n < 60 ? 80 : 64;
 }
 
-function bodySize(text: string) {
-  const n = text.length;
+function bodySize(raw: string) {
+  const n = plainText(raw).length;
   return n < 90 ? 46 : n < 160 ? 40 : n < 240 ? 34 : 30;
 }
 
@@ -131,6 +148,7 @@ export async function renderSlideJpeg(carousel: CarouselData, index: number) {
           {slide.kind === "hook" && <div style={{ width: 100, height: 12, borderRadius: 6, background: style.accent, marginBottom: 44 }} />}
           <div
             style={{
+              display: "flex",
               fontSize: titleSize(title, slide.kind),
               fontWeight: 800,
               lineHeight: 1.06,
@@ -139,10 +157,10 @@ export async function renderSlideJpeg(carousel: CarouselData, index: number) {
               letterSpacing: -1,
             }}
           >
-            {title}
+            <Rich text={title} accent={style.accent} center={style.align === "center"} />
           </div>
-          <div style={{ fontSize: bodySize(slide.body), fontWeight: 400, lineHeight: 1.4, color: style.muted, marginTop: 44 }}>
-            {slide.body}
+          <div style={{ display: "flex", fontSize: bodySize(slide.body), fontWeight: 400, lineHeight: 1.4, color: style.muted, marginTop: 44 }}>
+            <Rich text={slide.body} accent={style.accent} center={style.align === "center"} />
           </div>
           {slide.kind === "cta" && (
             <div
@@ -157,7 +175,7 @@ export async function renderSlideJpeg(carousel: CarouselData, index: number) {
                 fontWeight: 700,
               }}
             >
-              {handle ? `Seguime ${handle}` : "Seguime para más"}
+              {carousel.cta?.trim() || (handle ? `Seguime ${handle}` : "Seguime para más")}
             </div>
           )}
         </div>

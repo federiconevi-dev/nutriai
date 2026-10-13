@@ -33,6 +33,7 @@ function SlideCanvas({
   total,
   styleId,
   handle,
+  cta,
   className,
 }: {
   slide: CarouselSlide;
@@ -40,6 +41,7 @@ function SlideCanvas({
   total: number;
   styleId: string;
   handle: string;
+  cta?: string;
   className?: string;
 }) {
   const ref = useRef<HTMLCanvasElement>(null);
@@ -47,14 +49,14 @@ function SlideCanvas({
     let cancelled = false;
     const draw = () => {
       const ctx = ref.current?.getContext("2d");
-      if (ctx && !cancelled) drawSlide(ctx, slide, index, total, getStyle(styleId), handle);
+      if (ctx && !cancelled) drawSlide(ctx, slide, index, total, getStyle(styleId), handle, cta);
     };
     draw();
     document.fonts?.ready.then(draw);
     return () => {
       cancelled = true;
     };
-  }, [slide, index, total, styleId, handle]);
+  }, [slide, index, total, styleId, handle, cta]);
   return <canvas ref={ref} width={SLIDE_W} height={SLIDE_H} className={cn("block h-auto w-full", className)} />;
 }
 
@@ -101,7 +103,7 @@ export function CarouselView() {
     }
     setLoading(true);
     try {
-      const res = await postJSON<{ title: string; slides: CarouselSlide[]; caption: string; source: "ai" | "demo" }>("/api/social/ai/carousel", {
+      const res = await postJSON<{ title: string; slides: CarouselSlide[]; caption: string; cta: string; source: "ai" | "demo" }>("/api/social/ai/carousel", {
         topic: topic.trim(),
         audience: audience.trim() || undefined,
         slideCount: count,
@@ -111,6 +113,7 @@ export function CarouselView() {
         title: res.title,
         slides: res.slides,
         caption: res.caption,
+        cta: res.cta,
         styleId: d?.styleId ?? "noche",
         handle: d?.handle ?? (profile.handle === "tumarca" ? "federicomarketingg" : profile.handle),
       }));
@@ -218,7 +221,7 @@ export function CarouselView() {
       const zip = new JSZip();
       const style = getStyle(draft.styleId);
       for (let i = 0; i < draft.slides.length; i++) {
-        const blob = await renderSlideBlob(draft.slides[i], i, draft.slides.length, style, draft.handle);
+        const blob = await renderSlideBlob(draft.slides[i], i, draft.slides.length, style, draft.handle, draft.cta);
         zip.file(`${String(i + 1).padStart(2, "0")}.png`, blob);
       }
       downloadBlob(await zip.generateAsync({ type: "blob" }), `${slugify(draft.title)}.zip`);
@@ -232,7 +235,7 @@ export function CarouselView() {
 
   async function downloadOne() {
     if (!draft) return;
-    const blob = await renderSlideBlob(draft.slides[active], active, draft.slides.length, getStyle(draft.styleId), draft.handle);
+    const blob = await renderSlideBlob(draft.slides[active], active, draft.slides.length, getStyle(draft.styleId), draft.handle, draft.cta);
     downloadBlob(blob, `${slugify(draft.title)}-${String(active + 1).padStart(2, "0")}.png`);
   }
 
@@ -284,7 +287,7 @@ export function CarouselView() {
             <div>
               <span className="text-sm font-medium text-muted-foreground">Filminas</span>
               <div className="mt-2 flex h-12 items-center rounded-2xl border border-white/10 bg-black/20">
-                <button className="flex h-full w-11 items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-30" onClick={() => setCount((c) => Math.max(4, c - 1))} disabled={count <= 4} aria-label="Menos filminas">
+                <button className="flex h-full w-11 items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-30" onClick={() => setCount((c) => Math.max(2, c - 1))} disabled={count <= 2} aria-label="Menos filminas">
                   <Minus className="h-4 w-4" />
                 </button>
                 <span className="w-6 text-center font-semibold tabular-nums">{count}</span>
@@ -355,7 +358,7 @@ export function CarouselView() {
             <section className="min-w-0">
               <div className="relative mx-auto max-w-[520px]">
                 <div key={`${draft.styleId}-${active}`} className="overflow-hidden rounded-3xl shadow-2xl shadow-black/60 ring-1 ring-white/10 motion-safe:animate-fade-in">
-                  <SlideCanvas slide={slide} index={active} total={draft.slides.length} styleId={draft.styleId} handle={draft.handle} />
+                  <SlideCanvas slide={slide} index={active} total={draft.slides.length} styleId={draft.styleId} handle={draft.handle} cta={draft.cta} />
                 </div>
                 <button
                   onClick={() => setActive((a) => Math.max(0, a - 1))}
@@ -387,7 +390,7 @@ export function CarouselView() {
                     )}
                     aria-label={`Filmina ${i + 1}`}
                   >
-                    <SlideCanvas slide={s} index={i} total={draft.slides.length} styleId={draft.styleId} handle={draft.handle} />
+                    <SlideCanvas slide={s} index={i} total={draft.slides.length} styleId={draft.styleId} handle={draft.handle} cta={draft.cta} />
                   </button>
                 ))}
                 <button
@@ -438,7 +441,8 @@ export function CarouselView() {
                 ))}
               </div>
 
-              <label className="mt-4 block">
+              <p className="mt-4 text-[11px] text-muted-foreground">Tip: poné palabras entre **asteriscos** para resaltarlas en color.</p>
+              <label className="mt-2 block">
                 <span className="text-xs font-medium text-muted-foreground">Título</span>
                 <textarea
                   value={slide.title}
@@ -469,7 +473,16 @@ export function CarouselView() {
                     />
                   </div>
                 </label>
-                <label className="block">
+                <label className="col-span-2 block">
+                  <span className="text-xs font-medium text-muted-foreground">Botón de la última filmina</span>
+                  <input
+                    value={draft.cta ?? ""}
+                    onChange={(e) => edit({ cta: e.target.value })}
+                    placeholder="Comentá INFO"
+                    className="mt-1.5 h-10 w-full rounded-xl border border-white/10 bg-black/20 px-3 text-base outline-none sm:text-sm"
+                  />
+                </label>
+                <label className="col-span-2 block">
                   <span className="text-xs font-medium text-muted-foreground">Nombre</span>
                   <input
                     value={draft.title}
@@ -538,7 +551,7 @@ export function CarouselView() {
             {carousels.map((c, i) => (
               <div key={c.id} className="surface surface-hover group overflow-hidden motion-safe:animate-rise-in" style={{ animationDelay: `${i * 40}ms` }}>
                 <button onClick={() => openSaved(c)} className="block w-full text-left">
-                  <SlideCanvas slide={c.data.slides[0]} index={0} total={c.data.slides.length} styleId={c.data.styleId} handle={c.data.handle} />
+                  <SlideCanvas slide={c.data.slides[0]} index={0} total={c.data.slides.length} styleId={c.data.styleId} handle={c.data.handle} cta={c.data.cta} />
                   <div className="p-3">
                     <p className="line-clamp-1 text-sm font-medium">{c.data.title}</p>
                     <p className="text-xs text-muted-foreground">

@@ -75,6 +75,8 @@ export type CarouselData = {
   handle: string;
   slides: CarouselSlide[];
   caption?: string;
+  /** Text of the button on the last slide (e.g. "Comentá INFO"). */
+  cta?: string;
 };
 
 export type BrandData = {

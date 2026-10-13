@@ -68,6 +68,7 @@ export const carouselSchema = z.object({
     .min(1)
     .max(20),
   caption: z.string().max(2200).optional(),
+  cta: z.string().max(80).optional(),
 });
 
 const brandText = z.string().max(2000);
@@ -116,5 +117,5 @@ export const scriptRequestSchema = z.object({
 export const carouselRequestSchema = z.object({
   topic: z.string().trim().min(3, "Contame un poco más del tema").max(500),
   audience: z.string().max(200).optional(),
-  slideCount: z.number().int().min(4).max(10),
+  slideCount: z.number().int().min(2).max(10),
 });
