@@ -28,3 +28,10 @@ User: Spanish (Argentina), non-technical. Reply SHORT, in Spanish, only what's n
 
 ## Code graph
 - `landing/graphify-out/GRAPH_REPORT.md` + `graph.json`: map of the code. Use `graphify query "..."` / `graphify explain "X"` before reading files. Refresh with `graphify update landing` (no LLM).
+
+## Security (keep it this way)
+- Every `/api/*` function starts with `guard(req, { perMin })` from `netlify/lib/guard.mjs`: same-site only (Origin/Referer must be videora-studio.netlify.app, its deploy previews or localhost), body cap 128 KB, per-IP limit per minute (in-memory backup) + literal `config.rateLimit`. Errors via `fail()` never include upstream text or keys.
+- `edge-functions/clip.ts`: same-site only, https `.mp4` on cdn.pixabay.com / videos.pexels.com only, final host re-checked after redirects, 60 MB cap. Edge config: only `path` (a `method` key breaks the build).
+- `netlify.toml` [[headers]]: CSP (scripts only self + cdn.jsdelivr.net; add any new external host there or it will be blocked), frame-ancestors none, HSTS, nosniff, Permissions-Policy. No inline scripts or `on*=` handlers in HTML.
+- AI output shown in the page is escaped; AI settings/toggles are whitelisted server-side and client-side.
+- Testing the per-IP limit from this sandbox doesn't work: the outbound IP rotates per request.
