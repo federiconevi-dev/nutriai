@@ -16,7 +16,13 @@ let ac = null, dest = null, noiseBuf = null, rec = null, lastSeg = -1, lastChunk
 const msg = t => { $('#msg').textContent = t; };
 const prog = p => { $('#prog').style.width = Math.max(0, Math.min(100, p * 100)) + '%'; };
 const ease = x => 1 - Math.pow(1 - Math.max(0, Math.min(1, x)), 3);
-const back = x => { x = Math.max(0, Math.min(1, x)); const c = 2.2; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
+// Damped spring (Remotion-style: damping 10, mass 1): overshoots, wobbles once and settles by x = 1.
+const SPR_Z = .42, SPR_W = 12.5, SPR_D = SPR_W * Math.sqrt(1 - SPR_Z * SPR_Z);
+const spr = x => 1 - Math.exp(-SPR_Z * SPR_W * x) * (Math.cos(SPR_D * x) + SPR_Z * SPR_W / SPR_D * Math.sin(SPR_D * x));
+const SPR_END = spr(1);
+const back = x => x <= 0 ? 0 : x >= 1 ? 1 : spr(x) + (1 - SPR_END) * x * x;
+// Stiffer, well-damped spring for whole-screen moves (small overshoot, no wobble).
+const glide = x => { x = Math.max(0, Math.min(1, x)); const z = .72, w = 9, d = w * Math.sqrt(1 - z * z), v = 1 - Math.exp(-z * w * x) * (Math.cos(d * x) + z * w / d * Math.sin(d * x)); return x >= 1 ? 1 : v + (1 - (1 - Math.exp(-z * w) * (Math.cos(d) + z * w / d * Math.sin(d)))) * x * x; };
 const clean = s => s.replace(/[^\p{L}\p{N}]/gu, '');
 const on = id => { const el = document.getElementById(id); return !!el && el.checked; };
 
@@ -52,7 +58,6 @@ async function getAsr() {
     worker.onmessage = e => {
       const d = e.data;
       if (d.type === 'progress') { prog(d.a / d.b * .5); msg(`Descargando el motor de subtítulos… ${Math.round(d.a / 1e6)} de ${Math.round(d.b / 1e6)} MB (solo la primera vez)`); }
-      else if (d.type === 'transcribing') { prog(.7); msg('Escribiendo los subtítulos…'); }
       else if (d.type === 'done') ok(d.out);
       else if (d.type === 'error') ko(new Error(d.err));
     };
@@ -81,14 +86,9 @@ async function runAI() {
   try {
     const model = await getAsr();
     msg('Escuchando tu video…'); prog(.55);
-    const audio = await audio16k(file);
-    speech = detectSpeech(audio);
-    msg('Escribiendo los subtítulos… (puede tardar unos segundos por cada minuto de video)'); prog(.65);
-    const opts = { task: $('#task').value, return_timestamps: 'word', chunk_length_s: 30, stride_length_s: 5 };
-    if ($('#lang').value) opts.language = $('#lang').value;
-    const out = await model(audio, opts);
-    words = (out.chunks || []).map(c => ({ t: c.text.trim(), s: c.timestamp[0], e: c.timestamp[1] ?? c.timestamp[0] + .3 }))
-      .filter(w => w.t && w.e >= w.s);
+    const raw = await audio16k(file);
+    speech = detectSpeech(raw);
+    words = await transcribeAll(model, louder(raw));
     $('#txt').value = words.map(w => w.t).join(' ');
     build();
     prog(1);
@@ -117,6 +117,69 @@ $('#txt').oninput = () => {
 };
 ['optCut', 'optHook'].forEach(id => { $('#' + id).onchange = build; });
 $('#ctaWord').oninput = build;
+
+// Quiet recordings: raise the level so the speech engine hears every word (soft-clipped, never distorted).
+function louder(a) {
+  const F = 320, n = Math.floor(a.length / F), rms = [];
+  for (let i = 0; i < n; i++) { let q = 0; for (let j = i * F; j < (i + 1) * F; j++) q += a[j] * a[j]; rms.push(Math.sqrt(q / F)); }
+  rms.sort((x, y) => x - y);
+  const g = Math.min(20, Math.max(1, .1 / (rms[Math.floor(n * .9)] || .1)));
+  if (g < 1.1) return a;
+  const o = new Float32Array(a.length);
+  for (let i = 0; i < a.length; i++) o[i] = Math.tanh(a[i] * g);
+  return o;
+}
+
+// Whisper hallucinates these on silence or music.
+const GHOST = /(amara\.org|subt[ií]tulos (realizados|por)|gracias por ver|suscr[ií]bete|thanks for watching)/i;
+
+// Transcribes the whole video in pieces of up to 25 s, cut at the quietest moment so no word is split.
+// Each piece is its own request, so a bad piece never wipes out the subtitles of the rest of the video.
+async function transcribeAll(model, a) {
+  const SR = 16000, D = a.length / SR, F = 320, n = Math.floor(a.length / F), rms = new Float32Array(n);
+  for (let i = 0; i < n; i++) { let q = 0; for (let j = i * F; j < (i + 1) * F; j++) q += a[j] * a[j]; rms[i] = Math.sqrt(q / F); }
+  const pieces = []; let st = 0;
+  while (st < D - .2) {
+    let en = Math.min(D, st + 25);
+    if (en < D) {
+      let best = en, low = 1e9;
+      for (let t = st + 14; t < en; t += .02) { let q = 0; for (let k = 0; k < 15; k++) q += rms[Math.floor(t / .02) + k] || 0; if (q < low) { low = q; best = t + .15; } }
+      en = best;
+    }
+    pieces.push([st, en]); st = en;
+  }
+  const base = { task: $('#task').value };
+  if ($('#lang').value) base.language = $('#lang').value;
+  const out = [];
+  for (let i = 0; i < pieces.length; i++) {
+    const [s0, e0] = pieces[i];
+    msg(`Escribiendo los subtítulos… ${Math.round(i / pieces.length * 100)}%`); prog(.6 + .38 * i / pieces.length);
+    let peak = 0; for (let k = Math.floor(s0 / .02); k < Math.min(n, e0 / .02); k++) peak = Math.max(peak, rms[k]);
+    if (peak < .004) continue; // pure silence
+    const cut = () => a.slice(Math.floor(s0 * SR), Math.floor(e0 * SR));
+    let got = [];
+    try {
+      const r = await model(cut(), { ...base, return_timestamps: 'word' });
+      got = (r.chunks || []).map(c => ({ t: c.text.trim(), s: s0 + c.timestamp[0], e: s0 + (c.timestamp[1] ?? c.timestamp[0] + .3) }));
+    } catch (e) { console.warn('piece', i, e); }
+    if (!got.length) {
+      // Retry with sentence timestamps and spread the words over each sentence.
+      try {
+        const r = await model(cut(), { ...base, return_timestamps: true });
+        (r.chunks || [{ text: r.text, timestamp: [0, e0 - s0] }]).forEach(c => {
+          const ws = (c.text || '').trim().split(/\s+/).filter(Boolean), a0 = s0 + (c.timestamp[0] || 0), a1 = s0 + (c.timestamp[1] ?? e0 - s0), d = (a1 - a0) / (ws.length || 1);
+          ws.forEach((t, k) => got.push({ t, s: a0 + d * k, e: a0 + d * (k + 1) }));
+        });
+      } catch (e) { console.warn('retry', i, e); }
+    }
+    if (GHOST.test(got.map(w => w.t).join(' '))) got = got.filter(w => !GHOST.test(w.t)).length > 6 ? got : [];
+    out.push(...got.filter(w => w.t && w.e >= w.s && w.s < e0 + .5));
+  }
+  // Keep times in order and never overlapping.
+  out.sort((x, y) => x.s - y.s);
+  out.forEach((w, i) => { const p = out[i - 1]; if (p && w.s < p.e) w.s = p.e; if (w.e < w.s + .08) w.e = w.s + .08; });
+  return out;
+}
 
 // Speech regions from audio energy (20 ms frames); silences longer than 0.35 s get cut.
 function detectSpeech(a) {
@@ -1230,7 +1293,7 @@ function drawPhoto(ph, t) {
     // Entry transition of the format: soft blur, white flash, slide in or zoom in.
     const tr = style().viro ? recipe().trans : 'blur', e1 = ease(age / .32);
     cx.save(); cx.globalAlpha = tr === 'slide' || tr === 'flash' ? Math.min(1, ease(left / .3) + (age < .3 ? 1 : 0)) : k;
-    if (tr === 'slide') cx.translate(W * (1 - e1) * (ph.n % 2 ? -1 : 1), 0);
+    if (tr === 'slide') cx.translate(W * (1 - glide(age / .5)) * (ph.n % 2 ? -1 : 1), 0);
     cx.fillStyle = '#000'; cx.fillRect(0, 0, W, H);
     if (tr === 'blur' || tr === 'leak') blur((tr === 'leak' ? 6 : 10) * (1 - ease(age / .35)));
     const zin = tr === 'zoom' ? .25 * (1 - e1) : 0;
@@ -2276,7 +2339,14 @@ async function fastExport() {
     try {
       const orig = await off.decodeAudioData(await file.arrayBuffer());
       // Voice polish: rumble cut, presence boost, gentle compression and makeup gain.
-      let vin = off.destination;
+      // Loudness: bring the voice to a broadcast-like level whatever the mic level was.
+      const ch = orig.getChannelData(0), lv = [];
+      for (let i = 0; i + 960 < ch.length; i += 960) { let q = 0; for (let j = i; j < i + 960; j += 4) q += ch[j] * ch[j]; lv.push(Math.sqrt(q / 240)); }
+      lv.sort((x, y) => x - y);
+      const lvl = lv[Math.floor(lv.length * .85)] || .1;
+      const lim = off.createDynamicsCompressor(); lim.threshold.value = -2; lim.knee.value = 0; lim.ratio.value = 20; lim.attack.value = .002; lim.release.value = .1;
+      const pre = off.createGain(); pre.gain.value = Math.min(8, Math.max(.6, .14 / lvl)); pre.connect(lim); lim.connect(off.destination);
+      let vin = pre;
       if (on('optVoice')) {
         const hp = off.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 85;
         const mud = off.createBiquadFilter(); mud.type = 'peaking'; mud.frequency.value = 300; mud.gain.value = -2.5; mud.Q.value = 1;
@@ -2284,7 +2354,7 @@ async function fastExport() {
         const air = off.createBiquadFilter(); air.type = 'highshelf'; air.frequency.value = 9000; air.gain.value = 2;
         const comp = off.createDynamicsCompressor(); comp.threshold.value = -22; comp.ratio.value = 3.5; comp.attack.value = .005; comp.release.value = .18; comp.knee.value = 8;
         const mk = off.createGain(); mk.gain.value = 1.35;
-        hp.connect(mud); mud.connect(pres); pres.connect(air); air.connect(comp); comp.connect(mk); mk.connect(off.destination); vin = hp;
+        hp.connect(mud); mud.connect(pres); pres.connect(air); air.connect(comp); comp.connect(mk); mk.connect(pre); vin = hp;
       }
       plan.segs.forEach(g => { const s = off.createBufferSource(); s.buffer = orig; s.connect(vin); s.start(g.o, g.s, g.e - g.s); });
     } catch (e) { console.warn('no audio track', e); }
