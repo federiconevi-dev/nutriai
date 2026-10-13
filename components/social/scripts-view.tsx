@@ -177,7 +177,7 @@ export function ScriptsView() {
                     style={network === n ? { background: NETWORK_META[n].color } : undefined}
                   >
                     <NetworkIcon network={n} className="h-4 w-4" />
-                    <span className="hidden sm:inline xl:inline">{NETWORK_META[n].label}</span>
+                    <span>{NETWORK_META[n].label}</span>
                   </button>
                 ))}
               </div>
