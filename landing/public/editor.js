@@ -2157,6 +2157,18 @@ requestAnimationFrame(render);
 
 // ---------- Sound effects (synthesized, no files) ----------
 let sfxLog = null;
+// Final mastering of the whole mix: loudness to ~-14 LUFS (TikTok/Reels level) and a soft peak limiter at -1 dB.
+function masterize(ab) {
+  const chs = Array.from({ length: ab.numberOfChannels }, (_, i) => ab.getChannelData(i)), n = chs[0].length, B = Math.round(ab.sampleRate * .4);
+  const pw = [];
+  for (let i = 0; i + B <= n; i += B) { let q = 0; for (const c of chs) for (let j = i; j < i + B; j += 2) q += c[j] * c[j]; pw.push(q / (B / 2) / chs.length); }
+  const g1 = pw.filter(x => x > 1e-5); if (!g1.length) return;
+  const m1 = g1.reduce((a, x) => a + x, 0) / g1.length, g2 = g1.filter(x => x > m1 / 10);
+  const L = 10 * Math.log10(g2.reduce((a, x) => a + x, 0) / g2.length);
+  const g = Math.min(8, Math.max(.5, Math.pow(10, (-15 - L) / 20))), T = .89, R = 1 - T;
+  for (const c of chs) for (let i = 0; i < n; i++) { const y = c[i] * g, a = Math.abs(y); c[i] = a <= T ? y : Math.sign(y) * (T + R * Math.tanh((a - T) / R)); }
+}
+
 // ---------- Background music (generated, royalty-free), ducked under the voice ----------
 let aiMusic = '';
 const MOODS = {
@@ -2364,6 +2376,7 @@ async function fastExport() {
     const mood = musicMood(); if (mood) makeMusic(off, total, mood);
     ({ ac, dest, noiseBuf } = save);
     const ab = await off.startRendering();
+    masterize(ab);
     const aenc = new AudioEncoder({ output: (c, md) => muxer.addAudioChunk(c, md), error: e => { err = e; } });
     aenc.configure(acfg);
     const Lc = ab.getChannelData(0), Rc = ab.numberOfChannels > 1 ? ab.getChannelData(1) : Lc;
