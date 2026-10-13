@@ -285,7 +285,7 @@ function findCta() {
 // ---------- Rendering ----------
 const STYLES = {
   coral: { font: s => `800 ${s}px "Plus Jakarta Sans", Inter, sans-serif`, size: 52, upper: false, hi: '#FF6046', soft: true, coral: true },
-  viro: { font: s => `800 ${s}px "Plus Jakarta Sans", Inter, sans-serif`, size: 34, upper: false, hi: '#5CF58A', soft: true, glowKey: true, viro: true },
+  viro: { font: s => `800 ${s}px "Plus Jakarta Sans", Inter, sans-serif`, size: 48, upper: false, hi: '#5CF58A', soft: true, glowKey: true, viro: true },
   viral: { font: s => `800 ${s}px "Plus Jakarta Sans", Inter, sans-serif`, size: 56, upper: false, hi: '#A6F94B', soft: true, glowKey: true },
   hormozi: { font: s => `900 ${s}px Montserrat, Inter, sans-serif`, size: 64, upper: true, hi: '#22E06B', box: true },
   editorial: { font: s => SERIF(s), size: 82, upper: false, hi: '#E8D3A2', soft: true },
@@ -446,7 +446,10 @@ function capShade(ch) {
     try { const d = cx.getImageData(W * .15 * SC, Math.max(0, capY - 40) * SC, W * .7 * SC, 80 * SC).data; let L = 0, n = 0; for (let i = 0; i < d.length; i += 64) { L += .2126 * d[i] + .7152 * d[i + 1] + .0722 * d[i + 2]; n++; } ch.bright = L / n / 255 > .55; } catch (e) { ch.bright = false; }
   }
   if (!ch.bright) return;
-  cx.save(); const g = cx.createRadialGradient(capX, capY, 10, capX, capY, W * .5); g.addColorStop(0, 'rgba(0,0,0,.45)'); g.addColorStop(1, 'rgba(0,0,0,0)'); cx.fillStyle = g; cx.fillRect(0, capY - H * .12, W, H * .24); cx.restore();
+  // Soft band that fades to nothing at the top and bottom (no visible box edges).
+  const h2 = H * .14, g = cx.createLinearGradient(0, capY - h2, 0, capY + h2);
+  g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(.5, 'rgba(0,0,0,.42)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+  cx.save(); cx.fillStyle = g; cx.fillRect(0, capY - h2, W, h2 * 2); cx.restore();
 }
 function viroCaption(ch, t, st) {
   const mode = recipe().cap;
@@ -466,10 +469,12 @@ function viroCaption(ch, t, st) {
     const lit = on2 && (big || isK(w) || t < w.e + .08);
     if (lit) { cx.shadowColor = st.glowC; cx.shadowBlur = size * (big ? .8 : .55); cx.shadowOffsetY = 0; cx.fillStyle = st.hi; }
     else cx.fillStyle = on2 ? '#fff' : 'rgba(255,255,255,.6)';
+    // Thin dark outline under every word so it reads on bright shots too (white walls, light b-roll).
+    cx.lineWidth = Math.max(3, size * (big ? .07 : .1)); cx.strokeStyle = 'rgba(0,0,0,.55)';
     // Pop: the word you are saying bounces in.
     const pa = t - w.s, pop = on2 && pa < .2 ? 1 + .18 * Math.sin(Math.PI * pa / .2) : 1;
-    if (pop !== 1) { const ww = cx.measureText(tx).width; cx.save(); cx.translate(x + ww / 2, y); cx.scale(pop, pop); cx.fillText(tx, -ww / 2, 0); if (lit) cx.fillText(tx, -ww / 2, 0); cx.restore(); }
-    else { cx.fillText(tx, x, y); if (lit) cx.fillText(tx, x, y); }
+    if (pop !== 1) { const ww = cx.measureText(tx).width; cx.save(); cx.translate(x + ww / 2, y); cx.scale(pop, pop); cx.strokeText(tx, -ww / 2, 0); cx.fillText(tx, -ww / 2, 0); if (lit) cx.fillText(tx, -ww / 2, 0); cx.restore(); }
+    else { cx.strokeText(tx, x, y); cx.fillText(tx, x, y); if (lit) cx.fillText(tx, x, y); }
   };
   let size = st.size;
   const wid = sz => main.reduce((q, w) => { cx.font = fnt(w, sz); return q + cx.measureText(low(w)).width; }, 0) + sz * .27 * (main.length - 1);
@@ -497,12 +502,14 @@ function drawStackHook(text, ot, dur) {
   const lines = [[l1, 'script'], [rest.slice(0, mid).join(' ').toUpperCase(), 'heavy'], [rest.slice(mid).join(' ').toUpperCase(), 'big']].filter(l => l[0]);
   const T = typo(), heavy = z => val('fBase', 'auto') !== 'auto' ? baseF(z) : `400 ${z}px Anton, Impact, sans-serif`;
   const F = (kind, z) => kind === 'script' ? keyF(z * 1.1) : heavy(kind === 'big' ? z * 1.35 : z);
-  let size = 70; const fits = z => lines.every(([tx, kd]) => { cx.font = F(kd, z); return cx.measureText(tx).width < W * .86; });
-  while (!fits(size) && size > 28) size -= 3;
-  cx.save(); cx.globalAlpha = 1 - out; cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.lineJoin = 'round';
-  let y = H * .16;
+  // Each line is sized on its own: short lines ("16", "A LOS") get big instead of shrinking with the longest one.
+  const MAX = { script: 66, heavy: 84, big: 118 }, sz = lines.map(([tx, kd]) => { let z = MAX[kd] / (kd === 'big' ? 1.35 : 1); cx.font = F(kd, z); while (cx.measureText(tx).width > W * .86 && z > 26) { z -= 2; cx.font = F(kd, z); } return z; });
+  cx.save(); cx.globalAlpha = 1 - out;
+  const sg = cx.createLinearGradient(0, 0, 0, H * .45); sg.addColorStop(0, 'rgba(0,0,0,.55)'); sg.addColorStop(1, 'rgba(0,0,0,0)'); cx.fillStyle = sg; cx.fillRect(0, 0, W, H * .45);
+  cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.lineJoin = 'round';
+  let y = H * .13;
   lines.forEach(([tx, kd], i) => {
-    const a = easeQ((ot - .1 - i * .14) / .35), z = kd === 'big' ? size * 1.35 : size;
+    const size = sz[i], a = easeQ((ot - .1 - i * .14) / .35), z = kd === 'big' ? size * 1.35 : size;
     cx.save(); cx.globalAlpha = (1 - out) * a; cx.translate(W / 2, y + 16 * (1 - a)); cx.scale(.9 + .1 * a, .9 + .1 * a);
     cx.font = F(kd, size);
     // Each line's color can be changed (Arranque → colores del gancho); "auto" follows the typography.
@@ -513,7 +520,8 @@ function drawStackHook(text, ot, dur) {
     else { cx.shadowColor = 'rgba(0,0,0,.7)'; cx.shadowBlur = 18; cx.fillStyle = pc('hkC2', '#fff'); }
     cx.fillText(tx, 0, 0); if (kd === 'big') { cx.shadowBlur = 8; cx.fillText(tx, 0, 0); }
     cx.restore();
-    y += z * (kd === 'script' ? .95 : .92);
+    const nz = sz[i + 1] ? sz[i + 1] * (lines[i + 1][1] === 'big' ? 1.35 : 1) : 0;
+    y += (z + nz) * .46 + 4;
   });
   cx.restore();
 }
@@ -522,9 +530,9 @@ function lineCaption(ch, t, st, mode) {
   const age = t - ch.s, a = ease(age / .16), out = t > ch.e + .05 ? ease((t - ch.e - .05) / .15) : 0;
   const isK = w => w === ch.key && ch.emph, up = mode === 'box';
   // Cursive faces never go uppercase (unreadable); the key word keeps its case.
-  const tx = ch.map(w => { const x2 = w.t.replace(/[.,;:!?¿¡"]+/g, ''); return up && !isK(w) ? x2.toUpperCase() : isK(w) ? x2.toLowerCase() : x2; });
-  let size = st.size * (mode === 'serif' ? 1.3 : mode === 'box' ? 1.05 : 1);
-  const F = (w, z) => isK(w) ? keyF(z * 1.12) : mode === 'serif' ? accF(z) : st.font(z);
+  const tx = ch.map(w => { const x2 = w.t.replace(/[.,;:!?¿¡"]+/g, ''); return up ? x2.toUpperCase() : mode === 'serif' && isK(w) ? x2.toLowerCase() : x2; });
+  let size = st.size * (mode === 'serif' ? 1.3 : mode === 'box' ? 1.18 : 1.05);
+  const F = (w, z) => mode === 'serif' ? (isK(w) ? keyF(z * 1.12) : accF(z)) : st.font(z);
   const wd = z => ch.reduce((q, w, i) => { cx.font = F(w, z); return q + cx.measureText(tx[i]).width; }, 0) + z * .28 * (ch.length - 1);
   while (wd(size) > W * .8 && size > 24) size -= 2;
   const tot = wd(size), ph = size * 1.55, padX = size * .55;
@@ -938,7 +946,9 @@ async function pickBroll() {
   const se = sentences().filter(x => x.length >= 3);
   const dur = words.at(-1).e - words[0].s, max = Math.max(1, Math.min(8, Math.round(dur / (style().viro ? recipe().brollSec : 8))));
   try {
-    const r = await fetch('/api/ai-plan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mode: 'broll', max, text: key, subjects: se.map(x => x.map(w => w.t).join(' ')) }) });
+    const ask = () => fetch('/api/ai-plan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mode: 'broll', max, text: key, subjects: se.map(x => x.map(w => w.t).join(' ')) }) });
+    let r = await ask().catch(() => null);
+    if (!r || !r.ok) { await new Promise(ok => setTimeout(ok, 1500)); r = await ask(); }
     if (!r.ok) throw new Error('broll ' + r.status);
     const j = await r.json();
     brollPicks = (j.picks || []).filter(pk => se[pk.i]).map(pk => ({ s: se[pk.i][0].s, e: se[pk.i].at(-1).e + .3, prompt: pk.prompt, search: pk.search || '', kicker: (pk.kicker || '').replace(/[*_#`]/g, ''), label: (pk.label || '').replace(/[*_#`]/g, '').trim() || se[pk.i].slice(0, 5).map(w => w.t.replace(/[.,;:!?]+$/, '')).join(' ') }));
@@ -1167,6 +1177,9 @@ function makeBeats(P) {
       if (!(n >= 2) || n > 1e9 || w.s - lastN < 5 || w.s < words[0].s + 1.5 || w.s > words.at(-1).e - 2.5) return;
       const s0 = w.s - .1, e0 = w.s + 1.7; if (!free(s0, e0)) return;
       const nx = words[i + 1], unit = nx && !isNum(nx.t) && clean(nx.t).length > 2 ? nx.t.replace(/[.,;:!?]+$/, '') : '';
+      const money = /\$|peso|dolar|usd|plata/.test(norm(w.t + ' ' + unit)) || w.t.includes('$'), pct = /%|por/.test(w.t + unit) && /cient/.test(norm(unit));
+      // Only numbers that impress (money, %, big amounts, followers/sales…); an age or "3 cosas" is not a stat.
+      if (!money && !pct && n < 100 && !/^(mil|millon|seguidor|client|venta|vista|view|persona|usuario|kilo|dolar|peso)/.test(norm(unit))) return;
       B.nums.push({ s: s0, e: e0, n, money: /\$|peso|dolar|usd|plata/.test(norm(w.t + ' ' + unit)) || w.t.includes('$'), pct: /%|por/.test(w.t + unit) && /cient/.test(norm(unit)), unit });
       busyRanges.push([s0, e0]); lastN = e0;
     });
@@ -1401,7 +1414,7 @@ function drawChecklist(L, t) {
 function drawEndCard(ot, total) {
   const age = ot - (total - 2.2); if (age < 0) return;
   const k = easeQ(age / .35), hd = val('handle', '').trim(), T = typo();
-  cx.save(); cx.globalAlpha = k; const y = H * .58 + 30 * (1 - k);
+  cx.save(); cx.globalAlpha = k; const y = H * .2 - 30 * (1 - k); // top: the face and the subtitles stay clear
   cx.font = '800 30px Inter, sans-serif'; const label = hd ? (hd[0] === '@' ? hd : '@' + hd) : 'Seguime para más';
   const bw = Math.max(300, cx.measureText(label).width + 190), x0 = W / 2 - bw / 2;
   cx.shadowColor = 'rgba(0,0,0,.45)'; cx.shadowBlur = 24; rrect(x0, y - 44, bw, 88, 44); cx.fillStyle = 'rgba(255,255,255,.95)'; cx.fill(); cx.shadowColor = 'transparent';
@@ -1480,6 +1493,8 @@ function drawKin(kn, t) {
     const tot = l.reduce((q, [, ww]) => q + ww, 0) + fs * .24 * (l.length - 1); let x = W / 2 - tot / 2;
     l.forEach(([i, ww]) => {
       const w = kn.words[i], a = ease((t - w.s + .06) / .16), on2 = t >= w.s - .06;
+      // Words appear as they are said (no faded placeholders: they read as broken text).
+      if (!on2) { x += ww + fs * .24; return; }
       cx.font = F(w, fs);
       cx.save(); cx.translate(x + ww / 2, y0 + li * lh); const sc = on2 ? .94 + .06 * a : 1; cx.scale(sc, sc);
       if (on2 && w === kn.key) { cx.shadowColor = T.hi; cx.shadowBlur = 30; cx.fillStyle = bg === 'accent' ? '#fff' : ink; cx.fillText(tx[i], -ww / 2, 0); cx.shadowBlur = 12; }

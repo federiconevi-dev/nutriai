@@ -195,7 +195,9 @@ async function direct(request = '') {
   directing = true; $('#aiGo').disabled = $('#aiAuto').disabled = true;
   setRec(request ? 'Aplicando tu pedido…' : 'La IA está eligiendo la mejor edición para tu video…'); if (!request) setStep(1);
   try {
-    const r = await fetch('/api/ai-direct', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: $('#txt').value, request, current: currentSettings(), info: VE.info }) });
+    const ask = () => fetch('/api/ai-direct', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: $('#txt').value, request, current: currentSettings(), info: VE.info }) });
+    let r = await ask().catch(() => null);
+    if (!r || r.status >= 500) { await new Promise(ok => setTimeout(ok, 1500)); r = await ask(); }
     const j = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(j.error || 'La IA no respondió.');
     // In automatic mode keep our curated typography and colors; fonts/colors change only when asked.
