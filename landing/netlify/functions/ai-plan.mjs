@@ -1,10 +1,12 @@
 import { chat } from '../lib/llm.mjs';
+import { guard, fail, readJson } from '../lib/guard.mjs';
 // Art direction: turns what the person says (usually Spanish) into short English image prompts, one per moment.
 // POST /api/ai-plan  { text, subjects: string[] }  →  { prompts: string[] }
 
 export default async (req) => {
+  const no = guard(req); if (no) return no;
   let body;
-  try { body = await req.json(); } catch { return Response.json({ error: 'JSON inválido' }, { status: 400 }); }
+  try { body = await readJson(req); } catch { return fail('Pedido inválido.', 400); }
   const subjects = Array.isArray(body.subjects) ? body.subjects.slice(0, 40).map(s => String(s).slice(0, 300)) : [];
   const text = String(body.text || '').slice(0, 4000);
   if (!subjects.length) return Response.json({ prompts: [] });
@@ -22,7 +24,7 @@ export default async (req) => {
   return Response.json({ prompts, model, fallback: !out });
 };
 
-export const config = { path: '/api/ai-plan', method: 'POST' };
+export const config = { path: '/api/ai-plan', method: 'POST', rateLimit: { windowLimit: 12, windowSize: 60, aggregateBy: ['ip', 'domain'] } };
 
 // B-roll planning: pick only the sentences where a supporting image makes the message clearer.
 async function broll(account, token, sentences, text, max) {

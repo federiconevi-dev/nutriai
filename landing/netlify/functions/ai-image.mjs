@@ -1,6 +1,8 @@
+import { guard } from '../lib/guard.mjs';
 // Generates one image with FLUX.1 [schnell] on Cloudflare Workers AI.
 // GET /api/ai-image?p=<prompt>  →  image/jpeg (cached at the CDN, so the same prompt is only paid once).
 export default async (req) => {
+  const no = guard(req); if (no) return no;
   const url = new URL(req.url);
   const prompt = (url.searchParams.get('p') || '').slice(0, 900).trim();
   if (prompt.length < 3) return new Response('Falta la descripción de la imagen.', { status: 400 });
@@ -28,4 +30,4 @@ export default async (req) => {
   });
 };
 
-export const config = { path: '/api/ai-image', method: 'GET' };
+export const config = { path: '/api/ai-image', method: 'GET', rateLimit: { windowLimit: 30, windowSize: 60, aggregateBy: ['ip', 'domain'] } };

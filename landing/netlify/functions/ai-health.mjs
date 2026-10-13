@@ -1,7 +1,9 @@
 // Quick status of the AI services (no secrets in the output). GET /api/ai-health
 import { ollamaChat } from '../lib/ollama.mjs';
+import { guard } from '../lib/guard.mjs';
 
-export default async () => {
+export default async (req) => {
+  const no = guard(req); if (no) return no;
   const account = Netlify.env.get('CF_ACCOUNT_ID'), token = Netlify.env.get('CF_API_TOKEN');
   const out = { cloudflare: 'sin configurar', ollama: Netlify.env.get('OLLAMA_API_KEY') ? 'configurado' : 'sin configurar' };
   if (account && token) {
@@ -17,4 +19,4 @@ export default async () => {
   return Response.json(out);
 };
 
-export const config = { path: '/api/ai-health', method: 'GET' };
+export const config = { path: '/api/ai-health', method: 'GET', rateLimit: { windowLimit: 4, windowSize: 60, aggregateBy: ['ip', 'domain'] } };

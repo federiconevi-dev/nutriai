@@ -1,4 +1,5 @@
 import { chat } from '../lib/llm.mjs';
+import { guard, fail, readJson } from '../lib/guard.mjs';
 // AI director: reads what the person says and picks the whole edit (or applies a change asked in plain words).
 // POST /api/ai-direct { text, request?, current? } → { settings, hookTitle, reason }
 const ALLOWED = {
@@ -36,8 +37,9 @@ toggles (true/false): ${TOGGLES.join(', ')} (optFrame = video inside a card with
 Keep colors coherent: when you pick mg, set cKey to "auto" unless the user asks for a color.`;
 
 export default async (req) => {
+  const no = guard(req); if (no) return no;
   let body;
-  try { body = await req.json(); } catch { return Response.json({ error: 'JSON inválido' }, { status: 400 }); }
+  try { body = await readJson(req); } catch { return fail('Pedido inválido.', 400); }
   const text = String(body.text || '').slice(0, 4000), request = String(body.request || '').slice(0, 400);
   const info = body.info && typeof body.info === 'object' ? JSON.stringify(body.info).slice(0, 400) : '{}';
   const current = body.current && typeof body.current === 'object' ? JSON.stringify(body.current).slice(0, 1500) : '{}';
@@ -65,7 +67,7 @@ Reply with ONLY one JSON object: {"style":..,"recipe":..,"typo":..,"mg":..,"ovSt
     } catch (e) { last += ` | ${e.message}`; }
   }
   console.log('ai-direct failed', last);
-  return Response.json({ error: 'La IA no respondió. Probá de nuevo.', detail: last.slice(0, 400) }, { status: 502 });
+  return fail('La IA no respondió. Probá de nuevo.', 502);
 };
 
-export const config = { path: '/api/ai-direct', method: 'POST' };
+export const config = { path: '/api/ai-direct', method: 'POST', rateLimit: { windowLimit: 8, windowSize: 60, aggregateBy: ['ip', 'domain'] } };

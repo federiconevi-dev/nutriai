@@ -203,10 +203,10 @@ async function direct(request = '') {
     if (j.settings && j.settings.recipe && !request) VE.setRecipe(j.settings.recipe);
     for (const [k, val] of Object.entries(j.settings || {})) { if (k === 'typo' || k === 'recipe' || k === 'music' ? !request : !request && k !== 'hookSfx' && !(k === 'hookFx' && /^(blur|flash|zoom|iris|cine)$/.test(val))) continue; const el = $('#' + k); if (el && el.value !== val) { el.value = val; fire(el); } }
     // In automatic mode the AI can only switch extra features on (the full edit stays); turning things off needs a request.
-    for (const [k, val] of Object.entries(j.toggles || {})) { if (!request) continue; const el = $('#' + k); if (el && el.checked !== val) { el.checked = val; el.dispatchEvent(new Event('change', { bubbles: true })); } }
+    for (const [k, val] of Object.entries(j.toggles || {})) { if (!request || !/^opt[A-Za-z0-9]+$/.test(k) || typeof val !== 'boolean') continue; const el = $('#' + k); if (el && el.checked !== val) { el.checked = val; el.dispatchEvent(new Event('change', { bubbles: true })); } }
     if (j.settings && j.settings.music && !request) VE.setMusic(j.settings.music);
     if (Array.isArray(j.hookAlts) && j.hookAlts.length) {
-      $('#hookAlts').innerHTML = [j.hookTitle, ...j.hookAlts].filter(Boolean).map(hk => `<button type="button">${hk.replace(/</g, '')}</button>`).join('');
+      $('#hookAlts').innerHTML = [j.hookTitle, ...j.hookAlts].filter(Boolean).map(hk => `<button type="button">${String(hk).replace(/[&<>"']/g, c => '&#' + c.charCodeAt(0) + ';')}</button>`).join('');
       $('#hookBox').hidden = false;
     }
     if (j.post) { $('#postTxt').value = j.post; $('#postBox').hidden = false; }

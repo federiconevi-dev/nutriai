@@ -1,7 +1,9 @@
 import { chat } from '../lib/llm.mjs';
+import { guard, fail } from '../lib/guard.mjs';
 // Finds a stock clip for a b-roll moment on Pexels (PEXELS_API_KEY) or Pixabay (PIXABAY_API_KEY), both free.
 // GET /api/broll-video?q=<english keywords>  →  { url, w, h, dur } (cached at the CDN per query)
 export default async (req) => {
+  const no = guard(req); if (no) return no;
   const sp = new URL(req.url).searchParams, q = (sp.get('q') || '').slice(0, 80).trim(), want2 = (sp.get('want') || '').slice(0, 300);
   if (q.length < 2) return Response.json({ error: 'Falta la búsqueda.' }, { status: 400 });
   const cache = { headers: { 'Cache-Control': 'public, max-age=86400', 'Netlify-CDN-Cache-Control': 'public, durable, max-age=604800' } };
@@ -19,7 +21,7 @@ export default async (req) => {
   }
   if (pixabay) {
     const r = await fetch(`https://pixabay.com/api/videos/?key=${encodeURIComponent(pixabay.trim())}&q=${encodeURIComponent(q)}&per_page=20&safesearch=true`).catch(() => null);
-    if (!r || !r.ok) return Response.json({ error: `Pixabay respondió ${r ? r.status + ' ' + (await r.text()).slice(0, 80) : 'sin conexión'}` }, { status: 502 });
+    if (!r || !r.ok) { console.log('pixabay', r ? r.status : 'offline'); return fail('El banco de videos no respondió.', 502); }
     const hits = (await r.json()).hits || [];
     // Vertical clips first; a wide clip still works (it is cropped to 9:16), so use the sharpest small-enough file.
     const pick = h => { const v = h.videos || {}; return [v.medium, v.large, v.small].find(f => f && f.url && f.width && f.size < 18e6); };
@@ -37,10 +39,10 @@ export default async (req) => {
       const n = parseInt((text.match(/\d+/) || ['0'])[0], 10);
       h = n >= 1 && n <= ranked.length ? ranked[n - 1] : null;
     } else h = ranked[0] || null;
-    if (!h && ranked.length) return Response.json({ error: 'Ningún clip encaja', candidates: ranked.length, check }, { status: 404 });
+    if (!h && ranked.length) { console.log('broll check', check); return fail('Ningún clip encaja', 404); }
     if (h) { const f = pick(h); return Response.json({ url: `/api/clip?u=${encodeURIComponent(f.url)}`, w: f.width, h: f.height, dur: h.duration }, cache); }
   }
   return Response.json({ error: 'Sin resultados' }, { status: 404 });
 };
 
-export const config = { path: '/api/broll-video', method: 'GET' };
+export const config = { path: '/api/broll-video', method: 'GET', rateLimit: { windowLimit: 30, windowSize: 60, aggregateBy: ['ip', 'domain'] } };
