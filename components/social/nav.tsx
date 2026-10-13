@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, CalendarDays, FileText, GalleryHorizontalEnd, Gauge, Lightbulb } from "lucide-react";
+import { signOut } from "next-auth/react";
+import { BarChart3, CalendarDays, FileText, GalleryHorizontalEnd, Gauge, Lightbulb, LogOut, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const SOCIAL_NAV = [
@@ -22,7 +23,7 @@ export function isSocialActive(pathname: string, href: string) {
 export function SocialTabs() {
   const pathname = usePathname();
   return (
-    <nav className="no-scrollbar -mx-4 mb-6 flex gap-1.5 overflow-x-auto px-4 sm:-mx-6 sm:px-6 lg:mx-0 lg:px-0">
+    <nav className="no-scrollbar -mx-4 mb-6 flex gap-1.5 overflow-x-auto px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
       {SOCIAL_NAV.map((item) => {
         const active = isSocialActive(pathname, item.href);
         return (
@@ -42,5 +43,31 @@ export function SocialTabs() {
         );
       })}
     </nav>
+  );
+}
+
+export function SocialHeader({ name }: { name: string }) {
+  return (
+    <header className="sticky top-0 z-30 border-b border-white/5 bg-background/80 backdrop-blur-lg">
+      <div className="mx-auto flex h-16 max-w-[1400px] items-center justify-between px-4 sm:px-6 lg:px-8">
+        <Link href="/social" className="flex items-center gap-2.5 font-semibold tracking-tight">
+          <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-fuchsia-500 to-brand-600 shadow-lg shadow-brand-600/30">
+            <Sparkles className="h-4 w-4 text-white" />
+          </span>
+          Estudio Social
+        </Link>
+        <div className="flex items-center gap-2">
+          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-sm font-semibold">
+            {name.slice(0, 1).toUpperCase()}
+          </span>
+          <button
+            onClick={() => signOut({ callbackUrl: "/login" })}
+            className="flex h-9 items-center gap-1.5 rounded-xl px-3 text-xs font-medium text-muted-foreground ring-1 ring-white/10 transition-colors hover:text-foreground"
+          >
+            <LogOut className="h-3.5 w-3.5" /> Salir
+          </button>
+        </div>
+      </div>
+    </header>
   );
 }

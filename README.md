@@ -42,7 +42,7 @@ before connecting any paid API.
   Stripe-ready checkout (falls back to a demo upgrade when Stripe isn't
   configured).
 - **Settings** — profile, password change, sign out.
-- **Redes sociales** (`/social`, en español) — hub para gestionar el contenido
+- **Estudio Social** (`/social`, en español, página aparte con su propio diseño) — hub para gestionar el contenido
   de Instagram y TikTok:
   - **Panel principal** — posts de la semana, seguidores, visualizaciones,
     interacción, gráfico de crecimiento, mejores posts y tarjetas de cada

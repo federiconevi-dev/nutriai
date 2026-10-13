@@ -17,7 +17,6 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { APP_CONFIG } from "@/lib/config";
-import { SOCIAL_NAV, isSocialActive } from "@/components/social/nav";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -83,29 +82,6 @@ export function Sidebar({
               >
                 <item.icon className="h-4 w-4" />
                 {item.label}
-              </Link>
-            );
-          })}
-
-          <p className="px-3 pb-1 pt-5 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/70">
-            Redes sociales
-          </p>
-          {SOCIAL_NAV.map((item) => {
-            const active = isSocialActive(pathname, item.href);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={onClose}
-                className={cn(
-                  "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
-                  active
-                    ? "bg-brand-500/15 text-brand-300"
-                    : "text-muted-foreground hover:bg-white/5 hover:text-foreground"
-                )}
-              >
-                <item.icon className="h-4 w-4" />
-                {item.label === "Panel" ? "Panel social" : item.label}
               </Link>
             );
           })}
