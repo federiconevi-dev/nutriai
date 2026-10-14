@@ -129,6 +129,8 @@ let artT = 0;
 function waitArt() { clearInterval(artT); const t0 = Date.now(); artT = setInterval(() => { const P = VE.plan, ph = P && P.beats ? P.beats.photos : []; if ((P && ph.every(p => p.img || p.failed)) || Date.now() - t0 > 60000) { clearInterval(artT); setStep(3); } }, 1000); }
 // Progress steps in the Automático tab, read from the engine status.
 function setStep(n) {
+  // genjutsu: the ready button rises once with a single sheen when the edit is done.
+  if (n >= 3 && $('#readyBox').hidden) { const g = $('#go2'); g.classList.remove('gj-in'); void g.offsetWidth; g.classList.add('gj-in'); }
   $('#readyBox').hidden = n < 3;
   if (n >= 3 && !setStep.played) { setStep.played = true; const P = VE.plan; if (P) { v.currentTime = P.segs[0].s; v.play().catch(() => {}); } } $$('#steps span').forEach(sp => { const i = +sp.dataset.s; sp.className = i < n ? 'done' : i === n ? 'now' : ''; }); if (n >= 3) $$('#steps span').forEach(sp => { sp.className = 'done'; }); }
 new MutationObserver(() => {
@@ -291,3 +293,25 @@ $('#hookAlts').onclick = e => { const b = e.target.closest('button'); if (!b) re
 $('#postCopy').onclick = async () => { try { await navigator.clipboard.writeText($('#postTxt').value); $('#postCopy').textContent = '¡Copiado!'; } catch (e) { $('#postTxt').select(); } setTimeout(() => { $('#postCopy').textContent = 'Copiar texto y hashtags'; }, 1500); };
 
 $('#go2').onclick = () => $('#go').click();
+
+// ---- genjutsu: headline words rise from masks; drop zone border runs like tape; arrow jumps on a new file ----
+(() => {
+  const h = document.querySelector('h1.disp');
+  if (h && !h.dataset.gj) {
+    h.dataset.gj = 1; let i = 0; const out = document.createDocumentFragment();
+    const wrap = (node, cls) => { const m = document.createElement('span'); m.className = 'mk'; const s = document.createElement('span'); if (cls) s.className = cls; s.style.setProperty('--i', i++); s.append(node); m.append(s); return m; };
+    [...h.childNodes].forEach(n => {
+      if (n.nodeType === 3) n.textContent.split(/(\s+)/).forEach(t => out.append(/^\s+$/.test(t) || !t ? document.createTextNode(t) : wrap(document.createTextNode(t))));
+      else out.append(wrap(document.createTextNode(n.textContent), n.className));
+    });
+    h.textContent = ''; h.append(out);
+  }
+  const d = document.getElementById('drop');
+  if (d && !d.querySelector('.gj-b')) {
+    const NS = 'http://www.w3.org/2000/svg', svg = document.createElementNS(NS, 'svg'), r = document.createElementNS(NS, 'rect');
+    svg.setAttribute('class', 'gj-b'); svg.setAttribute('aria-hidden', 'true');
+    const size = () => { r.setAttribute('x', .75); r.setAttribute('y', .75); r.setAttribute('width', Math.max(0, d.clientWidth - 1.5)); r.setAttribute('height', Math.max(0, d.clientHeight - 1.5)); r.setAttribute('rx', 20); };
+    svg.append(r); d.append(svg); size(); new ResizeObserver(size).observe(d);
+    document.getElementById('file').addEventListener('change', () => { d.classList.remove('hit'); void d.offsetWidth; d.classList.add('hit'); });
+  }
+})();
