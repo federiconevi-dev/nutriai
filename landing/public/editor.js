@@ -227,7 +227,8 @@ function build() {
   chunks.forEach((c, i) => {
     c.s = c[0].s; c.e = c.at(-1).e;
     c.key = c.reduce((a, w) => clean(w.t).length > clean(a.t).length ? w : a, c[0]);
-    c.emph = clean(c.key.t).length >= 7 || /[!?]$/.test(c.at(-1).t);
+    const nk = c.find(w => isNum(w.t) || /[$€%]/.test(w.t)); if (nk) c.key = nk;
+    c.emph = !!nk || clean(c.key.t).length >= 7 || /[!?]$/.test(c.at(-1).t);
   });
 
   let hook = '', hookDur = 2.6;
@@ -1470,6 +1471,23 @@ function warmLeak(d) {
   });
   cx.restore();
 }
+// Hand-drawn arrow that draws itself over a full-screen image (like creators pointing at a screen recording).
+function drawArrow(ph, t) {
+  const age = t - ph.s - .35, left = ph.e - t; if (age <= 0 || left < .1) return;
+  const g = easeQ(age / .35), fade = Math.min(1, left / .2), R = (ph.n || 0) % 4 === 0;
+  const sx = R ? W * .86 : W * .14, sy = H * .64, ex = W * (R ? .6 : .4), ey = H * .47, mx = R ? W * .9 : W * .1, my = H * .46;
+  if (busy && !fired.has('ar' + ph.s)) { fired.add('ar' + ph.s); sfx('pop'); }
+  cx.save(); cx.globalAlpha = fade; cx.lineCap = 'round'; cx.lineJoin = 'round';
+  cx.shadowColor = 'rgba(0,0,0,.55)'; cx.shadowBlur = 10; cx.strokeStyle = '#fff'; cx.lineWidth = 9;
+  // Quadratic curve drawn progressively.
+  const P = u => [(1 - u) * (1 - u) * sx + 2 * (1 - u) * u * mx + u * u * ex, (1 - u) * (1 - u) * sy + 2 * (1 - u) * u * my + u * u * ey];
+  cx.beginPath(); cx.moveTo(sx, sy); for (let i = 1; i <= 24; i++) { const [x, y] = P(g * i / 24); cx.lineTo(x, y); } cx.stroke();
+  if (g > .9) {
+    const [x1, y1] = P(.9), [x2, y2] = P(1), an = Math.atan2(y2 - y1, x2 - x1), L = 34 * easeQ((g - .9) / .1 || 1);
+    cx.beginPath(); cx.moveTo(x2 - L * Math.cos(an - .5), y2 - L * Math.sin(an - .5)); cx.lineTo(x2, y2); cx.lineTo(x2 - L * Math.cos(an + .5), y2 - L * Math.sin(an + .5)); cx.stroke();
+  }
+  cx.restore();
+}
 function drawKin(kn, t) {
   const age = t - kn.s, left = kn.e - t, k = Math.min(ease(age / .12), ease(left / .12));
   let bg = 'black';
@@ -1572,6 +1590,7 @@ function fxLayer(t, ot, P, x, y, w, h, coral) {
   if (!fastBusy) B.photos.forEach(p => { if (!p.vid) return; if (p === photo && brollMedia(p) === p.vid) { if (p.vid.paused) { p.vid.currentTime = Math.max(0, t - p.s); p.vid.play().catch(() => {}); } } else if (!p.vid.paused) p.vid.pause(); });
   let doubleExp = false;
   if (photo && blay() !== 'split') doubleExp = drawPhoto(photo, t, coral);
+  if (photo && blay() === 'full' && style().viro && recipeKey() !== 'minimal' && (photo.n || 0) % 2 === 0) drawArrow(photo, t);
   if (big) drawBig(big, t, coral);
   if ((big || doubleExp) && on('optBig')) {
     if (!seg) loadSeg();
