@@ -227,7 +227,7 @@ function build() {
   chunks.forEach((c, i) => {
     c.s = c[0].s; c.e = c.at(-1).e;
     c.key = c.reduce((a, w) => clean(w.t).length > clean(a.t).length ? w : a, c[0]);
-    c.emph = clean(c.key.t).length >= 7 || /[!?]$/.test(c.at(-1).t) || i % 4 === 0;
+    c.emph = clean(c.key.t).length >= 7 || /[!?]$/.test(c.at(-1).t);
   });
 
   let hook = '', hookDur = 2.6;
@@ -285,7 +285,7 @@ function findCta() {
 // ---------- Rendering ----------
 const STYLES = {
   coral: { font: s => `800 ${s}px "Plus Jakarta Sans", Inter, sans-serif`, size: 52, upper: false, hi: '#FF6046', soft: true, coral: true },
-  viro: { font: s => `800 ${s}px "Plus Jakarta Sans", Inter, sans-serif`, size: 48, upper: false, hi: '#5CF58A', soft: true, glowKey: true, viro: true },
+  viro: { font: s => `800 ${s}px "Plus Jakarta Sans", Inter, sans-serif`, size: 44, upper: false, hi: '#7CF2A4', soft: true, glowKey: true, viro: true },
   viral: { font: s => `800 ${s}px "Plus Jakarta Sans", Inter, sans-serif`, size: 56, upper: false, hi: '#A6F94B', soft: true, glowKey: true },
   hormozi: { font: s => `900 ${s}px Montserrat, Inter, sans-serif`, size: 64, upper: true, hi: '#22E06B', box: true },
   editorial: { font: s => SERIF(s), size: 82, upper: false, hi: '#E8D3A2', soft: true },
@@ -454,8 +454,6 @@ function capShade(ch) {
 function viroCaption(ch, t, st) {
   const mode = recipe().cap;
   if (mode !== 'pill') capShade(ch);
-  if (mode === 'pill' || mode === 'box' || mode === 'serif') return lineCaption(ch, t, st, mode);
-  if (mode === 'word') return wordCaption(ch, t, st);
   // One clean line: every word the same size, the word being said lights up (no giant separate word).
   const age = t - ch.s, a = ease(age / .18), solo = false;
   const main = solo ? ch.filter(w => w !== ch.key) : ch, low = w => w.t.toLowerCase().replace(/[.,;:!?¿¡"]+/g, '');
@@ -467,19 +465,18 @@ function viroCaption(ch, t, st) {
     const on2 = t >= w.s - .03, tx = low(w);
     cx.font = big ? keyF(size) : fnt(w, size);
     cx.shadowColor = 'rgba(0,0,0,.75)'; cx.shadowBlur = size * .4; cx.shadowOffsetY = 2;
-    const lit = on2 && (big || isK(w) || t < w.e + .08);
-    if (lit) { cx.shadowColor = st.glowC; cx.shadowBlur = size * (big ? .8 : .55); cx.shadowOffsetY = 0; cx.fillStyle = st.hi; }
-    else cx.fillStyle = on2 ? '#fff' : 'rgba(255,255,255,.6)';
+    const lit = big || isK(w);
+    if (lit) { cx.font = keyF(size * 1.12); cx.fillStyle = st.hi; } else cx.fillStyle = '#fff';
     // Thin dark outline under every word so it reads on bright shots too (white walls, light b-roll).
     cx.lineWidth = Math.max(3, size * (big ? .07 : .1)); cx.strokeStyle = 'rgba(0,0,0,.55)';
     // Pop: the word you are saying bounces in.
-    const pa = t - w.s, pop = on2 && pa < .2 ? 1 + .18 * Math.sin(Math.PI * pa / .2) : 1;
-    if (pop !== 1) { const ww = cx.measureText(tx).width; cx.save(); cx.translate(x + ww / 2, y); cx.scale(pop, pop); cx.strokeText(tx, -ww / 2, 0); cx.fillText(tx, -ww / 2, 0); if (lit) cx.fillText(tx, -ww / 2, 0); cx.restore(); }
-    else { cx.strokeText(tx, x, y); cx.fillText(tx, x, y); if (lit) cx.fillText(tx, x, y); }
+    const pa = t - w.s, pop = on2 && pa < .2 ? 1 + .05 * Math.sin(Math.PI * pa / .2) : 1;
+    if (pop !== 1) { const ww = cx.measureText(tx).width; cx.save(); cx.translate(x + ww / 2, y); cx.scale(pop, pop); cx.strokeText(tx, -ww / 2, 0); cx.fillText(tx, -ww / 2, 0); cx.restore(); }
+    else { cx.strokeText(tx, x, y); cx.fillText(tx, x, y); }
   };
   let size = st.size;
   const wid = sz => main.reduce((q, w) => { cx.font = fnt(w, sz); return q + cx.measureText(low(w)).width; }, 0) + sz * .27 * (main.length - 1);
-  while (wid(size) > W * .84 && size > 24) size -= 2;
+  while (wid(size) > W * .76 && size > 32) size -= 2;
   const tot = wid(size); let x = -tot / 2; const y = solo ? -size * .6 : 0;
   main.forEach(w => { cx.font = fnt(w, size); const ww = cx.measureText(low(w)).width; word(w, size, x, y, false); x += ww + size * .27; });
   if (solo && t >= ch.key.s - .05) {
@@ -1890,10 +1887,10 @@ function quoteScreen(sc, t) {
 
 // ================= Editor controls, extra looks and overlays =================
 const val = (id, d) => { const el = document.getElementById(id); return el ? el.value : d; };
-const hookFx = () => val('hookFx', 'flash');
+const hookFx = () => val('hookFx', 'zoom') === 'none' ? 'none' : 'zoom';
 // Text hook: giant word behind you, card on top, or a big question over the opening.
 const hookTextType = () => { const v2 = val('hookText', 'auto'); return v2 !== 'auto' ? v2 : $('#style').value === 'coral' ? 'card' : $('#style').value === 'viro' ? recipe().hook : 'big'; };
-const hookSound = () => { const v2 = val('hookSfx', 'auto'); return v2 === 'auto' ? 'riser' : v2; };
+const hookSound = () => { const v2 = val('hookSfx', 'auto'); return v2 === 'none' ? 'none' : 'whoosh'; };
 const grade = () => val('grade', 'none') !== 'none';
 // Color grading presets (cheap full-frame blends).
 function colorGrade() {
@@ -2039,7 +2036,7 @@ function drawFrame(t, src, sw, sh) {
   let z = g && zoomOn ? (coral ? 1 + (g.z - 1) * .55 : g.z) : 1;
   const hk = hookFx();
   // Camera: a gentle opening settle, a slow push-in inside each shot and a light reframe on cuts. No shakes, no whips.
-  if (hookOn && hk === 'zoom' && ot < .7) z *= 1 + .28 * (1 - ease(ot / .7));
+  if (hookOn && hk === 'zoom' && ot < .7) z *= 1 + .12 * (1 - easeQ(ot / .7));
   else if (hookOn && st.viro && /^(blur|flash|cine)$/.test(hk) && ot < .5) z *= 1 + .4 * (1 - easeQ(ot / .5));
   else if (hookOn && hk !== 'none' && ot < 1.2) z *= 1 + .08 * (1 - ease(ot / 1.2));
   if (cutK && cdt < .28 && (cutK === 'punch' || cutK === 'zoomblur')) z *= 1 + (cutK === 'punch' ? .14 : .22) * (1 - easeQ(cdt / .28));
@@ -2058,7 +2055,7 @@ function drawFrame(t, src, sw, sh) {
   const framed = on('optFrame');
   const brollLayout = blay();
   const splitPh = P && P.beats && !framed && brollLayout === 'split' ? P.beats.photos.find(q => brollMedia(q) && t >= q.s && t <= q.e) : null;
-  capX = W / 2; capY = splitPh ? H * .5 : H * (style().viro ? recipe().capY : .69);
+  capX = W / 2; capY = splitPh ? H * .5 : H * .77;
   let x, y, w, h;
   cx.fillStyle = '#000'; cx.fillRect(0, 0, W, H);
   if (framed) {
@@ -2113,7 +2110,7 @@ function drawFrame(t, src, sw, sh) {
   });
   if (P && !covered && on('optOverlay') && !(P.beats && P.beats.photos.some(q => q.img && t >= q.s && t <= q.e))) drawOverlays(t, P);
   const ctaS = P ? P.total - 2.4 : 0;
-  const inCta = P && P.cta && on('optMG') && ot >= ctaS - .35;
+  const inCta = false;
   if (on('optFollow') && !splitPh && !framed) followHead(x, y, w, h);
   const qHook = hookOn && P && P.hook && hookTextType() === 'question' && ot < P.hookDur;
   if (P && !covered && !fxs.hide && !qHook && !(inCta && ot >= ctaS) && on('optCaps')) { drawCaption(ch, t); }
@@ -2126,7 +2123,7 @@ function drawFrame(t, src, sw, sh) {
     viroPhotoText({ s: t - ot, e: t - ot + P.hookDur, label: P.hook, kicker: '' }, t, k);
   }
   if (inCta) screenTrans(ot, ctaS, 1e9, tt => ctaScreen(P.cta, tt - ctaS), 7, 'cta');
-  if (P && on('optBar')) { cx.fillStyle = 'rgba(255,255,255,.18)'; cx.fillRect(0, H - 8, W, 8); cx.fillStyle = theme().accent; cx.fillRect(0, H - 8, W * ot / P.total, 8); }
+  if (false) { cx.fillStyle = 'rgba(255,255,255,.18)'; cx.fillRect(0, H - 8, W, 8); cx.fillStyle = theme().accent; cx.fillRect(0, H - 8, W * ot / P.total, 8); }
   if (P && !covered) fxTop(t, ot, P, si);
   if (busy && hookOn && ot < .15 && !fired.has('hooksfx')) {
     fired.add('hooksfx');
@@ -2142,7 +2139,7 @@ function drawFrame(t, src, sw, sh) {
   if (hookOn && hk === 'blackout' && P && P.hook && ot < 1.1) drawBlackout(P.hook, ot);
   if (P && on('optLoop')) loopBlend(ot, P.total);
   if (P && st.viro && on('optEnd') && !inCta && ot > P.total - 2.2) { drawEndCard(ot, P.total); if (busy && ot > P.total - 1.3 && !fired.has('endtap')) { fired.add('endtap'); sfx('pop'); } }
-  const hd = val('handle', '').trim(); if (hd && P && !(st.viro && on('optEnd') && ot > P.total - 2.2) && !(inCta && ot >= ctaS)) { cx.save(); cx.globalAlpha = .75; cx.font = '700 24px Inter, sans-serif'; cx.textAlign = 'left'; cx.textBaseline = 'middle'; cx.shadowColor = 'rgba(0,0,0,.6)'; cx.shadowBlur = 8; cx.fillStyle = '#fff'; cx.fillText((hd[0] === '@' ? '' : '@') + hd, W * .06, H * .09); cx.restore(); }
+  const hd = ''; if (hd && P && !(st.viro && on('optEnd') && ot > P.total - 2.2) && !(inCta && ot >= ctaS)) { cx.save(); cx.globalAlpha = .75; cx.font = '700 24px Inter, sans-serif'; cx.textAlign = 'left'; cx.textBaseline = 'middle'; cx.shadowColor = 'rgba(0,0,0,.6)'; cx.shadowBlur = 8; cx.fillStyle = '#fff'; cx.fillText((hd[0] === '@' ? '' : '@') + hd, W * .06, H * .09); cx.restore(); }
   if (!busy && on('optSafe')) drawSafeZones();
   if (busy && P) prog(ot / P.total);
   return ot;
