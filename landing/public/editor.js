@@ -1594,7 +1594,8 @@ function fxLayer(t, ot, P, x, y, w, h, coral) {
     drawKin(kn, t); return { hide: true };
   }
   if (style().viro && P.list && !on('optMG') && t >= P.list.s && t <= P.list.e) { drawChecklist(P.list, t); if (busy) P.list.items.forEach(it => { if (t >= it.at && !fired.has('ck' + it.n)) { fired.add('ck' + it.n); sfx('pop'); } }); }
-  const nm = (B.nums || []).find(q => t >= q.s && t <= q.e); if (nm) { drawCounter(nm, t); if (busy && nm.money && !fired.has('cash' + nm.s)) { fired.add('cash' + nm.s); sfx('cash'); } }
+  const listOn = style().viro && P.list && !on('optMG') && t >= P.list.s - .3 && t <= P.list.e + .3;
+  const nm = !listOn && (B.nums || []).find(q => t >= q.s && t <= q.e); if (nm) { drawCounter(nm, t); if (busy && nm.money && !fired.has('cash' + nm.s)) { fired.add('cash' + nm.s); sfx('cash'); } }
   const nt = (B.notifs || []).find(q => t >= q.s && t <= q.e); if (nt) drawNotif(nt, t);
   if (busy && nm && !fired.has('nm' + nm.s)) { fired.add('nm' + nm.s); sfx(nm.money ? 'cash' : 'ding'); }
   if (busy && nt && !fired.has('nt' + nt.s)) { fired.add('nt' + nt.s); sfx('notif'); }
