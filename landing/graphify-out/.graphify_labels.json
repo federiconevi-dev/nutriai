@@ -1,16 +1,16 @@
 {
   "0": "editor.js",
-  "1": "drawMotion",
+  "1": "finish",
   "2": "ui.js",
-  "3": "moStag",
+  "3": "rrect",
   "4": "drawFrame",
   "5": "fastExport",
   "6": "guard.mjs",
   "7": "build",
-  "8": "aiImage",
+  "8": "on",
   "9": "blobCover",
   "10": "clip.ts",
-  "11": "val",
-  "13": "typoKey",
-  "14": "lightLeak"
+  "11": "theme",
+  "12": "playSfx",
+  "13": "typoKey"
 }

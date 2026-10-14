@@ -1,18 +1,16 @@
 {
   "0": "editor.js",
-  "1": "fxLayer",
+  "1": "drawMotion",
   "2": "ui.js",
-  "3": "moDevice",
+  "3": "moStag",
   "4": "drawFrame",
   "5": "fastExport",
   "6": "guard.mjs",
   "7": "build",
-  "8": "loadAiArt",
+  "8": "aiImage",
   "9": "blobCover",
   "10": "clip.ts",
-  "11": "addMotions",
-  "12": "finish",
+  "11": "val",
   "13": "typoKey",
-  "14": "lightLeak",
-  "15": "playSfx"
+  "14": "lightLeak"
 }

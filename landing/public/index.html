@@ -298,6 +298,16 @@ footer{border-top:1px solid var(--line);padding:30px 0;color:var(--mut);font-siz
         <div class="row2"><button class="btn sm" id="moGo">Crear animación</button><button class="btn sm ghost" id="moAuto">Que la IA decida</button></div>
         <small class="mut" id="moRec" style="display:block;font-size:12px;margin-top:6px"></small>
         <button class="btn sm ghost full" id="moClear" hidden>Quitar animaciones</button>
+        <div id="moTl" hidden>
+          <h5>LÍNEA DE TIEMPO <small class="mut" style="font-size:11px;letter-spacing:0">· arrastrá para mover, tocá para editar</small></h5>
+          <div id="moTrack" style="position:relative;height:46px;border-radius:10px;background:rgba(127,127,127,.14);touch-action:none;overflow:hidden"></div>
+          <div id="moSel" hidden style="margin-top:8px">
+            <small class="mut" id="moSelName" style="display:block;font-size:12px;margin-bottom:6px"></small>
+            <div class="row2"><button class="btn sm ghost" id="moShorter">− Más corta</button><button class="btn sm ghost" id="moLonger">+ Más larga</button></div>
+            <div class="chips" id="moEnt" style="margin-top:6px"><button type="button" data-e="auto">Barrido</button><button type="button" data-e="fast">Rápida</button><button type="button" data-e="soft">Suave</button><button type="button" data-e="bounce">Rebote</button></div>
+            <button class="btn sm ghost full" id="moDel" style="margin-top:6px">Quitar esta animación</button>
+          </div>
+        </div>
       </aside>
 
       <aside class="side hide" id="sideP">

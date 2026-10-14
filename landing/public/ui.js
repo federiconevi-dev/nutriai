@@ -242,13 +242,44 @@ async function motions(request = '') {
     const n = !request ? VE.autoMotions() : 0;
     $('#moRec').textContent = n ? `Listo: ${n} animaciones en tu video.` : 'La IA no pudo ahora (' + e.message + ').';
   }
-  $('#moClear').hidden = !VE.motionCount;
+  $('#moClear').hidden = !VE.motionCount; renderTl();
   moBusy = false; $('#moGo').disabled = $('#moAuto').disabled = false;
 }
 $('#moGo').onclick = () => { const q = $('#moAsk').value.trim(); if (q) motions(q); };
 $('#moAsk').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('#moGo').click(); } });
 $('#moAuto').onclick = () => motions();
-$('#moClear').onclick = () => { VE.clearMotions(); $('#moClear').hidden = true; $('#moRec').textContent = ''; };
+$('#moClear').onclick = () => { VE.clearMotions(); $('#moClear').hidden = true; $('#moRec').textContent = ''; renderTl(); };
+
+// ---- Timeline of animations: drag to move, tap to edit length/entrance or delete ----
+const TPL_NAME = { reveal: 'Frase', counter: 'Contador', bars: 'Barras', versus: 'Versus', roll: 'Ruleta', stamp: 'Golpe', strike: 'Tachado', letters: 'Letras', morph: 'Píldora', quote: 'Cita', timeline: 'Pasos', chat: 'Mensajes', progress: 'Carga', split: 'Antes/Después' };
+let moPick = -1;
+function renderTl() {
+  const list = VE.motions || [], len = VE.length || 1, tr = $('#moTrack');
+  $('#moTl').hidden = !list.length; $('#moClear').hidden = !list.length; tr.textContent = '';
+  if (moPick >= list.length) moPick = -1;
+  list.forEach(m => {
+    const b = document.createElement('div');
+    b.style.cssText = `position:absolute;top:5px;bottom:5px;left:${m.s / len * 100}%;width:${Math.max(3, (m.e - m.s) / len * 100)}%;border-radius:8px;background:${m.i === moPick ? '#5cf58a' : '#7c5cff'};color:#fff;font:700 11px/36px Inter,sans-serif;padding:0 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:grab`;
+    if (m.i === moPick) b.style.color = '#111';
+    b.textContent = TPL_NAME[m.tpl] || m.tpl; b.title = m.label;
+    b.onpointerdown = e => {
+      e.preventDefault(); b.setPointerCapture(e.pointerId); const x0 = e.clientX, w = tr.clientWidth; let moved = 0;
+      b.onpointermove = ev => { moved = ev.clientX - x0; b.style.transform = `translateX(${moved}px)`; };
+      b.onpointerup = () => {
+        b.onpointermove = b.onpointerup = null;
+        if (Math.abs(moved) > 4) { VE.setMotion(m.i, { s: m.s + moved / w * len }); moPick = -1; } else { moPick = m.i; try { VE.video.currentTime = m.s + .1; } catch (er) {} }
+        renderTl();
+      };
+    };
+    tr.appendChild(b);
+  });
+  const sel = list[moPick]; $('#moSel').hidden = !sel;
+  if (sel) { $('#moSelName').textContent = `${TPL_NAME[sel.tpl] || sel.tpl}: "${sel.label}" · ${(sel.e - sel.s).toFixed(1)} s`; $$('#moEnt button').forEach(x => x.classList.toggle('sel', x.dataset.e === sel.ent)); }
+}
+$('#moShorter').onclick = () => { const m = VE.motions[moPick]; if (m) { VE.setMotion(moPick, { dur: m.e - m.s - .5 }); renderTl(); } };
+$('#moLonger').onclick = () => { const m = VE.motions[moPick]; if (m) { VE.setMotion(moPick, { dur: m.e - m.s + .5 }); renderTl(); } };
+$('#moEnt').onclick = e => { const b = e.target.closest('button'); if (b && moPick >= 0) { VE.setMotion(moPick, { ent: b.dataset.e }); renderTl(); } };
+$('#moDel').onclick = () => { if (moPick >= 0) { VE.removeMotion(moPick); moPick = -1; renderTl(); } };
 window.onTranscribed = async () => { await direct(); motions(); };
 $('#aiGo').onclick = () => { const q = $('#aiAsk').value.trim(); if (q) direct(q); };
 $('#aiAsk').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('#aiGo').click(); } });

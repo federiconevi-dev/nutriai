@@ -1,14 +1,14 @@
 {
   "netlify/edge-functions/clip.ts": {
-    "mtime": 1791911728.5690436,
-    "seen": 1791946100.9291654,
-    "ast_hash": "2ceb186909e2cb12d9862c9814f0fdf9",
+    "mtime": 1791994009.396305,
+    "seen": 1791999697.6459565,
+    "ast_hash": "d4099da6c0c11507c2c4824c464513b7",
     "semantic_hash": ""
   },
   "netlify/functions/ai-direct.mjs": {
-    "mtime": 1791947339.1469414,
-    "seen": 1791951137.4040997,
-    "ast_hash": "afd0b6f2b6065a52d44394b17d111d68",
+    "mtime": 1791999560.7797673,
+    "seen": 1791999697.6459625,
+    "ast_hash": "46c51ade7c3aead5325cd6170e1a9ca9",
     "semantic_hash": ""
   },
   "netlify/functions/ai-health.mjs": {
@@ -24,9 +24,9 @@
     "semantic_hash": ""
   },
   "netlify/functions/ai-plan.mjs": {
-    "mtime": 1791911805.649722,
-    "seen": 1791946100.929177,
-    "ast_hash": "f02a419203e498ee7f5c5d83f4896c0a",
+    "mtime": 1791999576.9631414,
+    "seen": 1791999697.6459727,
+    "ast_hash": "252a371c44f36ca08ef675ce04c7710e",
     "semantic_hash": ""
   },
   "netlify/functions/broll-video.mjs": {
@@ -36,15 +36,15 @@
     "semantic_hash": ""
   },
   "netlify/lib/llm.mjs": {
-    "mtime": 1791914826.3563178,
-    "seen": 1791946100.929182,
-    "ast_hash": "a1efd0e5ed480354bd07444444c8c8b0",
+    "mtime": 1791996695.918437,
+    "seen": 1791999697.6459775,
+    "ast_hash": "a4e3cbdcf8188c343a6ac72b7b026378",
     "semantic_hash": ""
   },
   "netlify/lib/ollama.mjs": {
-    "mtime": 1791914826.356052,
-    "seen": 1791946100.9291832,
-    "ast_hash": "8921cd7419007d41207c5e1b0dc3d9f6",
+    "mtime": 1791996687.4527905,
+    "seen": 1791999697.645979,
+    "ast_hash": "d6e496b7f101a339cbe4b8f844c60d1e",
     "semantic_hash": ""
   },
   "public/asr-worker.js": {
@@ -54,21 +54,21 @@
     "semantic_hash": ""
   },
   "public/editor.js": {
-    "mtime": 1791988091.608801,
-    "seen": 1791988195.196105,
-    "ast_hash": "c3b1f9fc54c68289e81384b52de1cb19",
+    "mtime": 1791999694.9098282,
+    "seen": 1791999697.6459816,
+    "ast_hash": "f3bd4403efa4d49b5d5f8df594bf8a9c",
     "semantic_hash": ""
   },
   "public/ui.js": {
-    "mtime": 1791950584.250926,
-    "seen": 1791951137.404404,
-    "ast_hash": "c931b8f1711ea3e38d0d470d3e57fe9e",
+    "mtime": 1791999587.9009578,
+    "seen": 1791999697.6460884,
+    "ast_hash": "af04bd0affbbdfc2aa4d5c92946ce961",
     "semantic_hash": ""
   },
   "public/index.html": {
-    "mtime": 1791988091.6023324,
-    "seen": 1791988195.1961467,
-    "ast_hash": "801002dd798c4db6afe24255f798f338",
+    "mtime": 1791999587.8999805,
+    "seen": 1791999697.6460898,
+    "ast_hash": "7106f6cdbdfca832bc994ba6d1939b3c",
     "semantic_hash": ""
   },
   "public/broll.jpg": {
@@ -84,15 +84,15 @@
     "semantic_hash": ""
   },
   "netlify/lib/guard.mjs": {
-    "mtime": 1791911805.6422532,
-    "seen": 1791946100.9291801,
-    "ast_hash": "375b4d1282a389b5ff47082b059788b0",
+    "mtime": 1791994009.3953304,
+    "seen": 1791999697.645976,
+    "ast_hash": "537bec0f20af20aea15741f87728d1ab",
     "semantic_hash": ""
   },
   "netlify/functions/ai-motion.mjs": {
-    "mtime": 1791988091.6097355,
-    "seen": 1791988195.1960928,
-    "ast_hash": "086d169e704cdd77d19aa41cea66ad0a",
+    "mtime": 1791999560.7791433,
+    "seen": 1791999697.6459715,
+    "ast_hash": "baf6cf4747b702ac8fe0c4baafdc6e97",
     "semantic_hash": ""
   },
   "public/mg/bell.json": {

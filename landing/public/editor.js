@@ -1765,7 +1765,7 @@ function moVersus(m, age, th) {
   const A = m.labels[0] || 'Antes', Bt = m.labels[1] || 'Después', cw = MW * .8, ch = Math.min(300, MH * .2);
   if (m.lines[0]) { const sz = moFit(m.lines[0], moSans, MW * .86, 66, 34); moLine(m.lines[0], moSans, sz, MW / 2, MH * .17, moStag(age, 0), th.ink); }
   [[A, -1, MH * .3, th.ink, th.bg[0]], [Bt, 1, MH * .56, th.acc, th.acc2 === '#111111' ? '#111' : th.bg[0]]].forEach(([txt, dir, y, fill, fg], i) => {
-    const k = gx('elastic.out(1,0.55)', (age - .2 - i * .25) / .9), x = MW / 2 - cw / 2 + dir * (1 - k) * MW;
+    const k = gx('elastic.out(1,0.85)', (age - .2 - i * .25) / .9), x = MW / 2 - cw / 2 + dir * (1 - k) * MW;
     cx.save(); cx.translate(x + cw / 2, y + ch / 2); cx.rotate(dir * (1 - Math.min(1, k)) * .25 + dir * -.025);
     cx.shadowColor = 'rgba(0,0,0,.28)'; cx.shadowBlur = 40; cx.shadowOffsetY = 18; cx.fillStyle = fill; rrect(-cw / 2, -ch / 2, cw, ch, 36); cx.fill(); cx.shadowColor = 'transparent';
     const sz = moFit(txt, i ? moSerif : moHeavy, cw * .84, Math.min(110, ch * .5), 34); cx.font = (i ? moSerif : moHeavy)(sz); cx.fillStyle = i ? (th === MO_TH.color ? '#111' : th.bg[1]) : th.bg[0]; cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillText(txt, 0, 6); cx.restore();
@@ -1822,9 +1822,9 @@ function moLetters(m, age, th) {
 // A dot pops, stretches into a pill and the word is revealed inside; satellites orbit around.
 function moMorph(m, age, th) {
   const word = m.key || m.lines[0] || '', sz = moFit(word, moHeavy, MW * .72, 110, 40); cx.font = moHeavy(sz);
-  const tw = cx.measureText(word).width + 100, a = gx('back.out(2.5)', age / .4), b = gx('elastic.out(1,0.5)', (age - .35) / 1);
+  const tw = cx.measureText(word).width + 100, a = gx('back.out(1.3)', age / .4), b = gx('elastic.out(1,0.8)', (age - .35) / 1);
   const w = (60 + (tw - 60) * b) * popS(a), h = (60 + (sz * 1.6 - 60) * b) * popS(a), cyy = MH * .5;
-  for (let i = 0; i < 6; i++) { const an = age * (1.2 + i * .15) + i * 1.05, rr = (Math.max(w, h) * .62 + 30 + i * 12) * b, k = gx('back.out(3)', (age - .5 - i * .06) / .4); if (k <= 0) continue; cx.fillStyle = i % 2 ? th.acc2 === '#111111' ? th.ink : th.acc2 : th.ink; cx.globalAlpha = .9; cx.beginPath(); cx.arc(MW / 2 + Math.cos(an) * rr, cyy + Math.sin(an) * rr * .45, (6 + i % 3 * 4) * k, 0, 7); cx.fill(); cx.globalAlpha = 1; }
+  for (let i = 0; i < 6; i++) { const an = age * (1.2 + i * .15) + i * 1.05, rr = (Math.max(w, h) * .62 + 30 + i * 12) * b, k = gx('back.out(1.3)', (age - .5 - i * .06) / .4); if (k <= 0) continue; cx.fillStyle = i % 2 ? th.acc2 === '#111111' ? th.ink : th.acc2 : th.ink; cx.globalAlpha = .9; cx.beginPath(); cx.arc(MW / 2 + Math.cos(an) * rr, cyy + Math.sin(an) * rr * .45, (6 + i % 3 * 4) * k, 0, 7); cx.fill(); cx.globalAlpha = 1; }
   cx.save(); cx.shadowColor = 'rgba(0,0,0,.3)'; cx.shadowBlur = 40; cx.shadowOffsetY = 16; cx.fillStyle = th.acc; rrect(MW / 2 - w / 2, cyy - h / 2, w, h, Math.min(w, h) / 2); cx.fill(); cx.restore();
   cx.save(); rrect(MW / 2 - w / 2, cyy - h / 2, w, h, Math.min(w, h) / 2); cx.clip();
   const t = gx('expo.out', (age - .55) / .6); cx.font = moHeavy(sz); cx.fillStyle = th === MO_TH.dark || th === MO_TH.color ? '#111' : '#fff'; cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillText(word, MW / 2, cyy + 6 + (1 - t) * h); cx.restore();
@@ -1833,7 +1833,7 @@ function moMorph(m, age, th) {
 }
 // Pull quote: giant quote mark pops, words rise one by one, a highlighter sweeps under the key phrase.
 function moQuote(m, age, th) {
-  const L = m.lines.length ? m.lines : [m.key]; const qk = gx('back.out(2)', age / .45);
+  const L = m.lines.length ? m.lines : [m.key]; const qk = gx('back.out(1.3)', age / .45);
   cx.save(); cx.globalAlpha = .14 * qk; cx.fillStyle = th.ink; cx.font = moSerif(520); cx.textAlign = 'left'; cx.textBaseline = 'alphabetic'; cx.translate(MW * .1, MH * .42); cx.scale(popS(qk), popS(qk)); cx.fillText('“', 0, 0); cx.restore();
   let y = MH * .42;
   L.forEach((ln, i) => {
@@ -1850,7 +1850,7 @@ function moTimeline(m, age, th) {
   const draw = gx('power2.inOut', (age - .1) / .9);
   cx.save(); cx.strokeStyle = th.ink; cx.globalAlpha = .35; cx.lineWidth = 5; cx.setLineDash([14, 12]); cx.beginPath(); cx.moveTo(x0, top); cx.lineTo(x0, top + (n - 1) * gapY * draw + 1); cx.stroke(); cx.restore();
   items.forEach((it, i) => {
-    const y = top + i * gapY, k = gx('back.out(2.2)', (age - .25 - i * .16) / .35); if (k <= 0) return;
+    const y = top + i * gapY, k = gx('back.out(1.3)', (age - .25 - i * .16) / .35); if (k <= 0) return;
     cx.save(); cx.translate(x0, y); cx.scale(popS(k), popS(k)); cx.globalAlpha *= Math.min(1, k * 2); cx.fillStyle = i === n - 1 ? th.acc : th.ink; cx.beginPath(); cx.arc(0, 0, 34, 0, 7); cx.fill();
     cx.fillStyle = i === n - 1 && th !== MO_TH.dark ? '#fff' : th.bg[0]; cx.font = moHeavy(34); cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillText(String(i + 1), 0, 2); cx.restore();
     const sz = moFit(it, i === n - 1 ? moSerif : moSans, MW * .62, i === n - 1 ? 70 : 54, 28); moLine(it, i === n - 1 ? moSerif : moSans, sz, x0 + 64, y + sz * .35, moStag(age, i + 1, .16), th.ink, 'left');
@@ -1862,7 +1862,7 @@ function moChat(m, age, th) {
   if (m.key) { const sz = moFit(m.key, moSerif, MW * .76, 88, 36); moLine(m.key, moSerif, sz, MW / 2, MH * .2, moStag(age, 0), th.ink); }
   const shown = msgs.filter((_, i) => age > .3 + i * .45).length;
   msgs.slice(0, shown).forEach((t, i) => {
-    const pos = shown - 1 - i, k = gx('elastic.out(1,0.7)', (age - .3 - i * .45) / .7), y = MH * .3 + pos * (chh + 20) - (1 - Math.min(1, k)) * 160, sc = 1 - pos * .03;
+    const pos = shown - 1 - i, k = gx('elastic.out(1,0.9)', (age - .3 - i * .45) / .7), y = MH * .3 + pos * (chh + 20) - (1 - Math.min(1, k)) * 160, sc = 1 - pos * .03;
     cx.save(); cx.globalAlpha = Math.min(1, k * 2) * (1 - pos * .12); cx.translate(MW / 2, y + chh / 2); cx.scale(sc, sc); cx.translate(-MW / 2, -(y + chh / 2));
     cx.shadowColor = 'rgba(0,0,0,.18)'; cx.shadowBlur = 30; cx.shadowOffsetY = 10; cx.fillStyle = th === MO_TH.dark ? '#2a2a2c' : '#ffffff'; rrect(x, y, cw, chh, 30); cx.fill(); cx.shadowColor = 'transparent';
     cx.fillStyle = th.acc; rrect(x + 24, y + 26, 66, 66, 18); cx.fill();
@@ -1870,7 +1870,7 @@ function moChat(m, age, th) {
     const sz = moFit(t, moSans, cw - 140, 34, 22); cx.font = `600 ${sz}px Inter, sans-serif`; cx.globalAlpha *= .8; cx.fillText(t, x + 112, y + 90); cx.restore();
   });
   if (shown < msgs.length) { const y = MH * .3 - 90; for (let d = 0; d < 3; d++) { cx.fillStyle = th.ink; cx.globalAlpha = .3 + .5 * (.5 + .5 * Math.sin(age * 10 - d)); cx.beginPath(); cx.arc(MW / 2 - 24 + d * 24, y, 8, 0, 7); cx.fill(); } cx.globalAlpha = 1; }
-  if (shown) { const bk = gx('back.out(3)', (age - .3) / .3); cx.save(); cx.translate(x + cw - 6, MH * .3 + 6); cx.scale(popS(bk), popS(bk)); cx.globalAlpha *= Math.min(1, bk * 2); cx.fillStyle = '#ff3b30'; cx.beginPath(); cx.arc(0, 0, 26, 0, 7); cx.fill(); cx.fillStyle = '#fff'; cx.font = moHeavy(26); cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillText(String(shown), 0, 2); cx.restore(); }
+  if (shown) { const bk = gx('back.out(1.3)', (age - .3) / .3); cx.save(); cx.translate(x + cw - 6, MH * .3 + 6); cx.scale(popS(bk), popS(bk)); cx.globalAlpha *= Math.min(1, bk * 2); cx.fillStyle = '#ff3b30'; cx.beginPath(); cx.arc(0, 0, 26, 0, 7); cx.fill(); cx.fillStyle = '#fff'; cx.font = moHeavy(26); cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillText(String(shown), 0, 2); cx.restore(); }
 }
 // Loading bar fills in uneven steps, percent counts, then snaps to a check with a dot burst.
 function moProgress(m, age, th) {
@@ -1879,7 +1879,7 @@ function moProgress(m, age, th) {
   cx.fillStyle = th.soft; rrect(x, y - 18, bw, 36, 18); cx.fill(); cx.fillStyle = th.acc; rrect(x, y - 18, Math.max(36, bw * p), 36, 18); cx.fill();
   cx.font = moHeavy(44); cx.fillStyle = th.ink; cx.textAlign = 'center'; cx.textBaseline = 'alphabetic'; if (!done) cx.fillText(Math.round(p * 100) + '%', MW / 2, y + 90);
   if (done) {
-    const k = gx('back.out(2.5)', (age - 1.7) / .35); cx.save(); cx.translate(MW / 2, y + 110); cx.scale(popS(k), popS(k)); cx.globalAlpha *= Math.min(1, k * 2); cx.fillStyle = th.acc; cx.beginPath(); cx.arc(0, 0, 58, 0, 7); cx.fill();
+    const k = gx('back.out(1.3)', (age - 1.7) / .35); cx.save(); cx.translate(MW / 2, y + 110); cx.scale(popS(k), popS(k)); cx.globalAlpha *= Math.min(1, k * 2); cx.fillStyle = th.acc; cx.beginPath(); cx.arc(0, 0, 58, 0, 7); cx.fill();
     cx.strokeStyle = th === MO_TH.dark || th === MO_TH.color ? '#111' : '#fff'; cx.lineWidth = 12; cx.lineCap = 'round'; cx.beginPath(); cx.moveTo(-22, 2); cx.lineTo(-6, 18); cx.lineTo(24, -16); cx.stroke(); cx.restore();
     const b = (age - 1.7) / .8; if (b < 1) for (let i = 0; i < 24; i++) { const an = seed(i) * 6.28, v = 160 + seed(i + 30) * 260; cx.globalAlpha = 1 - b; cx.fillStyle = i % 3 ? th.acc : th.ink; cx.beginPath(); cx.arc(MW / 2 + Math.cos(an) * v * b, y + 110 + Math.sin(an) * v * b + 300 * b * b, 7, 0, 7); cx.fill(); } cx.globalAlpha = 1;
     if (m.key) { const sz = moFit(m.key, moSerif, MW * .86, 96, 40); moLine(m.key, moSerif, sz, MW / 2, y + 260, gx('expo.out', (age - 1.85) / .5), th.ink); }
@@ -1966,9 +1966,12 @@ function drawMotion(m, t) {
   const age = t - m.s, left = m.e - t, th = MO_TH[m.theme] || MO_TH.light;
   cx.save();
   // In: circle wipe from the center. Out: quick slide up.
-  const kin = easeQ(age / .32), out = easeQ(1 - left / .22);
-  if (kin < 1) { cx.beginPath(); cx.arc(MW / 2, MH / 2, Math.hypot(MW, MH) * .55 * kin, 0, 7); cx.clip(); }
-  if (left < .22) cx.translate(0, -MH * out);
+  // Entrance chosen on the timeline: wipe (default), fast, soft fade, bounce. Exit = ~70% of the entrance.
+  const ent = m.ent || 'auto', inT = ent === 'fast' ? .18 : ent === 'soft' ? .5 : .32, kin = easeQ(age / inT), out = easeQ(1 - left / (inT * .7));
+  if (ent === 'soft') cx.globalAlpha = kin;
+  else if (ent === 'bounce') { const z = popS(back(age / .45)); cx.translate(MW / 2, MH / 2); cx.scale(z, z); cx.translate(-MW / 2, -MH / 2); cx.globalAlpha = Math.min(1, age / .12); }
+  else if (kin < 1) { cx.beginPath(); cx.arc(MW / 2, MH / 2, Math.hypot(MW, MH) * .55 * kin, 0, 7); cx.clip(); }
+  if (left < inT * .7) cx.translate(0, -MH * out);
   if (m.frame === 'laptop') moLaptop(m, age, th);
   else if (m.frame && m.frame !== 'none') moDevice(m, age, th, m.frame);
   else { moBg(th, age, m.n || 0); MO_DRAW[m.tpl](m, age, th); }
@@ -2975,6 +2978,17 @@ window.VE = {
     userMotions.sort((a, b) => a.s - b.s); if (n) build(); return n;
   },
   clearMotions() { userMotions = []; build(); },
+  // Timeline: list, move/resize/style and delete scenes by hand.
+  get motions() { return userMotions.map((m, i) => ({ i, s: m.s, e: m.e, tpl: m.tpl, ent: m.ent || 'auto', label: m.key || m.lines[0] || m.labels[0] || m.tpl })); },
+  get length() { return v.duration || (words.at(-1) ? words.at(-1).e : 0); },
+  setMotion(i, p) {
+    const m = userMotions[i]; if (!m) return; const D = this.length || 9999;
+    if (p.dur) m.e = Math.min(D, m.s + Math.max(1.2, Math.min(6, p.dur)));
+    if (p.s !== undefined) { const dur = m.e - m.s, s = Math.max(0, Math.min(D - dur, p.s)); m.s = s; m.e = s + dur; }
+    if (p.ent && ['auto', 'fast', 'soft', 'bounce'].includes(p.ent)) m.ent = p.ent;
+    userMotions.sort((a, b) => a.s - b.s); build();
+  },
+  removeMotion(i) { userMotions.splice(i, 1); build(); },
   // Without the AI: pick 3-4 strong phrases of the video and design scenes for them with our own templates.
   autoMotions() {
     if (!words.length) return 0;
