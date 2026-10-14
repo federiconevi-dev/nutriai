@@ -234,7 +234,7 @@ function build() {
   if (words.length) {
     const hw = [];
     for (const w of words) { hw.push(w); if (hw.length >= 8 || /[.!?]$/.test(w.t)) break; }
-    hook = aiHookTitle || hw.map(w => w.t).join(' ').replace(/[.,;:]$/, '');
+    hook = aiHookTitle || '';
     hookDur = Math.min(6, Math.max(2.6, hw.at(-1).e - hw[0].s + 1.6));
   }
   plan = { segs, chunks, total: acc, hook, hookDur, list: findList(), cta: findCta() };
@@ -285,7 +285,7 @@ function findCta() {
 // ---------- Rendering ----------
 const STYLES = {
   coral: { font: s => `800 ${s}px "Plus Jakarta Sans", Inter, sans-serif`, size: 52, upper: false, hi: '#FF6046', soft: true, coral: true },
-  viro: { font: s => `800 ${s}px "Plus Jakarta Sans", Inter, sans-serif`, size: 44, upper: false, hi: '#7CF2A4', soft: true, glowKey: true, viro: true },
+  viro: { font: s => `800 ${s}px "Plus Jakarta Sans", Inter, sans-serif`, size: 76, upper: true, hi: '#7CF2A4', soft: true, glowKey: true, viro: true },
   viral: { font: s => `800 ${s}px "Plus Jakarta Sans", Inter, sans-serif`, size: 56, upper: false, hi: '#A6F94B', soft: true, glowKey: true },
   hormozi: { font: s => `900 ${s}px Montserrat, Inter, sans-serif`, size: 64, upper: true, hi: '#22E06B', box: true },
   editorial: { font: s => SERIF(s), size: 82, upper: false, hi: '#E8D3A2', soft: true },
@@ -354,7 +354,7 @@ const RECIPE_ALIAS = { energia: 'cine', noticia: 'cine', historia: 'minimal' };
 const recipeKey = () => { const v2 = RECIPE_ALIAS[val('recipe', 'auto')] || val('recipe', 'auto'); if (RECIPE_ALIAS[aiRecipe]) aiRecipe = RECIPE_ALIAS[aiRecipe]; if (RECIPES[v2]) return v2; if (RECIPES[aiRecipe]) return aiRecipe; return 'cine'; };
 const recipe = () => RECIPES[recipeKey()];
 // B-roll layout: the format decides unless the person picked one.
-const blay = () => { const v2 = val('brollLayout', 'auto'); return v2 !== 'auto' ? v2 : style().viro ? recipe().broll : 'split'; };
+const blay = () => 'full';
 const typoKey = () => { const v2 = val('typo', 'auto'); if (TYPO[v2]) return v2; if (TYPO[aiTypo]) return aiTypo; const ks = Object.keys(TYPO), h = [...words.slice(0, 12).map(w => w.t).join('')].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 3); return ks[h % ks.length]; };
 const typo = () => TYPO[typoKey()];
 if (document.fonts) Object.values(TYPO).flatMap(T => [T.title(60), T.kicker(46), T.cap(36)]).concat(['400 40px Anton']).forEach(f => document.fonts.load(f).catch(() => {}));
@@ -454,7 +454,7 @@ function viroCaption(ch, t, st) {
   if (mode !== 'pill') capShade(ch);
   // One clean line: every word the same size, the word being said lights up (no giant separate word).
   const age = t - ch.s, a = ease(age / .18), solo = false;
-  const main = solo ? ch.filter(w => w !== ch.key) : ch, low = w => w.t.toLowerCase().replace(/[.,;:!?¿¡"]+/g, '');
+  const main = solo ? ch.filter(w => w !== ch.key) : ch, low = w => w.t.toUpperCase().replace(/[.,;:!?¿¡"]+/g, '');
   const isK = w => w === ch.key && ch.emph;
   cx.save(); cx.globalAlpha = a; cx.translate(capX, capY + 10 * (1 - a));
   cx.textBaseline = 'middle'; cx.textAlign = 'left'; cx.lineJoin = 'round';
@@ -464,9 +464,9 @@ function viroCaption(ch, t, st) {
     cx.font = big ? keyF(size) : fnt(w, size);
     cx.shadowColor = 'rgba(0,0,0,.75)'; cx.shadowBlur = size * .4; cx.shadowOffsetY = 2;
     const lit = big || isK(w);
-    if (lit) { cx.font = keyF(size * 1.12); cx.fillStyle = st.hi; } else cx.fillStyle = '#fff';
+    cx.fillStyle = lit ? st.hi : '#fff';
     // Thin dark outline under every word so it reads on bright shots too (white walls, light b-roll).
-    cx.lineWidth = Math.max(3, size * (big ? .07 : .1)); cx.strokeStyle = 'rgba(0,0,0,.55)';
+    cx.lineWidth = Math.max(4, size * .16); cx.strokeStyle = '#000';
     // Pop: the word you are saying bounces in.
     const pa = t - w.s, pop = on2 && pa < .2 ? 1 + .05 * Math.sin(Math.PI * pa / .2) : 1;
     if (pop !== 1) { const ww = cx.measureText(tx).width; cx.save(); cx.translate(x + ww / 2, y); cx.scale(pop, pop); cx.strokeText(tx, -ww / 2, 0); cx.fillText(tx, -ww / 2, 0); cx.restore(); }
@@ -474,7 +474,7 @@ function viroCaption(ch, t, st) {
   };
   let size = st.size;
   const wid = sz => main.reduce((q, w) => { cx.font = fnt(w, sz); return q + cx.measureText(low(w)).width; }, 0) + sz * .27 * (main.length - 1);
-  while (wid(size) > W * .76 && size > 32) size -= 2;
+  while (wid(size) > W * .86 && size > 36) size -= 2;
   const tot = wid(size); let x = -tot / 2; const y = solo ? -size * .6 : 0;
   main.forEach(w => { cx.font = fnt(w, size); const ww = cx.measureText(low(w)).width; word(w, size, x, y, false); x += ww + size * .27; });
   if (solo && t >= ch.key.s - .05) {
@@ -495,9 +495,9 @@ function drawStackHook(text, ot, dur) {
   const out = ot > dur - .3 ? ease((ot - dur + .3) / .3) : 0; if (out >= 1) return;
   const ws = text.replace(/[¿?¡!.]/g, '').split(' ').filter(Boolean); if (!ws.length) return;
   const n1 = ws.length > 4 ? 2 : 1, l1 = ws.slice(0, n1).join(' '), rest = ws.slice(n1), mid = Math.ceil(rest.length / 2);
-  const lines = [[l1, 'script'], [rest.slice(0, mid).join(' ').toUpperCase(), 'heavy'], [rest.slice(mid).join(' ').toUpperCase(), 'big']].filter(l => l[0]);
+  const lines = [[l1.toUpperCase(), 'script'], [rest.slice(0, mid).join(' ').toUpperCase(), 'heavy'], [rest.slice(mid).join(' ').toUpperCase(), 'big']].filter(l => l[0]);
   const T = typo(), heavy = z => val('fBase', 'auto') !== 'auto' ? baseF(z) : `400 ${z}px Anton, Impact, sans-serif`;
-  const F = (kind, z) => kind === 'script' ? keyF(z * 1.1) : heavy(kind === 'big' ? z * 1.35 : z);
+  const F = (kind, z) => heavy(kind === 'big' ? z * 1.35 : z);
   // Each line is sized on its own: short lines ("16", "A LOS") get big instead of shrinking with the longest one.
   const MAX = { script: 66, heavy: 84, big: 118 }, sz = lines.map(([tx, kd]) => { let z = MAX[kd] / (kd === 'big' ? 1.35 : 1); cx.font = F(kd, z); while (cx.measureText(tx).width > W * .86 && z > 26) { z -= 2; cx.font = F(kd, z); } return z; });
   cx.save(); cx.globalAlpha = 1 - out;
@@ -512,9 +512,9 @@ function drawStackHook(text, ot, dur) {
     const pc = (id, d) => { const v2 = val(id, 'auto'); return v2 === 'auto' ? d : v2; };
     const hiC = pc('hkC3', val('cKey', 'auto') !== 'auto' ? val('cKey') : T.hi);
     if (kd === 'script') { cx.shadowColor = 'rgba(0,0,0,.7)'; cx.shadowBlur = 20; cx.fillStyle = pc('hkC1', '#fff'); }
-    else if (kd === 'big') { cx.shadowColor = hiC; cx.shadowBlur = 26; cx.fillStyle = hiC; }
+    else if (kd === 'big') { cx.shadowColor = 'rgba(0,0,0,.7)'; cx.shadowBlur = 18; cx.fillStyle = hiC; }
     else { cx.shadowColor = 'rgba(0,0,0,.7)'; cx.shadowBlur = 18; cx.fillStyle = pc('hkC2', '#fff'); }
-    cx.fillText(tx, 0, 0); if (kd === 'big') { cx.shadowBlur = 8; cx.fillText(tx, 0, 0); }
+    cx.fillText(tx, 0, 0);
     cx.restore();
     const nz = sz[i + 1] ? sz[i + 1] * (lines[i + 1][1] === 'big' ? 1.35 : 1) : 0;
     y += (z + nz) * .46 + 4;
@@ -1887,7 +1887,7 @@ function quoteScreen(sc, t) {
 const val = (id, d) => { const el = document.getElementById(id); return el ? el.value : d; };
 const hookFx = () => val('hookFx', 'zoom') === 'none' ? 'none' : 'zoom';
 // Text hook: giant word behind you, card on top, or a big question over the opening.
-const hookTextType = () => { const v2 = val('hookText', 'auto'); return v2 !== 'auto' ? v2 : $('#style').value === 'coral' ? 'card' : $('#style').value === 'viro' ? recipe().hook : 'big'; };
+const hookTextType = () => val('hookText', 'auto') === 'none' ? 'none' : 'stack';
 const hookSound = () => { const v2 = val('hookSfx', 'auto'); return v2 === 'none' ? 'none' : 'whoosh'; };
 const grade = () => val('grade', 'none') !== 'none';
 // Color grading presets (cheap full-frame blends).
