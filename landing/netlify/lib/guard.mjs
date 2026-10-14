@@ -1,6 +1,6 @@
 // Shared protection for every /api function: only this site may call it, bodies stay small,
 // and errors never reveal internals. Per-IP request limits live in each function's config.rateLimit (literal values, Netlify reads them statically).
-const SITE = /^(videora-studio\.netlify\.app|[a-z0-9-]+--videora-studio\.netlify\.app|localhost(:\d+)?|127\.0\.0\.1(:\d+)?)$/;
+const SITE = /^(videora-studio\.netlify\.app|[a-z0-9-]+--videora-studio\.netlify\.app|videora-app\.netlify\.app|[a-z0-9-]+--videora-app\.netlify\.app|localhost(:\d+)?|127\.0\.0\.1(:\d+)?)$/;
 const NO_STORE = { 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' };
 
 export const fail = (msg, status) => Response.json({ error: msg }, { status, headers: NO_STORE });

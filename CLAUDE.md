@@ -17,7 +17,7 @@ User: Spanish (Argentina), non-technical. Reply SHORT, in Spanish, only what's n
 - Sounds: `sfx(type)`; synth kit in `sfxExtra`; `WORD_SFX` maps spoken words → sounds.
 
 ## Deploy (Netlify MCP)
-- Current site: `videora-studio` (siteId `224e74d4-9f44-4906-9899-168859b20df3`, team `federiconevi`) → https://videora-studio.netlify.app
+- Current site: `videora-app` (siteId `d4647f69-4fdd-4a02-98c3-93da7ebe2ce7`, team `nevifederico`) → https://videora-app.netlify.app (old: videora-studio, other account, out of credits)
 - Copy `landing/{public,netlify,netlify.toml}` to scratchpad `site/`, call `deploy-site`, run the returned `npx -y @netlify/mcp@latest --site-id … --proxy-path …` from that folder.
 - Env vars (set by the user in Netlify UI): CF_ACCOUNT_ID, CF_API_TOKEN, OLLAMA_API_KEY, PIXABAY_API_KEY, (PEXELS_API_KEY optional).
 - Free credits are limited: batch changes, deploy rarely. Cloudflare image quota is daily (resets 21 h Argentina) — avoid burning it in tests.

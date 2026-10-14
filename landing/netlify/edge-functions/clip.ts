@@ -1,7 +1,7 @@
 // Streams a stock clip from Pixabay/Pexels with CORS headers so the editor can draw it on its canvas and export it.
 // GET /api/clip?u=<https url on an allowed host>. Only this site may use it (no open proxy), only video files pass.
 const HOSTS = ['cdn.pixabay.com', 'videos.pexels.com'];
-const SITE = /^(videora-studio\.netlify\.app|[a-z0-9-]+--videora-studio\.netlify\.app|localhost(:\d+)?|127\.0\.0\.1(:\d+)?)$/;
+const SITE = /^(videora-studio\.netlify\.app|[a-z0-9-]+--videora-studio\.netlify\.app|videora-app\.netlify\.app|[a-z0-9-]+--videora-app\.netlify\.app|localhost(:\d+)?|127\.0\.0\.1(:\d+)?)$/;
 const okHost = (h: string) => HOSTS.includes(h) || h.endsWith('.pixabay.com') || h.endsWith('.pexels.com');
 const no = (msg: string, status: number) => new Response(msg, { status, headers: { 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' } });
 
