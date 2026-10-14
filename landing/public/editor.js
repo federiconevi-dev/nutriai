@@ -1458,23 +1458,30 @@ function drawEndCard(ot, total) {
 // Free LottieFiles animations (mg/*.json, see mg/SOURCES.txt) drawn frame-exact into the canvas, so they export too.
 const MG_WORDS = [
   ['money', /^(plata|dinero|guita|dolares|millones|millon|ganancia|ganancias|facturar|facture|factura|cobrar|cobre|ingresos|sueldo)$/],
-  ['coin', /^(ahorrar|ahorro|ahorre|invertir|inversion|inverti|precio|gratis)$/],
+  ['coin', /^(ahorrar|ahorro|ahorre|invertir|inversion|inverti|precio)$/],
   ['growth', /^(crecer|creci|crecimiento|aumentar|escalar|escale|resultados|ventas|vender|vendi)$/],
   ['rocket', /^(rapido|despegar|lanzar|lance|lanzamiento|empezar|empeza|arranca|arrancar)$/],
-  ['trophy', /^(gane|exito|logre|logro|meta|metas|objetivo|campeon|ganador|mejor)$/],
+  ['trophy', /^(gane|exito|logre|logro|campeon|ganador)$/],
   ['fire', /^(viral|brutal|increible|tremendo|fuego|explota|explotar)$/],
   ['check', /^(listo|perfecto|correcto|facil|simple|funciona|paso|pasos)$/],
   ['heart', /^(amo|encanta|amor|feliz|familia)$/],
   ['like', /^(recomiendo|genial|buenisimo|excelente)$/],
   ['warning', /^(cuidado|error|errores|ojo|nunca|problema|peligro|evita|evitar)$/],
   ['idea', /^(idea|ideas|truco|secreto|tip|tips|clave|consejo)$/],
-  ['clock', /^(tiempo|minutos|horas|dias|semanas|meses|anos)$/],
-  ['party', /^(felicidades|celebrar|fiesta|regalo)$/],
+  ['clock', /^(tiempo|minutos|horas|segundos)$/],
+  ['party', /^(felicidades|celebrar|fiesta)$/],
   ['sparkle', /^(nuevo|nueva|magia|especial|unico)$/],
   ['follow', /^(seguime|seguir|suscribite|sigueme)$/],
+  ['brain', /^(cerebro|mente|pensar|pensa|inteligencia|aprender|aprende|aprendi)$/],
+  ['lock', /^(seguro|seguridad|bloqueado|privado|candado|proteger)$/],
+  ['target', /^(objetivo|objetivos|meta|metas|enfoque|foco|apuntar)$/],
+  ['gift', /^(regalo|gratis|bonus|sorteo|regalar)$/],
+  ['calendar', /^(dias|semanas|meses|anos|fecha|calendario|lunes|diario)$/],
+  ['crown', /^(rey|reina|top|lider|premium|mejores|mejor)$/],
+  ['pay', /^(pagar|pago|pagan|pague|cuesta|cobro)$/],
   ['down', /^(abajo|comenta|comentame|link|descripcion|perfil)$/],
 ];
-const MG_SFX = { money: 'cash', coin: 'cash', check: 'chime', idea: 'chime', trophy: 'chime', party: 'chime', sparkle: 'chime', rocket: 'whoosh' };
+const MG_SFX = { money: 'cash', coin: 'cash', pay: 'cash', crown: 'chime', gift: 'chime', target: 'hit', check: 'chime', idea: 'chime', trophy: 'chime', party: 'chime', sparkle: 'chime', rocket: 'whoosh' };
 const mgLib = {};
 function mgLoad(name) {
   if (name in mgLib || !window.lottie) return; mgLib[name] = null;
