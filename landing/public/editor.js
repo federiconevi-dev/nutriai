@@ -989,7 +989,8 @@ function aiImage(subject) {
     try {
       let r = await fetch(`/api/ai-image?p=${encodeURIComponent(prompt)}`).catch(() => null);
       // Server busy or out of free quota: free backup generator (one at a time, it limits per person), then a stock photo.
-      if (!r || !r.ok) { const alt = await backupImage(prompt, subject); if (alt) return alt; }
+      // No random backup pictures: a wrong photo looks worse than none (stock clips and motion scenes cover it).
+      if (!r || !r.ok) return null;
       if (!r || !r.ok) { aiCache.delete(prompt); return null; }
       const img = new Image(); img.src = URL.createObjectURL(await r.blob()); await img.decode();
       return img;
@@ -1719,7 +1720,7 @@ function moCircle(x, y, w, h, k, color) {
   cx.stroke(); cx.restore();
 }
 function moReveal(m, age, th) {
-  const L = m.lines.length ? m.lines : [m.key]; let y = MH * .5 - (L.length - 1) * 60;
+  const L = m.lines.length ? [...m.lines] : [m.key]; if (m.key && !L.some(l => norm(l) === norm(m.key))) L.push(m.key); let y = MH * .5 - (L.length - 1) * 60;
   L.forEach((ln, i) => {
     const k = moStag(age, i), hasKey = m.key && norm(ln).includes(norm(m.key));
     if (hasKey && norm(ln) === norm(m.key)) {
@@ -2533,7 +2534,7 @@ function render(now) {
       const next = P.segs.findIndex(g => g.s > t - .02);
       if (next >= 0 && (si < 0 || next > si)) { v.currentTime = P.segs[next].s; return; }
       if (busy) { finish(); return; }
-      v.currentTime = P.segs[0].s; lastSeg = lastChunk = -1; fired.clear(); return;
+      v.currentTime = P.segs[0].s; lastSeg = lastChunk = -1; fired.clear(); if (v.paused || v.ended) v.play().catch(() => {}); return;
     }
   }
   drawFrame(t, v, v.videoWidth, v.videoHeight);
@@ -2897,6 +2898,29 @@ window.VE = {
     userMotions.sort((a, b) => a.s - b.s); if (n) build(); return n;
   },
   clearMotions() { userMotions = []; build(); },
+  // Without the AI: pick 3-4 strong phrases of the video and design scenes for them with our own templates.
+  autoMotions() {
+    if (!words.length) return 0;
+    const STOP = /^(que|para|como|pero|porque|cuando|donde|esto|esta|este|todo|todos|tiene|tenes|hacer|sobre|desde|entre|muy|mas|algo|cada|solo|nada|siempre|vos|ellos|ellas|ustedes|mismo|despues|antes|ahora|entonces|tambien|estas|estos|aunque)$/;
+    const phr = []; let cur = [];
+    words.forEach((w, i) => { cur.push(w); const nx = words[i + 1]; if (/[.!?,;:]$/.test(w.t) || !nx || nx.s - w.e > .45 || cur.length >= 7) { phr.push(cur); cur = []; } });
+    const LOOK = [{ tpl: 'reveal', frame: 'card', theme: 'light' }, { tpl: 'letters', frame: 'none', theme: 'dark' }, { tpl: 'reveal', frame: 'laptop', theme: 'orange' }, { tpl: 'morph', frame: 'none', theme: 'light' }];
+    const out = []; let last = -9, n = 0;
+    phr.forEach(ph => {
+      if (out.length >= 4 || ph.length < 3 || ph[0].s < 2.5 || ph[0].s - last < 6 || ph.at(-1).e > words.at(-1).e - 2) return;
+      const clean = ph.map(w => w.t.replace(/[.,;:!?¿¡"]/g, '')).filter(Boolean);
+      const num = clean.find(t => /^\d[\d.]*$/.test(t));
+      const key = clean.filter(t => t.length >= 5 && !STOP.test(norm(t))).sort((a, b) => b.length - a.length)[0];
+      if (!key && !num) return;
+      const text = clean.join(' '); if (text.length > 44) return;
+      const at = words.indexOf(ph[0]), L = LOOK[n % LOOK.length];
+      if (num && +num.replace(/\./g, '') > 1) out.push({ at, dur: 2.6, tpl: 'counter', frame: n % 2 ? 'laptop' : 'none', theme: 'light', num: +num.replace(/\./g, ''), unit: /%|por ?ciento/.test(text) ? '%' : '', lines: [clean.slice(clean.indexOf(num) + 1, clean.indexOf(num) + 4).join(' ') || clean.slice(0, clean.indexOf(num)).slice(-4).join(' ')] });
+      else if (L.tpl === 'letters' || L.tpl === 'morph') out.push({ at, dur: 2.6, ...L, key, lines: [clean.slice(0, clean.indexOf(key)).slice(-4).join(' ')].filter(Boolean) });
+      else { const k = clean.indexOf(key); out.push({ at, dur: 2.8, ...L, lines: [clean.slice(0, k).join(' ') || clean.slice(k + 1).join(' ')].filter(Boolean).map(x => x.slice(0, 28)), key }); }
+      last = ph[0].s; n++;
+    });
+    return this.addMotions(out, true);
+  },
   // Draws a preview of a motion-graphics look ('mg') or an overlay style ('ov') into a small canvas.
   thumb(c, kind, key, i = 0) {
     const real = cx, el = document.getElementById(kind === 'ov' ? 'ovStyle' : 'mg'), prev = el.value;

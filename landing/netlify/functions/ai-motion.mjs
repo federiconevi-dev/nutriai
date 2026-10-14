@@ -35,7 +35,8 @@ ${request ? 'Design exactly what the creator asks (1-2 scenes). If they say when
 Reply with ONLY one JSON object: {"motions":[{"at":..,"dur":..,"tpl":..,"frame":..,"theme":..,"lines":[..],"key":..,"num":..,"unit":..,"labels":[..],"values":[..]}]}`;
   const user = `Transcript (index:word): ${words}${request ? `\nCreator request: ${request}` : ''}`;
   let last = '';
-  for (let attempt = 0; attempt < 2; attempt++) {
+  const t0 = Date.now();
+  for (let attempt = 0; attempt < 2 && Date.now() - t0 < 3000; attempt++) {
     const { text: out } = await chat(system, user, 1200);
     last = out.slice(0, 200);
     const m = out.match(/\{[\s\S]*\}/);

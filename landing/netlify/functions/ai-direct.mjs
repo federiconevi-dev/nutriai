@@ -52,7 +52,8 @@ Also write "hookTitle": a short, punchy on-screen hook (max 8 words) in the SAME
 Reply with ONLY one JSON object: {"style":..,"recipe":..,"typo":..,"mg":..,"ovStyle":..,"hookFx":..,"hookText":..,"hookSfx":..,"brollLayout":..,"grade":..,"fBase":..,"fKey":..,"fAccent":..,"cKey":..,"toggles":{..},"hookTitle":..,"hookAlts":[..],"post":..,"fixes":{..},"reason":..}`;
   const user = `Video facts: ${info}\nTranscript: ${text || '(no speech)'}\nCurrent settings: ${current}${request ? `\nUser request: ${request}` : ''}`;
   let last = '';
-  for (let attempt = 0; attempt < 2; attempt++) {
+  const t0 = Date.now();
+  for (let attempt = 0; attempt < 2 && Date.now() - t0 < 3000; attempt++) {
     const { text: out, model } = await chat(system, user, 1100);
     last = out.slice(0, 300);
     const m = out.match(/\{[\s\S]*\}/);

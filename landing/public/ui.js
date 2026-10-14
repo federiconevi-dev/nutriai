@@ -237,7 +237,11 @@ async function motions(request = '') {
     const n = VE.addMotions(j.motions, !request);
     $('#moRec').textContent = n ? (request ? 'Listo, ya está en tu video.' : `Listo: ${n} motion graphics en tu video.`) : 'No encontré un buen lugar libre. Probá decir en qué palabra va.';
     if (request && n) $('#moAsk').value = '';
-  } catch (e) { $('#moRec').textContent = 'La IA no pudo ahora (' + e.message + ').'; }
+  } catch (e) {
+    // The AI is down or slow: our own automatic scenes so the video never goes out bare.
+    const n = !request ? VE.autoMotions() : 0;
+    $('#moRec').textContent = n ? `Listo: ${n} motion graphics en tu video.` : 'La IA no pudo ahora (' + e.message + ').';
+  }
   $('#moClear').hidden = !VE.motionCount;
   moBusy = false; $('#moGo').disabled = $('#moAuto').disabled = false;
 }
