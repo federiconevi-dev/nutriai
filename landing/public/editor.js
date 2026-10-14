@@ -216,7 +216,7 @@ function build() {
   }
   if (!segs.length) segs = [{ s: 0, e: D }];
   let acc = 0;
-  segs.forEach((g, i) => { g.o = acc; acc += g.e - g.s; g.z = i % 2 ? 1.07 : 1; g.fx = .5; });
+  segs.forEach((g, i) => { g.o = acc; acc += g.e - g.s; g.z = i % 2 ? 1.15 : 1; g.fx = .5; });
 
   const chunks = []; let cur = [];
   words.forEach((w, i) => {
@@ -456,7 +456,7 @@ function viroCaption(ch, t, st) {
   const age = t - ch.s, a = ease(age / .18), solo = false;
   const main = solo ? ch.filter(w => w !== ch.key) : ch, low = w => w.t.toUpperCase().replace(/[.,;:!?¿¡"]+/g, '');
   const isK = w => w === ch.key && ch.emph;
-  cx.save(); cx.globalAlpha = a; cx.translate(capX, capY + 10 * (1 - a));
+  const pk = back(age / .22); cx.save(); cx.globalAlpha = a; cx.translate(capX, capY); cx.scale(.72 + .28 * pk, .72 + .28 * pk);
   cx.textBaseline = 'middle'; cx.textAlign = 'left'; cx.lineJoin = 'round';
   const fnt = (w, size) => st.font(size);
   const word = (w, size, x, y, big) => {
@@ -2034,7 +2034,7 @@ function drawFrame(t, src, sw, sh) {
   let z = g && zoomOn ? (coral ? 1 + (g.z - 1) * .55 : g.z) : 1;
   const hk = hookFx();
   // Camera: a gentle opening settle, a slow push-in inside each shot and a light reframe on cuts. No shakes, no whips.
-  if (hookOn && hk === 'zoom' && ot < .7) z *= 1 + .12 * (1 - easeQ(ot / .7));
+  if (hookOn && hk === 'zoom' && ot < .7) z *= 1 + .25 * (1 - back(ot / .6));
   else if (hookOn && st.viro && /^(blur|flash|cine)$/.test(hk) && ot < .5) z *= 1 + .4 * (1 - easeQ(ot / .5));
   else if (hookOn && hk !== 'none' && ot < 1.2) z *= 1 + .08 * (1 - ease(ot / 1.2));
   if (cutK && cdt < .28 && (cutK === 'punch' || cutK === 'zoomblur')) z *= 1 + (cutK === 'punch' ? .14 : .22) * (1 - easeQ(cdt / .28));
@@ -2053,7 +2053,7 @@ function drawFrame(t, src, sw, sh) {
   const framed = on('optFrame');
   const brollLayout = blay();
   const splitPh = P && P.beats && !framed && brollLayout === 'split' ? P.beats.photos.find(q => brollMedia(q) && t >= q.s && t <= q.e) : null;
-  capX = W / 2; capY = splitPh ? H * .5 : H * .77;
+  capX = W / 2; capY = splitPh ? H * .5 : H * .66;
   let x, y, w, h;
   cx.fillStyle = '#000'; cx.fillRect(0, 0, W, H);
   if (framed) {
@@ -2126,7 +2126,7 @@ function drawFrame(t, src, sw, sh) {
   if (busy && hookOn && ot < .15 && !fired.has('hooksfx')) {
     fired.add('hooksfx');
     const hs = hookSound();
-    if (hs === 'riser') { sfx('riser'); sfx('impact', .5); } else if (hs !== 'none') sfx(hs);
+    if (hs !== 'none') { sfx('whoosh'); sfx('impact', .12); }
   }
   if (hookOn && hk === 'blur' && ot < .6) { const k = 1 - ease(ot / .6); cx.save(); blur(18 * k); cx.drawImage(cv, 0, 0, W, H); blur(0); cx.restore(); }
   if (hookOn && hk === 'cine' && st.viro && ot < .5) { const k = 1 - easeQ(ot / .5); cx.save(); cx.globalCompositeOperation = 'saturation'; cx.fillStyle = `rgba(128,128,128,${k})`; cx.fillRect(0, 0, W, H); cx.restore(); cx.fillStyle = `rgba(0,0,0,${.5 * k})`; cx.fillRect(0, 0, W, H); }
