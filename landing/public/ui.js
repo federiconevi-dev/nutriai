@@ -227,7 +227,7 @@ let moBusy = false;
 async function motions(request = '') {
   if (moBusy || !VE.plan) return;
   moBusy = true; $('#moGo').disabled = $('#moAuto').disabled = true;
-  $('#moRec').textContent = request ? 'Diseñando tu motion graphic…' : 'La IA está diseñando los motion graphics…';
+  $('#moRec').textContent = request ? 'Creando tu animación… (hasta 30 s)' : 'La IA está diseñando las animaciones…';
   try {
     const ask = () => fetch('/api/ai-motion', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ words: VE.motionWords, request }) });
     let r = await ask().catch(() => null);
@@ -235,12 +235,12 @@ async function motions(request = '') {
     const j = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(j.error || 'La IA no respondió.');
     const n = VE.addMotions(j.motions, !request);
-    $('#moRec').textContent = n ? (request ? 'Listo, ya está en tu video.' : `Listo: ${n} motion graphics en tu video.`) : 'No encontré un buen lugar libre. Probá decir en qué palabra va.';
+    $('#moRec').textContent = n ? (request ? 'Listo, ya está en tu video.' : `Listo: ${n} animaciones en tu video.`) : 'No encontré un buen lugar libre. Probá decir en qué palabra va.';
     if (request && n) $('#moAsk').value = '';
   } catch (e) {
     // The AI is down or slow: our own automatic scenes so the video never goes out bare.
     const n = !request ? VE.autoMotions() : 0;
-    $('#moRec').textContent = n ? `Listo: ${n} motion graphics en tu video.` : 'La IA no pudo ahora (' + e.message + ').';
+    $('#moRec').textContent = n ? `Listo: ${n} animaciones en tu video.` : 'La IA no pudo ahora (' + e.message + ').';
   }
   $('#moClear').hidden = !VE.motionCount;
   moBusy = false; $('#moGo').disabled = $('#moAuto').disabled = false;
@@ -253,6 +253,7 @@ window.onTranscribed = async () => { await direct(); motions(); };
 $('#aiGo').onclick = () => { const q = $('#aiAsk').value.trim(); if (q) direct(q); };
 $('#aiAsk').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('#aiGo').click(); } });
 $('#aiAuto').onclick = () => direct();
+$('#aiChips').onclick = e => { const b = e.target.closest('button'); if (!b) return; $('#aiAsk').value = b.textContent; direct(b.textContent); };
 
 // Alternative hooks and post text from the AI.
 $('#hookAlts').onclick = e => { const b = e.target.closest('button'); if (!b) return; VE.setHook(b.textContent); $$('#hookAlts button').forEach(x => x.classList.toggle('sel', x === b)); };

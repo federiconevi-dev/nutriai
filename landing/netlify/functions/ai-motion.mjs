@@ -3,7 +3,7 @@ import { guard, fail, readJson } from '../lib/guard.mjs';
 // Motion-graphics director: designs full-screen animated scenes (own templates) for the video,
 // either the ones the creator asks for in plain words or the best moments picked automatically.
 // POST /api/ai-motion { words: "0:Hola 1:hoy ...", request? } → { motions: [...] } (cleaned again in the page)
-const TPL = ['reveal', 'counter', 'bars', 'versus', 'roll', 'stamp', 'strike', 'letters', 'morph'];
+const TPL = ['reveal', 'counter', 'bars', 'versus', 'roll', 'stamp', 'strike', 'letters', 'morph', 'quote', 'timeline', 'chat', 'progress', 'split'];
 const FRAMES = ['none', 'laptop', 'phone', 'card', 'player'];
 const THEMES = ['light', 'dark', 'color', 'orange'];
 const UNITS = ['$', 'US$', '%', 'k', 'M', 'x', '+', ''];
@@ -18,6 +18,11 @@ roll = slot-machine words: "labels" = 2-4 wrong options rolling, "key" = the rea
 stamp = one huge word slammed with shockwaves: "key" = 1-2 words, "lines" = optional small line above. For strong statements.
 letters = the letters of one word fly in from everywhere, lock into place and explode at the end: "key" = 1 word, "lines" = optional line under it. For the hook or a punchline.
 morph = a dot pops and stretches into a pill with the word inside, small dots orbiting: "key" = 1-3 words, "lines" = [line above, line below]. For concepts, names, tips.
+quote = pull quote with a giant quote mark: "lines" = 1-3 short lines, "key" = the line to highlight (must equal one of the lines). For mantras, quotes, bold claims.
+timeline = dashed path with numbered steps: "lines"[0] = title, "labels" = 2-4 steps in order. For steps, phases, "primero/después/al final", years.
+chat = phone notifications/messages dropping in: "labels" = 2-4 short messages (as the viewer would read them), "key" = title above. For DMs, comments, "me escriben", distractions.
+progress = loading bar fills then a check with confetti: "lines"[0] = what is loading, "key" = the result. For "en minutos", automatic, time saved, results.
+split = before/after card with a sweeping handle: "labels" = [before, after], "lines"[0] = title. For transformations, problem vs solution.
 strike = list where items get crossed out: "lines"[0] = intro (e.g. "No es"), "labels" = 2-4 items crossed, "key" = the real answer.
 frame (how the scene is shown): none = full screen | laptop = the scene plays on a laptop screen in a dark room with reflection (premium, tech, business) | phone = the speaker inside a floating phone with a title above | card = the speaker inside a floating rounded card, title above and "key" over the card | player = the speaker inside a video-player card. phone/card/player show the speaker, so use "lines"[0] + "key" as the title.
 theme: light (clean grey-white, default) | dark (black + lime) | color (electric blue + yellow) | orange (orange screen, great on laptop).
@@ -31,7 +36,7 @@ export default async (req) => {
   const words = String(body.words || '').slice(0, 6000), request = String(body.request || '').slice(0, 400);
   if (!words) return fail('Primero subí un video.', 400);
   const system = `${GUIDE}
-${request ? 'Design exactly what the creator asks (1-2 scenes). If they say when ("cuando digo X"), use that word index; otherwise pick the best moment for it.' : 'Pick the 3-5 strongest moments of the video (numbers, comparisons, lists, bold claims, key lessons), spread out, never in the first 2 seconds, at least 5 seconds apart, and design one scene for each.'}
+${request ? 'Design exactly what the creator asks (1-2 scenes). If they say when ("cuando digo X"), use that word index; otherwise pick the best moment for it.' : 'Pick the 4-5 strongest moments (about one every 12-15 seconds) of the video (numbers, comparisons, lists, bold claims, key lessons), spread out, never in the first 2 seconds, at least 5 seconds apart, and design one scene for each.'}
 Reply with ONLY one JSON object: {"motions":[{"at":..,"dur":..,"tpl":..,"frame":..,"theme":..,"lines":[..],"key":..,"num":..,"unit":..,"labels":[..],"values":[..]}]}`;
   const user = `Transcript (index:word): ${words}${request ? `\nCreator request: ${request}` : ''}`;
   let last = '';
