@@ -259,7 +259,7 @@ function findList() {
     if (n === want && (want === 1 || w.s - words[last].s < 25)) { marks.push(i); last = i; want++; }
     else if (n === 1 && want > 1 && marks.length < 2) { marks.length = 0; marks.push(i); last = i; want = 2; }
   });
-  if (marks.length < 2 || (marks.length === 2 && marks.some(i => WEAK.has(norm(words[i].t))))) return null;
+  if (marks.length < 3) return null;
   const items = marks.map((m, k) => {
     const end = k + 1 < marks.length ? marks[k + 1] : words.length;
     const ws = [];
@@ -347,13 +347,11 @@ let aiTypo = '';
 const RECIPES = {
   cine: { cuts: ['leak', 'punch', 'whip'], name: 'Cine', desc: 'Imágenes a pantalla completa, títulos arriba, subtítulos con brillo', cap: 'glow', capY: .76, broll: 'full', titles: ['tl', 'tl', 'center'], trans: 'leak', kinBg: ['white', 'black'], kinGap: 6, kinMax: 3, brollSec: 5, hook: 'stack' },
   podcast: { cuts: ['punch', 'zoomblur'], name: 'Podcast', desc: 'Pantalla dividida, subtítulos en franja blanca, ritmo tranquilo', cap: 'pill', capY: .72, broll: 'split', titles: ['center'], trans: 'slide', kinBg: ['blur', 'black'], kinGap: 9, kinMax: 2, brollSec: 6, hook: 'question' },
-  energia: { cuts: ['flash', 'whip', 'rgb', 'punch'], name: 'Energía', desc: 'Cortes rápidos, palabra en recuadro de color, destellos', cap: 'box', capY: .7, broll: 'full', titles: ['center', 'bottom'], trans: 'flash', kinBg: ['accent', 'black', 'white'], kinGap: 4.5, kinMax: 4, brollSec: 4, hook: 'stack' },
-  historia: { cuts: ['zoomblur', 'leak'], name: 'Historia', desc: 'Cursivas elegantes, imágenes en tarjeta, transiciones suaves', cap: 'serif', capY: .74, broll: 'card', titles: ['bottom', 'tl'], trans: 'zoom', kinBg: ['blur', 'white'], kinGap: 8, kinMax: 2, brollSec: 6, hook: 'viro' },
-  noticia: { cuts: ['whip', 'rgb', 'flash'], name: 'Noticia', desc: 'Palabra por palabra en grande, apertura en negro, impacto', cap: 'word', capY: .66, broll: 'full', titles: ['tl', 'bottom'], trans: 'slide', kinBg: ['black', 'accent'], kinGap: 5, kinMax: 3, brollSec: 4.5, hook: 'blackout' },
   minimal: { cuts: ['punch', 'zoomblur'], name: 'Minimal', desc: 'Limpio y sobrio, subtítulos chicos abajo, pocas pantallas', cap: 'glow', capY: .8, broll: 'card', titles: ['bottom'], trans: 'blur', kinBg: ['white'], kinGap: 10, kinMax: 1, brollSec: 7, hook: 'viro' }
 };
 let aiRecipe = '';
-const recipeKey = () => { const v2 = val('recipe', 'auto'); if (RECIPES[v2]) return v2; if (RECIPES[aiRecipe]) return aiRecipe; const ks = Object.keys(RECIPES), h = [...words.slice(0, 8).map(w => w.t).join('')].reduce((a, c) => (a * 17 + c.charCodeAt(0)) >>> 0, 11); return ks[h % ks.length]; };
+const RECIPE_ALIAS = { energia: 'cine', noticia: 'cine', historia: 'minimal' };
+const recipeKey = () => { const v2 = RECIPE_ALIAS[val('recipe', 'auto')] || val('recipe', 'auto'); if (RECIPE_ALIAS[aiRecipe]) aiRecipe = RECIPE_ALIAS[aiRecipe]; if (RECIPES[v2]) return v2; if (RECIPES[aiRecipe]) return aiRecipe; return 'cine'; };
 const recipe = () => RECIPES[recipeKey()];
 // B-roll layout: the format decides unless the person picked one.
 const blay = () => { const v2 = val('brollLayout', 'auto'); return v2 !== 'auto' ? v2 : style().viro ? recipe().broll : 'split'; };
@@ -1177,12 +1175,12 @@ function makeBeats(P) {
       const nx = words[i + 1], unit = nx && !isNum(nx.t) && clean(nx.t).length > 2 ? nx.t.replace(/[.,;:!?]+$/, '') : '';
       const money = /\$|peso|dolar|usd|plata/.test(norm(w.t + ' ' + unit)) || w.t.includes('$'), pct = /%|por/.test(w.t + unit) && /cient/.test(norm(unit));
       // Only numbers that impress (money, %, big amounts, followers/sales…); an age or "3 cosas" is not a stat.
-      if (!money && !pct && n < 100 && !/^(mil|millon|seguidor|client|venta|vista|view|persona|usuario|kilo|dolar|peso)/.test(norm(unit))) return;
+      if (!money && !pct && n < 1000 && !/^(mil|millon)/.test(norm(unit))) return;
       B.nums.push({ s: s0, e: e0, n, money: /\$|peso|dolar|usd|plata/.test(norm(w.t + ' ' + unit)) || w.t.includes('$'), pct: /%|por/.test(w.t + unit) && /cient/.test(norm(unit)), unit });
       busyRanges.push([s0, e0]); lastN = e0;
     });
   }
-  if (style().viro && on('optNotif')) {
+  if (false) {
     let lastM = -9;
     P.chunks.forEach((c, ci) => {
       if (B.notifs.length >= 2 || c.s - lastM < 8 || c.s > words.at(-1).e - 3 || !c.some(w => /mensaje|whatsapp|notificacion|chat|mail|correo|escrib|dm$|comentari/.test(norm(w.t)))) return;
@@ -1192,7 +1190,7 @@ function makeBeats(P) {
     });
   }
   ovR.forEach(r => { if (!B.photos.some(ph => ph.s < r[1] && ph.e > r[0])) busyRanges.push(r); });
-  if (on('optEmoji')) P.chunks.forEach((c, i) => {
+  if (false) P.chunks.forEach((c, i) => {
     for (const w of c) { const n = norm(w.t); const hit = EMO.find(([re]) => re.test(n)); if (hit) { B.emoji.set(i, hit[1]); break; } }
   });
   return B;
@@ -1325,7 +1323,7 @@ function drawPhoto(ph, t) {
     blur(0);
     cx.restore();
     if (tr === 'flash' && age < .18) { cx.fillStyle = `rgba(255,255,255,${.85 * (1 - age / .18)})`; cx.fillRect(0, 0, W, H); }
-    if (tr === 'leak') { warmLeak(age); warmLeak(ph.e - t); }
+    
     if (style().viro) viroPhotoText(ph, t, k, ph.fit ? 'tl' : undefined);
   } else if (style().viro) {
     // Card format: you stay on screen, dimmed; the picture sits in a framed card and the title goes above it.
@@ -1465,9 +1463,9 @@ function warmLeak(d) {
 }
 function drawKin(kn, t) {
   const age = t - kn.s, left = kn.e - t, k = Math.min(ease(age / .12), ease(left / .12));
-  const KB = recipe().kinBg; let bg = KB[kn.n % KB.length];
+  let bg = 'black';
   // Halfway through, white and black swap (like the best impact screens).
-  const flip = (bg === 'white' || bg === 'black') && t > (kn.s + kn.e) / 2;
+  const flip = false;
   if (flip) bg = bg === 'white' ? 'black' : 'white';
   const white = bg === 'white', T = typo();
   cx.save(); cx.globalAlpha = k;
@@ -1560,7 +1558,7 @@ function fxLayer(t, ot, P, x, y, w, h, coral) {
   if (busy && nt && !fired.has('nt' + nt.s)) { fired.add('nt' + nt.s); sfx('notif'); }
   if (busy) { const nk = (B.kin || []).find(q => t >= q.s - .6 && t < q.s); if (nk && !fired.has('kr' + nk.s)) { fired.add('kr' + nk.s); sfx('whoosh'); } }
   const big = B.big.find(b => t >= b.s && t <= b.e);
-  const photo = B.photos.find(p => t >= p.s && t <= p.e && (p.img || p.vid || (p.failed && p.label && style().viro)));
+  const photo = B.photos.find(p => t >= p.s && t <= p.e && (p.img || p.vid));
   // Preview: the active clip plays, every other one rests.
   if (!fastBusy) B.photos.forEach(p => { if (!p.vid) return; if (p === photo && brollMedia(p) === p.vid) { if (p.vid.paused) { p.vid.currentTime = Math.max(0, t - p.s); p.vid.play().catch(() => {}); } } else if (!p.vid.paused) p.vid.pause(); });
   let doubleExp = false;
@@ -2031,7 +2029,7 @@ function drawFrame(t, src, sw, sh) {
 
   const zoomOn = on('optZoom');
   // Transition on every cut (silence removed / new shot): punch-in, whip pan, flash, RGB glitch, light leak or zoom blur.
-  const cutK = st.viro && P && si > 0 && g && on('optFx2') && (si % 2 === 1 || recipeKey() === 'energia') ? recipe().cuts[si % recipe().cuts.length] : null, cdt = g ? t - g.s : 9;
+  const cutK = st.viro && P && si > 0 && g && on('optFx2') && si % 2 === 1 ? (si % 4 === 1 ? 'punch' : 'zoomblur') : null, cdt = g ? t - g.s : 9;
   if (busy && cutK && cdt < .05 && !fired.has('cut' + si)) { fired.add('cut' + si); sfx(cutK === 'flash' || cutK === 'rgb' ? 'zap' : cutK === 'punch' ? 'hit' : 'whoosh'); }
   let z = g && zoomOn ? (coral ? 1 + (g.z - 1) * .55 : g.z) : 1;
   const hk = hookFx();
@@ -2138,7 +2136,7 @@ function drawFrame(t, src, sw, sh) {
   if (hookOn && hk === 'glitch' && ot < .45) glitch(ot / .45);
   if (hookOn && hk === 'blackout' && P && P.hook && ot < 1.1) drawBlackout(P.hook, ot);
   if (P && on('optLoop')) loopBlend(ot, P.total);
-  if (P && st.viro && on('optEnd') && !inCta && ot > P.total - 2.2) { drawEndCard(ot, P.total); if (busy && ot > P.total - 1.3 && !fired.has('endtap')) { fired.add('endtap'); sfx('pop'); } }
+  if (P && st.viro && on('optEnd') && val('handle', '').trim() && !inCta && ot > P.total - 2.2) { drawEndCard(ot, P.total); if (busy && ot > P.total - 1.3 && !fired.has('endtap')) { fired.add('endtap'); sfx('pop'); } }
   const hd = ''; if (hd && P && !(st.viro && on('optEnd') && ot > P.total - 2.2) && !(inCta && ot >= ctaS)) { cx.save(); cx.globalAlpha = .75; cx.font = '700 24px Inter, sans-serif'; cx.textAlign = 'left'; cx.textBaseline = 'middle'; cx.shadowColor = 'rgba(0,0,0,.6)'; cx.shadowBlur = 8; cx.fillStyle = '#fff'; cx.fillText((hd[0] === '@' ? '' : '@') + hd, W * .06, H * .09); cx.restore(); }
   if (!busy && on('optSafe')) drawSafeZones();
   if (busy && P) prog(ot / P.total);
