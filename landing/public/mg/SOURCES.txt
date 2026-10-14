@@ -1,0 +1,16 @@
+c/money_1.json https://assets-v2.lottiefiles.com/a/a1bd4352-116e-11ee-9ee0-3fadabf9b871/IQL4O26dlg.json
+c/dollar_0.json https://assets-v2.lottiefiles.com/a/2ff57a6d-c595-429c-9157-7828312e3509/XRzj2PdCiR.json
+c/arrow_3.json https://assets-v2.lottiefiles.com/a/fffb9740-4401-4a75-bb55-990fff1bb5d5/80jFpEVk0z.json
+c/fire_0.json https://assets-v2.lottiefiles.com/a/0f6aec76-c1d9-4b8f-93f6-02ea9fe3ccaa/ujDje78jgF.json
+c/check_1.json https://assets-v2.lottiefiles.com/a/90000500-c361-4df1-84d4-e92824135c5a/g812O5Gq47.json
+c/rocket_0.json https://assets-v2.lottiefiles.com/a/fbce3ca6-d9ae-43f3-972e-c1479444b63f/lrQq5Lq8rT.json
+c/trophy_2.json https://assets-v2.lottiefiles.com/a/5e3c8058-a81f-411a-b608-de6010a67399/AvTG7hntLJ.json
+c/like_0.json https://assets-v2.lottiefiles.com/a/e8488ef2-1151-11ee-aabb-a3a65f8e6dda/XTG8pgmv6L.json
+c/like_4.json https://assets-v2.lottiefiles.com/a/9a8db8c4-4a9b-11f0-b0e2-67324d829841/UKKEutLebD.json
+c/follow_2.json https://assets-v2.lottiefiles.com/a/7f129b84-1152-11ee-87de-437de6b1e981/cgMk9mJjR1.json
+c/warning_3.json https://assets-v2.lottiefiles.com/a/219b8092-117f-11ee-9917-4b7f9a29e998/2yL2vx8kcq.json
+c/light_3.json https://assets-v2.lottiefiles.com/a/8874ac1e-5093-4594-be33-3ccc98c84cc7/Yi9ictIT52.json
+c/growth_2.json https://assets-v2.lottiefiles.com/a/a29f68b0-63bf-11ee-8655-b302196e7a77/ipqRNZLIJ6.json
+c/clock_1.json https://assets-v2.lottiefiles.com/a/a11dad2f-e31e-490a-ae93-fed9e375d2dc/5oMsXhwRsu.json
+c/confetti_0.json https://assets-v2.lottiefiles.com/a/0ac4b27c-7b0e-4b9e-b45e-2e8e10e501fa/yz646ZdR1h.json
+c/sparkle_2.json https://assets-v2.lottiefiles.com/a/aebf40c6-117a-11ee-8c65-b71d06d231ff/HFGeONRNjY.json

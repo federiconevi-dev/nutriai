@@ -1190,6 +1190,20 @@ function makeBeats(P) {
       busyRanges.push([s0, e0]); lastN = e0;
     });
   }
+  // Pro animated stickers when a key idea is said (max ~6/min, one at a time, never over other graphics).
+  B.stickers = [];
+  if (style().viro && recipeKey() !== 'minimal') {
+    let lastSk = -9; const used = {};
+    words.forEach(w => {
+      const n = norm(w.t); if (w.s < 1.5 || w.s - lastSk < 5) return;
+      const hit = MG_WORDS.find(([, re]) => re.test(n)); if (!hit) return;
+      const [name] = hit; if ((used[name] || 0) >= 2) return;
+      if (name === 'follow' && w.s < P.total - 10) return;
+      const s0 = w.s - .05, e0 = w.s + (name === 'money' ? 2.2 : 1.7);
+      if (!free(s0, e0)) return;
+      B.stickers.push({ s: s0, e: e0, name, n: B.stickers.length }); used[name] = (used[name] || 0) + 1; lastSk = w.s; busyRanges.push([s0, e0]);
+    });
+  }
   if (false) {
     let lastM = -9;
     P.chunks.forEach((c, ci) => {
@@ -1401,19 +1415,24 @@ function cutFx(kind, k, si) {
   else if (kind === 'zoomblur') { cx.save(); blur(14 * e); cx.drawImage(cv, 0, 0, W, H); blur(0); cx.restore(); }
 }
 // Viro checklist: when you list things ("primero, segundo…"), a card with checks fills in as you say them.
+// Numbered list as separate pills (number in a white circle + italic serif text), each slides in when it is said.
 function drawChecklist(L, t) {
   const k = Math.min(easeQ((t - L.s) / .35), ease((L.e - t) / .3)); if (k <= 0) return;
-  const T = typo(), items = L.items, rowH = 76, cw = W * .86, chh = 40 + items.length * rowH, x0 = (W - cw) / 2, y0 = H * .1 - 30 * (1 - k);
-  cx.save(); cx.globalAlpha = k;
-  cx.shadowColor = 'rgba(0,0,0,.4)'; cx.shadowBlur = 30; rrect(x0, y0, cw, chh, 28); cx.fillStyle = 'rgba(12,12,16,.82)'; cx.fill(); cx.shadowColor = 'transparent';
+  const items = L.items, rowH = 98, pw = W * .78, x0 = (W - pw) / 2, y0 = H * .12;
+  cx.save(); cx.textBaseline = 'middle'; cx.textAlign = 'left';
   items.forEach((it, i) => {
-    const a = easeQ((t - it.at) / .3), y = y0 + 20 + i * rowH + rowH / 2, cxp = x0 + 52;
-    cx.globalAlpha = k * (a > 0 ? 1 : .35);
-    cx.beginPath(); cx.arc(cxp, y, 22, 0, Math.PI * 2); cx.lineWidth = 3; cx.strokeStyle = a > 0 ? T.hi : 'rgba(255,255,255,.4)'; cx.stroke();
-    if (a > 0) { cx.beginPath(); cx.arc(cxp, y, 22 * a, 0, Math.PI * 2); cx.fillStyle = T.hi; cx.fill(); cx.strokeStyle = '#111'; cx.lineWidth = 4; cx.beginPath(); cx.moveTo(cxp - 10, y); cx.lineTo(cxp - 3, y + 8); cx.lineTo(cxp + 11, y - 9); cx.stroke(); }
-    cx.fillStyle = '#fff'; cx.textBaseline = 'middle'; cx.textAlign = 'left';
-    let fs = 34, tx = it.title.join(' '); cx.font = T.title(fs); while (cx.measureText(tx).width > cw - 120 && fs > 20) { fs -= 2; cx.font = T.title(fs); }
-    cx.fillText(tx, cxp + 42 + 10 * (1 - Math.max(0, a)), y);
+    const a = back((t - it.at) / .35); if (a <= 0) return;
+    const y = y0 + i * rowH;
+    cx.save(); cx.globalAlpha = k * Math.min(1, a); cx.translate(x0 + 40 * (1 - Math.min(1, a)), y);
+    cx.shadowColor = 'rgba(0,0,0,.45)'; cx.shadowBlur = 24; cx.shadowOffsetY = 8;
+    rrect(0, 0, pw, 78, 39); cx.fillStyle = 'rgba(28,28,30,.92)'; cx.fill(); cx.shadowColor = 'transparent';
+    cx.lineWidth = 1.5; cx.strokeStyle = 'rgba(255,255,255,.14)'; cx.stroke();
+    cx.beginPath(); cx.arc(42, 39, 25, 0, Math.PI * 2); cx.fillStyle = '#fff'; cx.fill();
+    cx.fillStyle = '#111'; cx.font = '800 26px Inter, sans-serif'; cx.textAlign = 'center'; cx.fillText(String(i + 1), 42, 40);
+    let fs = 42; const tx = it.title.join(' '); cx.textAlign = 'left';
+    cx.font = `italic 400 ${fs}px "Instrument Serif", serif`; while (cx.measureText(tx).width > pw - 110 && fs > 22) { fs -= 2; cx.font = `italic 400 ${fs}px "Instrument Serif", serif`; }
+    cx.fillStyle = '#fff'; cx.fillText(tx, 84, 41);
+    cx.restore();
   });
   cx.restore();
 }
@@ -1436,6 +1455,50 @@ function drawEndCard(ot, total) {
 }
 // Big number that counts up (e.g. "30 días", "$1000").
 // Bills that burst out from behind a money figure, spin and fall with gravity.
+// Free LottieFiles animations (mg/*.json, see mg/SOURCES.txt) drawn frame-exact into the canvas, so they export too.
+const MG_WORDS = [
+  ['money', /^(plata|dinero|guita|dolares|millones|millon|ganancia|ganancias|facturar|facture|factura|cobrar|cobre|ingresos|sueldo)$/],
+  ['coin', /^(ahorrar|ahorro|ahorre|invertir|inversion|inverti|precio|gratis)$/],
+  ['growth', /^(crecer|creci|crecimiento|aumentar|escalar|escale|resultados|ventas|vender|vendi)$/],
+  ['rocket', /^(rapido|despegar|lanzar|lance|lanzamiento|empezar|empeza|arranca|arrancar)$/],
+  ['trophy', /^(gane|exito|logre|logro|meta|metas|objetivo|campeon|ganador|mejor)$/],
+  ['fire', /^(viral|brutal|increible|tremendo|fuego|explota|explotar)$/],
+  ['check', /^(listo|perfecto|correcto|facil|simple|funciona|paso|pasos)$/],
+  ['heart', /^(amo|encanta|amor|feliz|familia)$/],
+  ['like', /^(recomiendo|genial|buenisimo|excelente)$/],
+  ['warning', /^(cuidado|error|errores|ojo|nunca|problema|peligro|evita|evitar)$/],
+  ['idea', /^(idea|ideas|truco|secreto|tip|tips|clave|consejo)$/],
+  ['clock', /^(tiempo|minutos|horas|dias|semanas|meses|anos)$/],
+  ['party', /^(felicidades|celebrar|fiesta|regalo)$/],
+  ['sparkle', /^(nuevo|nueva|magia|especial|unico)$/],
+  ['follow', /^(seguime|seguir|suscribite|sigueme)$/],
+  ['down', /^(abajo|comenta|comentame|link|descripcion|perfil)$/],
+];
+const MG_SFX = { money: 'cash', coin: 'cash', check: 'chime', idea: 'chime', trophy: 'chime', party: 'chime', sparkle: 'chime', rocket: 'whoosh' };
+const mgLib = {};
+function mgLoad(name) {
+  if (name in mgLib || !window.lottie) return; mgLib[name] = null;
+  fetch('mg/' + name + '.json').then(r => r.json()).then(d => {
+    const box = document.createElement('div'); box.style.cssText = 'position:fixed;left:-9999px;top:0;width:400px;height:400px;pointer-events:none';
+    document.body.appendChild(box);
+    const a = lottie.loadAnimation({ container: box, renderer: 'canvas', loop: false, autoplay: false, animationData: d, rendererSettings: { clearCanvas: true } });
+    a.addEventListener('DOMLoaded', () => { mgLib[name] = { a, cv: box.querySelector('canvas') }; });
+  }).catch(() => {});
+}
+setTimeout(() => MG_WORDS.forEach(([n]) => mgLoad(n)), 1500);
+function drawSticker(sk, t) {
+  const m = mgLib[sk.name]; if (!m) { mgLoad(sk.name); return; }
+  const age = t - sk.s, left = sk.e - t, a = m.a;
+  a.goToAndStop(Math.min(a.totalFrames - 1, age * (a.frameRate || 30)), true);
+  const big = sk.name === 'money', k = back(age / .3), fade = Math.min(1, left / .2);
+  const size = big ? W * 1.05 : 250, right = sk.n % 2 === 0;
+  const x = big ? W / 2 : right ? W * .76 : W * .24, y = big ? H * .3 : H * .3;
+  if (busy && !fired.has('sk' + sk.s)) { fired.add('sk' + sk.s); sfx(MG_SFX[sk.name] || 'pop'); }
+  cx.save(); cx.globalAlpha = fade; cx.translate(x, y); const sc = big ? 1 : .4 + .6 * k; cx.scale(sc, sc);
+  if (!big) { cx.shadowColor = 'rgba(0,0,0,.35)'; cx.shadowBlur = 24; cx.shadowOffsetY = 8; }
+  cx.drawImage(m.cv, -size / 2, -size / 2, size, size);
+  cx.restore();
+}
 function moneyBurst(age, fs) {
   if (age > 1.6) return;
   for (let i = 0; i < 16; i++) {
@@ -1503,43 +1566,44 @@ function drawArrow(ph, t) {
   }
   cx.restore();
 }
+// Impact screen in the premium motion-graphics style: clean light or black page, bold sans words mixed with a big
+// italic serif key word, huge numbers, and a floating monochrome object that drifts slowly.
 function drawKin(kn, t) {
   const age = t - kn.s, left = kn.e - t, k = Math.min(ease(age / .12), ease(left / .12));
-  let bg = 'black';
-  // Halfway through, white and black swap (like the best impact screens).
-  const flip = false;
-  if (flip) bg = bg === 'white' ? 'black' : 'white';
-  const white = bg === 'white', T = typo();
+  const light = (kn.n || 0) % 2 === 0, ink = light ? '#111' : '#f4f4f2';
   cx.save(); cx.globalAlpha = k;
-  if (bg === 'blur') { blur(28); cx.drawImage(cv, -W * .06, -H * .06, W * 1.12, H * 1.12); blur(0); cx.fillStyle = 'rgba(0,0,0,.55)'; cx.fillRect(0, 0, W, H); }
-  else {
-    const g = cx.createRadialGradient(W / 2, H * .45, 50, W / 2, H * .5, H * .75);
-    if (white) { g.addColorStop(0, '#ffffff'); g.addColorStop(1, '#dcdcd8'); } else if (bg === 'accent') { g.addColorStop(0, mixDark(T.key[0], .55)); g.addColorStop(1, '#070709'); } else { g.addColorStop(0, '#1a1a1a'); g.addColorStop(1, '#000'); }
-    cx.fillStyle = g; cx.fillRect(0, 0, W, H);
+  const g = cx.createRadialGradient(W / 2, H * .45, 60, W / 2, H * .5, H * .8);
+  if (light) { g.addColorStop(0, '#fbfbfa'); g.addColorStop(1, '#d9d9d6'); } else { g.addColorStop(0, '#1c1c1c'); g.addColorStop(1, '#030303'); }
+  cx.fillStyle = g; cx.fillRect(0, 0, W, H);
+  // Floating object (monochrome animation) that matches what is said.
+  const hit = kn.words.map(w => MG_WORDS.find(([, re]) => re.test(norm(w.t)))).find(Boolean);
+  const m = hit && mgLib[hit[0]];
+  if (m) {
+    const side = (kn.n || 0) % 2, ox = side ? W * .24 : W * .74, oy = side ? H * .76 : H * .2, dr = Math.sin(age * 1.6) * 10;
+    m.a.goToAndStop(Math.min(m.a.totalFrames - 1, age * (m.a.frameRate || 30)), true);
+    cx.save(); if (HAS_FILTER) cx.filter = 'grayscale(1) contrast(1.15)';
+    cx.shadowColor = light ? 'rgba(0,0,0,.25)' : 'rgba(0,0,0,.6)'; cx.shadowBlur = 40; cx.shadowOffsetY = 20;
+    const z = 380 * (.85 + .15 * back(age / .4)); cx.translate(ox, oy + dr); cx.rotate(side ? -.12 : .12); cx.drawImage(m.cv, -z / 2, -z / 2, z, z);
+    cx.restore();
   }
-  const ink = white ? '#111' : '#fff', dim = white ? 'rgba(0,0,0,.18)' : 'rgba(255,255,255,.22)';
-  const F = (w, z) => w === kn.key ? keyF(z * 1.15) : (val('fBase', 'auto') !== 'auto' ? baseF(z) : T.title(z));
-  const tx = kn.words.map(w => w.t.replace(/[.,;:!?¿¡"]+/g, '').toLowerCase());
-  if ('letterSpacing' in cx) cx.letterSpacing = '-0.03em';
-  // Wrap into balanced lines that fit, as big as possible.
-  let fs = 92, lines;
-  const layout = z => { const L = [[]]; let lw = 0; kn.words.forEach((w, i) => { cx.font = F(w, z); const ww = cx.measureText(tx[i]).width; if (lw + ww > W * .84 && L.at(-1).length) { L.push([]); lw = 0; } L.at(-1).push([i, ww]); lw += ww + z * .24; }); return L; };
-  for (; fs > 40; fs -= 4) { lines = layout(fs); if (lines.length <= 3 && lines.every(l => l.every(([, ww]) => ww < W * .84))) break; }
-  const lh = fs * 1.12, y0 = H * .48 - (lines.length - 1) * lh / 2;
-  cx.textBaseline = 'middle';
-  lines.forEach((l, li) => {
-    const tot = l.reduce((q, [, ww]) => q + ww, 0) + fs * .24 * (l.length - 1); let x = W / 2 - tot / 2;
+  const isK = w => w === kn.key, isN = w => /\d/.test(w.t);
+  const F = (w, z) => isN(w) ? `900 ${z * 2.1}px Inter, sans-serif` : isK(w) ? `italic 400 ${z * 1.55}px "Instrument Serif", serif` : `800 ${z}px Inter, sans-serif`;
+  const tx = kn.words.map(w => w.t.replace(/[.,;:!?¿¡"]+/g, ''));
+  let fs = 76, lines;
+  const gap = z => z * .26;
+  const layout = z => { const L = [[]]; let lw = 0; kn.words.forEach((w, i) => { cx.font = F(w, z); const ww = cx.measureText(tx[i]).width; if ((lw + ww > W * .8 || isN(w) || (L.at(-1).length && isN(kn.words[i - 1]))) && L.at(-1).length) { L.push([]); lw = 0; } L.at(-1).push([i, ww]); lw += ww + gap(z); }); return L; };
+  for (; fs > 30; fs -= 3) { lines = layout(fs); if (lines.length <= 4 && lines.every(l => l.reduce((q, [, ww]) => q + ww, 0) < W * .82)) break; }
+  const lhOf = l => Math.max(...l.map(([i]) => isN(kn.words[i]) ? fs * 2 : isK(kn.words[i]) ? fs * 1.45 : fs * 1.15));
+  const tot = lines.reduce((q, l) => q + lhOf(l), 0); let y = H * .48 - tot / 2;
+  cx.textBaseline = 'middle'; if ('letterSpacing' in cx) cx.letterSpacing = '-0.02em';
+  lines.forEach(l => {
+    const lh = lhOf(l), lw = l.reduce((q, [, ww]) => q + ww, 0) + gap(fs) * (l.length - 1); let x = W / 2 - lw / 2;
     l.forEach(([i, ww]) => {
-      const w = kn.words[i], a = ease((t - w.s + .06) / .16), on2 = t >= w.s - .06;
-      // Words appear as they are said (no faded placeholders: they read as broken text).
-      if (!on2) { x += ww + fs * .24; return; }
-      cx.font = F(w, fs);
-      cx.save(); cx.translate(x + ww / 2, y0 + li * lh); const sc = on2 ? .94 + .06 * a : 1; cx.scale(sc, sc);
-      if (on2 && w === kn.key) { cx.shadowColor = T.hi; cx.shadowBlur = 30; cx.fillStyle = bg === 'accent' ? '#fff' : ink; cx.fillText(tx[i], -ww / 2, 0); cx.shadowBlur = 12; }
-      cx.fillStyle = on2 ? (w === kn.key && bg !== 'accent' && !white ? T.hi : ink) : dim;
-      cx.fillText(tx[i], -ww / 2, 0); cx.restore();
-      x += ww + fs * .24;
+      const w = kn.words[i], a = easeQ((t - w.s + .08) / .25);
+      if (a > 0) { cx.save(); cx.globalAlpha = k * a; cx.font = F(w, fs); cx.fillStyle = ink; cx.fillText(tx[i], x, y + lh / 2 + 18 * (1 - a)); cx.restore(); }
+      x += ww + gap(fs);
     });
+    y += lh;
   });
   if ('letterSpacing' in cx) cx.letterSpacing = '0px';
   cx.restore();
@@ -1594,6 +1658,7 @@ function fxLayer(t, ot, P, x, y, w, h, coral) {
     drawKin(kn, t); return { hide: true };
   }
   if (style().viro && P.list && !on('optMG') && t >= P.list.s && t <= P.list.e) { drawChecklist(P.list, t); if (busy) P.list.items.forEach(it => { if (t >= it.at && !fired.has('ck' + it.n)) { fired.add('ck' + it.n); sfx('pop'); } }); }
+  const sk = (B.stickers || []).find(q => t >= q.s && t <= q.e); if (sk) drawSticker(sk, t);
   const listOn = style().viro && P.list && !on('optMG') && t >= P.list.s - .3 && t <= P.list.e + .3;
   const nm = !listOn && (B.nums || []).find(q => t >= q.s && t <= q.e); if (nm) { drawCounter(nm, t); if (busy && nm.money && !fired.has('cash' + nm.s)) { fired.add('cash' + nm.s); sfx('cash'); } }
   const nt = (B.notifs || []).find(q => t >= q.s && t <= q.e); if (nt) drawNotif(nt, t);
