@@ -1035,7 +1035,7 @@ function brollVideo(q, want) {
   vidCache.set(q, job);
   return job;
 }
-const brollMedia = ph => ph.vid && on('optVideo') && (ph.n % 2 === 1 || !ph.img) ? ph.vid : ph.img;
+const brollMedia = ph => ph.img;
 // While exporting frame by frame, put the active clip exactly on the right frame.
 async function brollSeek(t) {
   const B = plan && plan.beats; if (!B) return;
@@ -1346,6 +1346,7 @@ function drawPhoto(ph, t) {
 }
 // Viro motion graphic over a b-roll: italic kicker + bold title with the key word in a blue gradient, or one script word.
 function viroPhotoText(ph, t, k, force) {
+  if (ph.n !== undefined) return;
   const age = t - ph.s; if (!ph.label) return;
   const RT = recipe().titles, pos = force || RT[(ph.n || 0) % RT.length];
   const T = typo();
@@ -1434,6 +1435,19 @@ function drawEndCard(ot, total) {
   cx.restore();
 }
 // Big number that counts up (e.g. "30 días", "$1000").
+// Bills that burst out from behind a money figure, spin and fall with gravity.
+function moneyBurst(age, fs) {
+  if (age > 1.6) return;
+  for (let i = 0; i < 16; i++) {
+    const a = (i * 2.399) % (Math.PI * 2), sp = 420 + (i * 53) % 260, tt = Math.max(0, age - (i % 4) * .04);
+    const x = Math.cos(a) * sp * tt, y = -Math.abs(Math.sin(a)) * sp * 1.2 * tt + 520 * tt * tt, rot = a + tt * (i % 2 ? 6 : -6);
+    cx.save(); cx.globalAlpha = Math.max(0, 1 - tt / 1.6); cx.translate(x, y); cx.rotate(rot); cx.scale(1, .55 + .45 * Math.abs(Math.cos(tt * 7 + i)));
+    cx.shadowColor = 'rgba(0,0,0,.4)'; cx.shadowBlur = 8; cx.fillStyle = '#2E9E4F'; rrect(-38, -20, 76, 40, 5); cx.fill();
+    cx.shadowBlur = 0; cx.strokeStyle = '#9CF0B4'; cx.lineWidth = 2.5; rrect(-32, -14, 64, 28, 4); cx.stroke();
+    cx.fillStyle = '#CFFFDA'; cx.font = '900 22px Montserrat, sans-serif'; cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillText('$', 0, 1);
+    cx.restore();
+  }
+}
 function drawCounter(nm, t) {
   const age = t - nm.s, k = Math.min(easeQ(age / .25), ease((nm.e - t) / .25)), T = typo(), p = easeQ(age / .8);
   const dec = nm.n % 1 ? 1 : 0, cur = nm.n * p, txt = (nm.money ? '$' : '') + (dec ? cur.toFixed(1) : Math.round(cur).toLocaleString('es-AR')) + (nm.pct ? '%' : '');
@@ -1442,7 +1456,8 @@ function drawCounter(nm, t) {
   const y = H * .27, sc = .7 + .3 * back(age / .35);
   cx.translate(W / 2, y); cx.scale(sc, sc);
   const ck = val('cKey', 'auto') !== 'auto' ? val('cKey') : null, g = cx.createLinearGradient(-W / 3, 0, W / 3, 0); g.addColorStop(0, ck || T.key[0]); g.addColorStop(1, ck || T.key[1]);
-  cx.shadowColor = 'rgba(0,0,0,.6)'; cx.shadowBlur = 30; cx.fillStyle = g; cx.fillText(txt, 0, 0);
+  if (nm.money) moneyBurst(age, fs);
+  cx.shadowColor = 'rgba(0,0,0,.6)'; cx.shadowBlur = 30; cx.fillStyle = nm.money ? '#3DF56B' : g; cx.fillText(txt, 0, 0);
   if (nm.unit) { cx.shadowBlur = 16; cx.font = accF(58); cx.fillStyle = '#fff'; cx.fillText(nm.unit, 0, fs * .62); }
   cx.restore();
 }
@@ -1579,13 +1594,13 @@ function fxLayer(t, ot, P, x, y, w, h, coral) {
     drawKin(kn, t); return { hide: true };
   }
   if (style().viro && P.list && !on('optMG') && t >= P.list.s && t <= P.list.e) { drawChecklist(P.list, t); if (busy) P.list.items.forEach(it => { if (t >= it.at && !fired.has('ck' + it.n)) { fired.add('ck' + it.n); sfx('pop'); } }); }
-  const nm = (B.nums || []).find(q => t >= q.s && t <= q.e); if (nm) drawCounter(nm, t);
+  const nm = (B.nums || []).find(q => t >= q.s && t <= q.e); if (nm) { drawCounter(nm, t); if (busy && nm.money && !fired.has('cash' + nm.s)) { fired.add('cash' + nm.s); sfx('cash'); } }
   const nt = (B.notifs || []).find(q => t >= q.s && t <= q.e); if (nt) drawNotif(nt, t);
   if (busy && nm && !fired.has('nm' + nm.s)) { fired.add('nm' + nm.s); sfx(nm.money ? 'cash' : 'ding'); }
   if (busy && nt && !fired.has('nt' + nt.s)) { fired.add('nt' + nt.s); sfx('notif'); }
   if (busy) { const nk = (B.kin || []).find(q => t >= q.s - .6 && t < q.s); if (nk && !fired.has('kr' + nk.s)) { fired.add('kr' + nk.s); sfx('whoosh'); } }
   const big = B.big.find(b => t >= b.s && t <= b.e);
-  const photo = B.photos.find(p => t >= p.s && t <= p.e && (p.img || p.vid));
+  const photo = B.photos.find(p => t >= p.s && t <= p.e && p.img);
   // Preview: the active clip plays, every other one rests.
   if (!fastBusy) B.photos.forEach(p => { if (!p.vid) return; if (p === photo && brollMedia(p) === p.vid) { if (p.vid.paused) { p.vid.currentTime = Math.max(0, t - p.s); p.vid.play().catch(() => {}); } } else if (!p.vid.paused) p.vid.pause(); });
   let doubleExp = false;
@@ -2130,7 +2145,7 @@ function drawFrame(t, src, sw, sh) {
   }
   if (P && P.screens) P.screens.forEach((sc, i) => {
     if (t < sc.s - .4 || t > sc.e + .4) return;
-    if (sc.type === 'stat' ? !on('optStats') : !on('optMG')) return;
+    if (sc.type !== 'stat' || !on('optStats')) return;
     if (screenTrans(t, sc.s, sc.e, tt => { curScreen = sc; sc.type === 'stat' ? statScreen(sc, tt) : quoteScreen(sc, tt); curScreen = null; }, 11 + i, 'sc' + sc.s)) covered = true;
     if (busy && sc.type === 'stat' && t >= sc.s + .4 && !fired.has('d' + sc.s)) { fired.add('d' + sc.s); sfx('ding'); }
   });
