@@ -222,7 +222,7 @@ function build() {
   words.forEach((w, i) => {
     cur.push(w);
     const nx = words[i + 1];
-    if (cur.length >= 3 || cur.map(x => x.t).join(' ').length >= 15 || /[.,!?;:]$/.test(w.t) || !nx || nx.s - w.e > .35) { chunks.push(cur); cur = []; }
+    if (cur.length >= 2 || cur.map(x => x.t).join(' ').length >= 12 || /[.,!?;:]$/.test(w.t) || !nx || nx.s - w.e > .35) { chunks.push(cur); cur = []; }
   });
   chunks.forEach((c, i) => {
     c.s = c[0].s; c.e = c.at(-1).e;
@@ -359,7 +359,7 @@ const RECIPE_ALIAS = {};
 const recipeKey = () => { const v2 = RECIPE_ALIAS[val('recipe', 'auto')] || val('recipe', 'auto'); if (RECIPE_ALIAS[aiRecipe]) aiRecipe = RECIPE_ALIAS[aiRecipe]; if (RECIPES[v2]) return v2; if (RECIPES[aiRecipe]) return aiRecipe; return 'cine'; };
 const recipe = () => RECIPES[recipeKey()];
 // B-roll layout: the format decides unless the person picked one.
-const blay = () => 'full';
+const blay = () => ({ podcast: 1, historia: 1, karaoke: 1 })[recipeKey()] ? 'split' : 'full';
 const typoKey = () => { const v2 = val('typo', 'auto'); if (TYPO[v2]) return v2; if (TYPO[aiTypo]) return aiTypo; const ks = Object.keys(TYPO), h = [...words.slice(0, 12).map(w => w.t).join('')].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 3); return ks[h % ks.length]; };
 const typo = () => TYPO[typoKey()];
 if (document.fonts) Object.values(TYPO).flatMap(T => [T.title(60), T.kicker(46), T.cap(36)]).concat(['400 40px Anton']).forEach(f => document.fonts.load(f).catch(() => {}));
@@ -458,13 +458,13 @@ function capShade(ch) {
 // stroke = black outline, box = colored box behind the accent word, bar = dark band behind the line,
 // kar = karaoke (each word lights up as it is said), kf = different font for the accent word.
 const CAPS = {
-  hormozi: { f: z => `900 ${z}px Montserrat, sans-serif`, up: 1, sz: 72, k: '#FFE01B', stroke: 1 },
-  beast: { f: z => `400 ${z}px Anton, Impact, sans-serif`, up: 1, sz: 86, k: '#FFE01B', stroke: 1, box: 1 },
-  karaoke: { f: z => `800 ${z}px Poppins, sans-serif`, up: 1, sz: 66, k: '#7CF2A4', stroke: 1, kar: 1 },
-  clean: { f: z => `700 ${z}px Inter, sans-serif`, up: 0, sz: 54, k: '#ffffff', stroke: 0 },
-  elegant: { f: z => `700 ${z}px Inter, sans-serif`, up: 0, sz: 56, k: '#F5D9A8', stroke: 0, kf: z => `italic 400 ${z * 1.25}px "Instrument Serif", serif` },
-  news: { f: z => `400 ${z}px "Archivo Black", sans-serif`, up: 1, sz: 54, k: '#FF4D4D', stroke: 0, bar: 1 },
-  tall: { f: z => `400 ${z}px "Bebas Neue", sans-serif`, up: 1, sz: 104, k: '#7CF2A4', stroke: 1 },
+  hormozi: { f: z => `900 ${z}px Montserrat, sans-serif`, up: 1, sz: 50, k: '#FFE01B', stroke: 1 },
+  beast: { f: z => `400 ${z}px Anton, Impact, sans-serif`, up: 1, sz: 60, k: '#FFE01B', stroke: 1, box: 1 },
+  karaoke: { f: z => `800 ${z}px Poppins, sans-serif`, up: 1, sz: 48, k: '#7CF2A4', stroke: 1, kar: 1 },
+  clean: { f: z => `700 ${z}px Inter, sans-serif`, up: 0, sz: 44, k: '#ffffff', stroke: 0 },
+  elegant: { f: z => `700 ${z}px Inter, sans-serif`, up: 0, sz: 46, k: '#F5D9A8', stroke: 0, kf: z => `italic 400 ${z * 1.25}px "Instrument Serif", serif` },
+  news: { f: z => `400 ${z}px "Archivo Black", sans-serif`, up: 1, sz: 40, k: '#FF4D4D', stroke: 0, bar: 1 },
+  tall: { f: z => `400 ${z}px "Bebas Neue", sans-serif`, up: 1, sz: 74, k: '#7CF2A4', stroke: 1 },
 };
 setTimeout(() => ensureFonts(['Montserrat', 'Anton', 'Poppins', 'Inter', 'Instrument Serif', 'Archivo Black', 'Bebas Neue']), 0);
 function viroCaption(ch, t, st) {
@@ -2038,7 +2038,7 @@ function drawFrame(t, src, sw, sh) {
 
   const zoomOn = on('optZoom');
   // Transition on every cut (silence removed / new shot): punch-in, whip pan, flash, RGB glitch, light leak or zoom blur.
-  const cutK = st.viro && P && si > 0 && g && on('optFx2') && si % 2 === 1 ? (si % 4 === 1 ? 'punch' : 'zoomblur') : null, cdt = g ? t - g.s : 9;
+  const cutK = st.viro && P && si > 0 && g && on('optFx2') && si % 2 === 1 ? (si % 6 === 3 && recipeKey() !== 'minimal' ? 'leak' : si % 4 === 1 ? 'punch' : 'zoomblur') : null, cdt = g ? t - g.s : 9;
   if (busy && cutK && cdt < .05 && !fired.has('cut' + si)) { fired.add('cut' + si); sfx(cutK === 'flash' || cutK === 'rgb' ? 'zap' : cutK === 'punch' ? 'hit' : 'whoosh'); }
   let z = g && zoomOn ? (coral ? 1 + (g.z - 1) * .55 : g.z) : 1;
   const hk = hookFx();
@@ -2062,7 +2062,7 @@ function drawFrame(t, src, sw, sh) {
   const framed = on('optFrame');
   const brollLayout = blay();
   const splitPh = P && P.beats && !framed && brollLayout === 'split' ? P.beats.photos.find(q => brollMedia(q) && t >= q.s && t <= q.e) : null;
-  capX = W / 2; capY = splitPh ? H * .5 : H * .66;
+  capX = W / 2; capY = splitPh ? H * .5 : H * .63;
   let x, y, w, h;
   cx.fillStyle = '#000'; cx.fillRect(0, 0, W, H);
   if (framed) {
