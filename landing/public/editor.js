@@ -216,7 +216,7 @@ function build() {
   }
   if (!segs.length) segs = [{ s: 0, e: D }];
   let acc = 0;
-  segs.forEach((g, i) => { g.o = acc; acc += g.e - g.s; g.z = i % 2 ? 1.15 : 1; g.fx = .5; });
+  segs.forEach((g, i) => { g.o = acc; acc += g.e - g.s; g.z = i % 2 ? (recipe().zj || 1.12) : 1; g.fx = .5; });
 
   const chunks = []; let cur = [];
   words.forEach((w, i) => {
@@ -345,12 +345,17 @@ const TYPO = {
 let aiTypo = '';
 // ---- Edit formats: each one changes captions, titles, transitions, phrase screens, hook and pace. The AI picks one per video. ----
 const RECIPES = {
-  cine: { cuts: ['leak', 'punch', 'whip'], name: 'Cine', desc: 'Imágenes a pantalla completa, títulos arriba, subtítulos con brillo', cap: 'glow', capY: .76, broll: 'full', titles: ['tl', 'tl', 'center'], trans: 'leak', kinBg: ['white', 'black'], kinGap: 6, kinMax: 3, brollSec: 5, hook: 'stack' },
-  podcast: { cuts: ['punch', 'zoomblur'], name: 'Podcast', desc: 'Pantalla dividida, subtítulos en franja blanca, ritmo tranquilo', cap: 'pill', capY: .72, broll: 'split', titles: ['center'], trans: 'slide', kinBg: ['blur', 'black'], kinGap: 9, kinMax: 2, brollSec: 6, hook: 'question' },
-  minimal: { cuts: ['punch', 'zoomblur'], name: 'Minimal', desc: 'Limpio y sobrio, subtítulos chicos abajo, pocas pantallas', cap: 'glow', capY: .8, broll: 'card', titles: ['bottom'], trans: 'blur', kinBg: ['white'], kinGap: 10, kinMax: 1, brollSec: 7, hook: 'viro' }
+  cine: { name: 'Viral', desc: 'Estilo Hormozi: mayúsculas gruesas, palabra clave amarilla, zoom en cada corte', cs: 'hormozi', zj: 1.15, cuts: ['punch', 'zoomblur'], capY: .66, broll: 'full', titles: ['tl'], trans: 'fade', kinBg: ['black'], kinGap: 7, kinMax: 3, brollSec: 5, hook: 'stack' },
+  energia: { name: 'Energía', desc: 'Estilo MrBeast: letra Anton gigante, palabra en recuadro amarillo, cortes con mucho zoom', cs: 'beast', zj: 1.2, cuts: ['punch', 'zoomblur'], capY: .66, broll: 'full', titles: ['tl'], trans: 'fade', kinBg: ['black'], kinGap: 7, kinMax: 3, brollSec: 5, hook: 'stack' },
+  karaoke: { name: 'Karaoke', desc: 'Cada palabra se ilumina en verde cuando la decís', cs: 'karaoke', zj: 1.12, cuts: ['punch', 'zoomblur'], capY: .66, broll: 'full', titles: ['tl'], trans: 'fade', kinBg: ['black'], kinGap: 7, kinMax: 3, brollSec: 5, hook: 'stack' },
+  impacto: { name: 'Impacto', desc: 'Letra alta y finita tipo cine, zoom fuerte', cs: 'tall', zj: 1.18, cuts: ['punch', 'zoomblur'], capY: .66, broll: 'full', titles: ['tl'], trans: 'fade', kinBg: ['black'], kinGap: 7, kinMax: 3, brollSec: 5, hook: 'stack' },
+  noticia: { name: 'Noticia', desc: 'Texto sobre franja negra, palabra clave en rojo, estilo informativo', cs: 'news', zj: 1.1, cuts: ['punch', 'zoomblur'], capY: .66, broll: 'full', titles: ['tl'], trans: 'fade', kinBg: ['black'], kinGap: 7, kinMax: 3, brollSec: 5, hook: 'stack' },
+  historia: { name: 'Elegante', desc: 'Letra limpia con palabra clave en cursiva dorada, ritmo tranquilo', cs: 'elegant', zj: 1.06, cuts: ['punch', 'zoomblur'], capY: .66, broll: 'full', titles: ['tl'], trans: 'fade', kinBg: ['black'], kinGap: 7, kinMax: 3, brollSec: 5, hook: 'stack' },
+  podcast: { name: 'Podcast', desc: 'Subtítulos limpios y sobrios, zoom suave', cs: 'clean', zj: 1.08, cuts: ['punch', 'zoomblur'], capY: .66, broll: 'full', titles: ['tl'], trans: 'fade', kinBg: ['black'], kinGap: 7, kinMax: 3, brollSec: 5, hook: 'stack' },
+  minimal: { name: 'Minimal', desc: 'Lo mínimo: subtítulos limpios, casi sin efectos', cs: 'clean', zj: 1.04, cuts: ['punch', 'zoomblur'], capY: .66, broll: 'full', titles: ['tl'], trans: 'fade', kinBg: ['black'], kinGap: 7, kinMax: 3, brollSec: 5, hook: 'stack' },
 };
 let aiRecipe = '';
-const RECIPE_ALIAS = { energia: 'cine', noticia: 'cine', historia: 'minimal' };
+const RECIPE_ALIAS = {};
 const recipeKey = () => { const v2 = RECIPE_ALIAS[val('recipe', 'auto')] || val('recipe', 'auto'); if (RECIPE_ALIAS[aiRecipe]) aiRecipe = RECIPE_ALIAS[aiRecipe]; if (RECIPES[v2]) return v2; if (RECIPES[aiRecipe]) return aiRecipe; return 'cine'; };
 const recipe = () => RECIPES[recipeKey()];
 // B-roll layout: the format decides unless the person picked one.
@@ -449,44 +454,48 @@ function capShade(ch) {
   g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(.5, 'rgba(0,0,0,.42)'); g.addColorStop(1, 'rgba(0,0,0,0)');
   cx.save(); cx.fillStyle = g; cx.fillRect(0, capY - h2, W, h2 * 2); cx.restore();
 }
+// Caption looks (each format picks one). f = font, up = uppercase, sz = size, k = accent color,
+// stroke = black outline, box = colored box behind the accent word, bar = dark band behind the line,
+// kar = karaoke (each word lights up as it is said), kf = different font for the accent word.
+const CAPS = {
+  hormozi: { f: z => `900 ${z}px Montserrat, sans-serif`, up: 1, sz: 72, k: '#FFE01B', stroke: 1 },
+  beast: { f: z => `400 ${z}px Anton, Impact, sans-serif`, up: 1, sz: 86, k: '#FFE01B', stroke: 1, box: 1 },
+  karaoke: { f: z => `800 ${z}px Poppins, sans-serif`, up: 1, sz: 66, k: '#7CF2A4', stroke: 1, kar: 1 },
+  clean: { f: z => `700 ${z}px Inter, sans-serif`, up: 0, sz: 54, k: '#ffffff', stroke: 0 },
+  elegant: { f: z => `700 ${z}px Inter, sans-serif`, up: 0, sz: 56, k: '#F5D9A8', stroke: 0, kf: z => `italic 400 ${z * 1.25}px "Instrument Serif", serif` },
+  news: { f: z => `400 ${z}px "Archivo Black", sans-serif`, up: 1, sz: 54, k: '#FF4D4D', stroke: 0, bar: 1 },
+  tall: { f: z => `400 ${z}px "Bebas Neue", sans-serif`, up: 1, sz: 104, k: '#7CF2A4', stroke: 1 },
+};
+setTimeout(() => ensureFonts(['Montserrat', 'Anton', 'Poppins', 'Inter', 'Instrument Serif', 'Archivo Black', 'Bebas Neue']), 0);
 function viroCaption(ch, t, st) {
-  const mode = recipe().cap;
-  if (mode !== 'pill') capShade(ch);
-  // One clean line: every word the same size, the word being said lights up (no giant separate word).
-  const age = t - ch.s, a = ease(age / .18), solo = false;
-  const main = solo ? ch.filter(w => w !== ch.key) : ch, low = w => w.t.toUpperCase().replace(/[.,;:!?¿¡"]+/g, '');
+  const C = CAPS[recipe().cs] || CAPS.hormozi;
+  if (!C.bar) capShade(ch);
+  const age = t - ch.s, a = ease(age / .15), pk = back(age / .22);
+  const txt = w => { const v = w.t.replace(/[.,;:!?¿¡"]+/g, ''); return C.up ? v.toUpperCase() : v; };
   const isK = w => w === ch.key && ch.emph;
-  const pk = back(age / .22); cx.save(); cx.globalAlpha = a; cx.translate(capX, capY); cx.scale(.72 + .28 * pk, .72 + .28 * pk);
+  const fo = (w, z) => isK(w) && C.kf ? C.kf(z) : C.f(z);
+  cx.save(); cx.globalAlpha = a; cx.translate(capX, capY); cx.scale(.72 + .28 * pk, .72 + .28 * pk);
   cx.textBaseline = 'middle'; cx.textAlign = 'left'; cx.lineJoin = 'round';
-  const fnt = (w, size) => st.font(size);
-  const word = (w, size, x, y, big) => {
-    const on2 = t >= w.s - .03, tx = low(w);
-    cx.font = big ? keyF(size) : fnt(w, size);
-    cx.shadowColor = 'rgba(0,0,0,.75)'; cx.shadowBlur = size * .4; cx.shadowOffsetY = 2;
-    const lit = big || isK(w);
-    cx.fillStyle = lit ? st.hi : '#fff';
-    // Thin dark outline under every word so it reads on bright shots too (white walls, light b-roll).
-    cx.lineWidth = Math.max(4, size * .16); cx.strokeStyle = '#000';
-    // Pop: the word you are saying bounces in.
-    const pa = t - w.s, pop = on2 && pa < .2 ? 1 + .05 * Math.sin(Math.PI * pa / .2) : 1;
-    if (pop !== 1) { const ww = cx.measureText(tx).width; cx.save(); cx.translate(x + ww / 2, y); cx.scale(pop, pop); cx.strokeText(tx, -ww / 2, 0); cx.fillText(tx, -ww / 2, 0); cx.restore(); }
-    else { cx.strokeText(tx, x, y); cx.fillText(tx, x, y); }
-  };
-  let size = st.size;
-  const wid = sz => main.reduce((q, w) => { cx.font = fnt(w, sz); return q + cx.measureText(low(w)).width; }, 0) + sz * .27 * (main.length - 1);
-  while (wid(size) > W * .86 && size > 36) size -= 2;
-  const tot = wid(size); let x = -tot / 2; const y = solo ? -size * .6 : 0;
-  main.forEach(w => { cx.font = fnt(w, size); const ww = cx.measureText(low(w)).width; word(w, size, x, y, false); x += ww + size * .27; });
-  if (solo && t >= ch.key.s - .05) {
-    const k = back((t - ch.key.s) / .3);
-    let bs = size * 2.1; cx.font = keyF(bs); while (cx.measureText(low(ch.key)).width > W * .8 && bs > 40) { bs -= 4; cx.font = keyF(bs); }
-    const bw = cx.measureText(low(ch.key)).width;
-    cx.save(); cx.translate(0, size * .45 + bs * .5); cx.scale(.7 + .3 * k, .7 + .3 * k); word(ch.key, bs, -bw / 2, 0, true);
-    // Hand-drawn underline that draws itself under the star word.
-    const u = easeQ((t - ch.key.s - .15) / .35);
-    if (u > 0) { cx.shadowBlur = 0; cx.strokeStyle = st.hi; cx.lineWidth = Math.max(4, bs * .07); cx.lineCap = 'round'; cx.beginPath(); const x1 = -bw / 2, x2 = x1 + bw * u; cx.moveTo(x1, bs * .5); cx.quadraticCurveTo((x1 + x2) / 2, bs * .62, x2, bs * .46); cx.stroke(); }
+  let size = C.sz;
+  const gap = z => z * (C.box ? .34 : .27);
+  const wid = z => ch.reduce((q, w) => { cx.font = fo(w, z); return q + cx.measureText(txt(w)).width; }, 0) + gap(z) * (ch.length - 1);
+  while (wid(size) > W * .84 && size > 34) size -= 2;
+  const tot = wid(size); let x = -tot / 2;
+  if (C.bar) { cx.fillStyle = 'rgba(0,0,0,.82)'; rrect(-tot / 2 - size * .4, -size * .78, tot + size * .8, size * 1.5, size * .18); cx.fill(); }
+  ch.forEach(w => {
+    cx.font = fo(w, size); const tx = txt(w), ww = cx.measureText(tx).width, said = t >= w.s - .03;
+    const lit = C.kar ? said && t < w.e + .1 : isK(w);
+    cx.save();
+    if (C.box && isK(w)) { const pa = back((t - w.s) / .2); cx.fillStyle = C.k; cx.save(); cx.translate(x + ww / 2, 0); cx.rotate(-.03); cx.scale(pa, pa); rrect(-ww / 2 - size * .14, -size * .62, ww + size * .28, size * 1.2, size * .16); cx.fill(); cx.restore(); }
+    if (!C.bar) { cx.shadowColor = 'rgba(0,0,0,.7)'; cx.shadowBlur = size * (C.stroke ? .25 : .45); cx.shadowOffsetY = 3; }
+    cx.fillStyle = C.box && isK(w) ? '#000' : lit ? C.k : '#fff';
+    const pop = lit && t - w.s < .18 ? 1 + .1 * Math.sin(Math.PI * (t - w.s) / .18) : 1;
+    cx.translate(x + ww / 2, 0); cx.scale(pop, pop);
+    if (C.stroke && !(C.box && isK(w))) { cx.lineWidth = Math.max(4, size * .17); cx.strokeStyle = '#000'; cx.strokeText(tx, -ww / 2, 0); }
+    cx.fillText(tx, -ww / 2, 0);
     cx.restore();
-  }
+    x += ww + gap(size);
+  });
   cx.restore();
 }
 
