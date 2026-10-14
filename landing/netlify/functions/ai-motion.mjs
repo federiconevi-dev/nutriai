@@ -3,7 +3,7 @@ import { guard, fail, readJson } from '../lib/guard.mjs';
 // Motion-graphics director: designs full-screen animated scenes (own templates) for the video,
 // either the ones the creator asks for in plain words or the best moments picked automatically.
 // POST /api/ai-motion { words: "0:Hola 1:hoy ...", request? } → { motions: [...] } (cleaned again in the page)
-const TPL = ['reveal', 'counter', 'bars', 'versus', 'roll', 'stamp', 'strike'];
+const TPL = ['reveal', 'counter', 'bars', 'versus', 'roll', 'stamp', 'strike', 'letters', 'morph'];
 const FRAMES = ['none', 'laptop', 'phone', 'card', 'player'];
 const THEMES = ['light', 'dark', 'color', 'orange'];
 const UNITS = ['$', 'US$', '%', 'k', 'M', 'x', '+', ''];
@@ -16,6 +16,8 @@ bars = bar chart growing: "values" (2-4 numbers), "labels" (same count), "lines"
 versus = two cards A vs B: "labels" = [A, B], "lines"[0] = title. For comparisons, before/after, myth vs truth.
 roll = slot-machine words: "labels" = 2-4 wrong options rolling, "key" = the real answer, "lines"[0] = the phrase before (e.g. "La clave es").
 stamp = one huge word slammed with shockwaves: "key" = 1-2 words, "lines" = optional small line above. For strong statements.
+letters = the letters of one word fly in from everywhere, lock into place and explode at the end: "key" = 1 word, "lines" = optional line under it. For the hook or a punchline.
+morph = a dot pops and stretches into a pill with the word inside, small dots orbiting: "key" = 1-3 words, "lines" = [line above, line below]. For concepts, names, tips.
 strike = list where items get crossed out: "lines"[0] = intro (e.g. "No es"), "labels" = 2-4 items crossed, "key" = the real answer.
 frame (how the scene is shown): none = full screen | laptop = the scene plays on a laptop screen in a dark room with reflection (premium, tech, business) | phone = the speaker inside a floating phone with a title above | card = the speaker inside a floating rounded card, title above and "key" over the card | player = the speaker inside a video-player card. phone/card/player show the speaker, so use "lines"[0] + "key" as the title.
 theme: light (clean grey-white, default) | dark (black + lime) | color (electric blue + yellow) | orange (orange screen, great on laptop).

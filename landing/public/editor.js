@@ -1668,16 +1668,26 @@ function glitch(k) {
 // ---------- Motion graphics (own designs, Jitter-style): asked to the AI in plain words or picked automatically ----------
 // Scenes: { s, e, tpl, theme, lines[], key, num, unit, labels[], values[], icon }. Everything is drawn here, frame-exact, so it exports too.
 let userMotions = [], MW = W, MH = H, moSrc = null;
-const MO_TPL = ['reveal', 'counter', 'bars', 'versus', 'roll', 'stamp', 'strike'], MO_FRAMES = ['none', 'laptop', 'phone', 'card', 'player'];
+const MO_TPL = ['reveal', 'counter', 'bars', 'versus', 'roll', 'stamp', 'strike', 'letters', 'morph'], MO_FRAMES = ['none', 'laptop', 'phone', 'card', 'player'];
 const MO_TH = {
   light: { bg: ['#f6f5f1', '#dcdad3'], ink: '#111111', soft: 'rgba(17,17,17,.12)', acc: '#2f5bff', acc2: '#ff5a1f' },
   dark: { bg: ['#1d1d1f', '#050505'], ink: '#f4f4f2', soft: 'rgba(255,255,255,.1)', acc: '#c6ff3d', acc2: '#ff4d6d' },
   color: { bg: ['#3b63ff', '#1b33c9'], ink: '#ffffff', soft: 'rgba(255,255,255,.16)', acc: '#ffe14d', acc2: '#111111' },
   orange: { bg: ['#ff7a2a', '#e8460c'], ink: '#111111', soft: 'rgba(0,0,0,.12)', acc: '#ffffff', acc2: '#111111' }
 };
+// GSAP eases (pro curves, incl. an After-Effects-style speed graph). Sampled by time, so preview and export match frame by frame.
+const GE = {};
+function gx(name, x) {
+  x = Math.max(0, Math.min(1, x));
+  if (!GE[name] && window.gsap) {
+    try { if (window.CustomEase && !GE.__ce) { gsap.registerPlugin(CustomEase); CustomEase.create('ae', 'M0,0 C0.75,0 0.12,1 1,1'); GE.__ce = 1; } GE[name] = gsap.parseEase(name); } catch (e) { GE[name] = null; }
+  }
+  return GE[name] ? GE[name](x) : easeQ(x);
+}
+const seed = i => { const v = Math.sin(i * 12.9898 + 78.233) * 43758.5453; return v - Math.floor(v); };
 const moSans = s => `800 ${s}px Inter, sans-serif`, moSerif = s => `italic 400 ${s}px "Instrument Serif", serif`, moHeavy = s => `900 ${s}px Inter, sans-serif`;
 function moFit(txt, font, maxW, size, min = 28) { cx.font = font(size); while (size > min && cx.measureText(txt).width > maxW) { size -= 4; cx.font = font(size); } return size; }
-const moStag = (age, i, d = .1, len = .45) => easeQ((age - .15 - i * d) / len);
+const moStag = (age, i, d = .1, len = .5) => gx('expo.out', (age - .15 - i * d) / len);
 const moNum = (n, unit) => { const s = Math.round(n).toLocaleString('es-AR'); return unit === '$' || unit === 'US$' ? unit + s : unit ? s + unit : s; };
 function moBg(th, age, n) {
   const g = cx.createRadialGradient(MW / 2, MH * .42, 40, MW / 2, MH * .5, MH * .85); g.addColorStop(0, th.bg[0]); g.addColorStop(1, th.bg[1]);
@@ -1724,7 +1734,7 @@ function moReveal(m, age, th) {
   moIcon(m.icon, age, MW * .78, MH * .2, 260);
 }
 function moCounter(m, age, th) {
-  const k = easeQ((age - .2) / 1.1), cyy = MH * .44, R = Math.min(250, MH * .26);
+  const k = gx('power4.inOut', (age - .2) / 1.2), cyy = MH * .44, R = Math.min(250, MH * .26);
   cx.save(); cx.lineWidth = 22; cx.strokeStyle = th.soft; cx.beginPath(); cx.arc(MW / 2, cyy, R, 0, 7); cx.stroke();
   cx.strokeStyle = th.acc; cx.lineCap = 'round'; cx.beginPath(); cx.arc(MW / 2, cyy, R, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * k); cx.stroke(); cx.restore();
   const txt = moNum(m.num * k, m.unit), sz = moFit(moNum(m.num, m.unit), moHeavy, R * 1.7, 150, 50);
@@ -1747,7 +1757,7 @@ function moVersus(m, age, th) {
   const A = m.labels[0] || 'Antes', Bt = m.labels[1] || 'Después', cw = MW * .8, ch = Math.min(300, MH * .2);
   if (m.lines[0]) { const sz = moFit(m.lines[0], moSans, MW * .86, 66, 34); moLine(m.lines[0], moSans, sz, MW / 2, MH * .17, moStag(age, 0), th.ink); }
   [[A, -1, MH * .3, th.ink, th.bg[0]], [Bt, 1, MH * .56, th.acc, th.acc2 === '#111111' ? '#111' : th.bg[0]]].forEach(([txt, dir, y, fill, fg], i) => {
-    const k = back((age - .2 - i * .25) / .55), x = MW / 2 - cw / 2 + dir * (1 - k) * MW;
+    const k = gx('elastic.out(1,0.55)', (age - .2 - i * .25) / .9), x = MW / 2 - cw / 2 + dir * (1 - k) * MW;
     cx.save(); cx.translate(x + cw / 2, y + ch / 2); cx.rotate(dir * (1 - Math.min(1, k)) * .25 + dir * -.025);
     cx.shadowColor = 'rgba(0,0,0,.28)'; cx.shadowBlur = 40; cx.shadowOffsetY = 18; cx.fillStyle = fill; rrect(-cw / 2, -ch / 2, cw, ch, 36); cx.fill(); cx.shadowColor = 'transparent';
     const sz = moFit(txt, i ? moSerif : moHeavy, cw * .84, Math.min(110, ch * .5), 34); cx.font = (i ? moSerif : moHeavy)(sz); cx.fillStyle = i ? (th === MO_TH.color ? '#111' : th.bg[1]) : th.bg[0]; cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillText(txt, 0, 6); cx.restore();
@@ -1760,7 +1770,7 @@ function moRoll(m, age, th) {
   const list = [...m.labels.filter(Boolean), m.key || m.labels.at(-1) || ''].filter(Boolean); if (!list.length) return;
   if (m.lines[0]) { const sz = moFit(m.lines[0], moSans, MW * .86, 76, 36); moLine(m.lines[0], moSans, sz, MW / 2, MH * .4, moStag(age, 0), th.ink); }
   const sz = Math.min(...list.map(w => moFit(w, moSerif, MW * .86, 150, 60))), rowH = sz * 1.1, y = MH * .56, total = list.length - 1;
-  const p = Math.min(total, total * back((age - .35) / (.4 + total * .18)));
+  const p = total * gx('ae', (age - .35) / (.5 + total * .2));
   cx.save(); cx.beginPath(); cx.rect(0, y - rowH * .8, MW, rowH * 1.05); cx.clip(); cx.font = moSerif(sz); cx.textAlign = 'center'; cx.textBaseline = 'alphabetic';
   list.forEach((w, i) => { const d = i - p; if (Math.abs(d) > 1.2) return; cx.fillStyle = i === total ? th.acc : th.ink; cx.globalAlpha = 1 - Math.min(1, Math.abs(d)) * .6; cx.fillText(w, MW / 2, y + d * rowH); });
   cx.restore();
@@ -1787,7 +1797,33 @@ function moStrike(m, age, th) {
   });
   if (m.key) { const sz = moFit(m.key, moSerif, MW * .86, 120, 50); moLine(m.key, moSerif, sz, MW / 2, y + 70, ease((age - .8 - items.length * .22) / .4), th.acc); }
 }
-const MO_DRAW = { reveal: moReveal, counter: moCounter, bars: moBars, versus: moVersus, roll: moRoll, stamp: moStamp, strike: moStrike };
+// Letters fly in from everywhere and lock into the word, then blow apart on the way out.
+function moLetters(m, age, th) {
+  const word = (m.key || m.lines[0] || '').toUpperCase(), sz = moFit(word, moHeavy, MW * .88, 200, 50), dur = m.e - m.s;
+  cx.font = moHeavy(sz); const total = cx.measureText(word).width; let x = MW / 2 - total / 2;
+  cx.textAlign = 'left'; cx.textBaseline = 'middle';
+  [...word].forEach((ch, i) => {
+    const w = cx.measureText(ch).width, p = gx('expo.out', (age - .1 - i * .045) / .8), q = gx('power3.in', (age - (dur - .55) - i * .015) / .5);
+    const dx = (seed(i) - .5) * 900, dy = (seed(i + 50) - .5) * 1300, rot = (seed(i + 99) - .5) * 3, ex = (seed(i + 7) - .5) * 1400, ey = -300 - seed(i + 3) * 700;
+    const px = x + (1 - p) * dx + q * ex, py = MH * .5 + (1 - p) * dy + q * ey, r = (1 - p) * rot + q * rot * 1.5, sc = .2 + .8 * p;
+    if (p > 0) { cx.save(); cx.globalAlpha = Math.min(1, p * 2) * (1 - q); cx.translate(px + w / 2, py); cx.rotate(r); cx.scale(sc, sc); cx.fillStyle = i % 5 === 2 ? th.acc : th.ink; cx.fillText(ch, -w / 2, 0); cx.restore(); }
+    x += w;
+  });
+  const sub = m.lines.find(l => norm(l) !== norm(m.key)); if (sub) { const s2 = moFit(sub, moSerif, MW * .84, 76, 34); moLine(sub, moSerif, s2, MW / 2, MH * .5 + sz * .9, moStag(age, 6), th.ink); }
+}
+// A dot pops, stretches into a pill and the word is revealed inside; satellites orbit around.
+function moMorph(m, age, th) {
+  const word = m.key || m.lines[0] || '', sz = moFit(word, moHeavy, MW * .72, 110, 40); cx.font = moHeavy(sz);
+  const tw = cx.measureText(word).width + 100, a = gx('back.out(2.5)', age / .4), b = gx('elastic.out(1,0.5)', (age - .35) / 1);
+  const w = (60 + (tw - 60) * b) * a, h = (60 + (sz * 1.6 - 60) * b) * a, cyy = MH * .5;
+  for (let i = 0; i < 6; i++) { const an = age * (1.2 + i * .15) + i * 1.05, rr = (Math.max(w, h) * .62 + 30 + i * 12) * b, k = gx('back.out(3)', (age - .5 - i * .06) / .4); if (k <= 0) continue; cx.fillStyle = i % 2 ? th.acc2 === '#111111' ? th.ink : th.acc2 : th.ink; cx.globalAlpha = .9; cx.beginPath(); cx.arc(MW / 2 + Math.cos(an) * rr, cyy + Math.sin(an) * rr * .45, (6 + i % 3 * 4) * k, 0, 7); cx.fill(); cx.globalAlpha = 1; }
+  cx.save(); cx.shadowColor = 'rgba(0,0,0,.3)'; cx.shadowBlur = 40; cx.shadowOffsetY = 16; cx.fillStyle = th.acc; rrect(MW / 2 - w / 2, cyy - h / 2, w, h, Math.min(w, h) / 2); cx.fill(); cx.restore();
+  cx.save(); rrect(MW / 2 - w / 2, cyy - h / 2, w, h, Math.min(w, h) / 2); cx.clip();
+  const t = gx('expo.out', (age - .55) / .6); cx.font = moHeavy(sz); cx.fillStyle = th === MO_TH.dark || th === MO_TH.color ? '#111' : '#fff'; cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillText(word, MW / 2, cyy + 6 + (1 - t) * h); cx.restore();
+  if (m.lines[0] && norm(m.lines[0]) !== norm(word)) { const s2 = moFit(m.lines[0], moSerif, MW * .84, 80, 34); moLine(m.lines[0], moSerif, s2, MW / 2, cyy - h / 2 - 50, moStag(age, 3), th.ink); }
+  if (m.lines[1]) { const s2 = moFit(m.lines[1], moSans, MW * .84, 52, 28); moLine(m.lines[1], moSans, s2, MW / 2, cyy + h / 2 + 90, moStag(age, 5), th.ink); }
+}
+const MO_DRAW = { letters: moLetters, morph: moMorph, reveal: moReveal, counter: moCounter, bars: moBars, versus: moVersus, roll: moRoll, stamp: moStamp, strike: moStrike };
 // Renders a scene into an offscreen canvas of any size (used for screens inside mockups).
 let moOff = null;
 function moRender(m, age, th, w, h) {
@@ -1861,7 +1897,7 @@ function drawMotion(m, t) {
   else { moBg(th, age, m.n || 0); MO_DRAW[m.tpl](m, age, th); }
   cx.restore();
 }
-const MO_SFX = { reveal: 'whoosh', counter: 'tick', bars: 'riser', versus: 'whoosh', roll: 'tick', stamp: 'impact', strike: 'swipe' };
+const MO_SFX = { reveal: 'whoosh', counter: 'tick', bars: 'riser', versus: 'whoosh', roll: 'tick', stamp: 'impact', strike: 'swipe', letters: 'whoosh', morph: 'pop' };
 // Cleans what the AI sends: only known templates/themes/icons, short texts, real numbers.
 function moClean(r) {
   const str = (x, n) => String(x == null ? '' : x).replace(/\s+/g, ' ').trim().slice(0, n);

@@ -54,9 +54,9 @@
     "semantic_hash": ""
   },
   "public/editor.js": {
-    "mtime": 1791951135.5343337,
-    "seen": 1791951137.4041708,
-    "ast_hash": "825acdfa6bb30e9a61adbdec99a7ade7",
+    "mtime": 1791988091.608801,
+    "seen": 1791988195.196105,
+    "ast_hash": "c3b1f9fc54c68289e81384b52de1cb19",
     "semantic_hash": ""
   },
   "public/ui.js": {
@@ -66,9 +66,9 @@
     "semantic_hash": ""
   },
   "public/index.html": {
-    "mtime": 1791950584.2501817,
-    "seen": 1791951137.4044113,
-    "ast_hash": "1dd2700f5f980d5fe61d106254a9090b",
+    "mtime": 1791988091.6023324,
+    "seen": 1791988195.1961467,
+    "ast_hash": "801002dd798c4db6afe24255f798f338",
     "semantic_hash": ""
   },
   "public/broll.jpg": {
@@ -90,9 +90,9 @@
     "semantic_hash": ""
   },
   "netlify/functions/ai-motion.mjs": {
-    "mtime": 1791950569.0703754,
-    "seen": 1791951137.404138,
-    "ast_hash": "4eff52c7dd56a6cd1ea462e81caf0a3c",
+    "mtime": 1791988091.6097355,
+    "seen": 1791988195.1960928,
+    "ast_hash": "086d169e704cdd77d19aa41cea66ad0a",
     "semantic_hash": ""
   },
   "public/mg/bell.json": {
