@@ -1,0 +1,86 @@
+{
+  "netlify/edge-functions/clip.ts": {
+    "mtime": 1791768988.135835,
+    "seen": 1791821460.0864606,
+    "ast_hash": "095f8821ef1ec8bbbec33b85a639b952",
+    "semantic_hash": ""
+  },
+  "netlify/functions/ai-direct.mjs": {
+    "mtime": 1791840486.1837223,
+    "seen": 1791840624.2194278,
+    "ast_hash": "c7d41ed6feed7f5702d5f67f92528882",
+    "semantic_hash": ""
+  },
+  "netlify/functions/ai-health.mjs": {
+    "mtime": 1791666873.9802718,
+    "seen": 1791821460.086472,
+    "ast_hash": "6636619fc9e02162397e8a9a9e2d047c",
+    "semantic_hash": ""
+  },
+  "netlify/functions/ai-image.mjs": {
+    "mtime": 1791768496.6261258,
+    "seen": 1791821460.0864737,
+    "ast_hash": "a2354b7219797ef14c52f5206f3f5ccb",
+    "semantic_hash": ""
+  },
+  "netlify/functions/ai-plan.mjs": {
+    "mtime": 1791772191.1387293,
+    "seen": 1791821460.0864758,
+    "ast_hash": "6934cd30930891f54f43ba42ce5e9cac",
+    "semantic_hash": ""
+  },
+  "netlify/functions/broll-video.mjs": {
+    "mtime": 1791772246.0747428,
+    "seen": 1791821460.0864773,
+    "ast_hash": "0eac273a28c9f50cc52e2a93a9a8ae9a",
+    "semantic_hash": ""
+  },
+  "netlify/lib/llm.mjs": {
+    "mtime": 1791668764.38572,
+    "seen": 1791821460.086479,
+    "ast_hash": "6ea0b2f96ce4c754e2d1ef66e7f93813",
+    "semantic_hash": ""
+  },
+  "netlify/lib/ollama.mjs": {
+    "mtime": 1791666861.1376069,
+    "seen": 1791821460.0864806,
+    "ast_hash": "875ff93364eec6c2f33c492cdff74f3f",
+    "semantic_hash": ""
+  },
+  "public/asr-worker.js": {
+    "mtime": 1791663416.1060512,
+    "seen": 1791821460.0864823,
+    "ast_hash": "2260a8f29e087829fa33492e279e3b09",
+    "semantic_hash": ""
+  },
+  "public/editor.js": {
+    "mtime": 1791841868.9867098,
+    "seen": 1791841973.791434,
+    "ast_hash": "b5a0bf30de6760ac522a8b619a763b24",
+    "semantic_hash": ""
+  },
+  "public/ui.js": {
+    "mtime": 1791841868.9888766,
+    "seen": 1791841973.791436,
+    "ast_hash": "6324a82ab9a285214b5d3f95411a469b",
+    "semantic_hash": ""
+  },
+  "public/index.html": {
+    "mtime": 1791841868.987851,
+    "seen": 1791841973.7914376,
+    "ast_hash": "6e665a0efed8fea85838be221c3cc363",
+    "semantic_hash": ""
+  },
+  "public/broll.jpg": {
+    "mtime": 1791765567.6487253,
+    "seen": 1791821460.0864897,
+    "ast_hash": "08cb9a1677e3d7b26c9326509b367bb4",
+    "semantic_hash": ""
+  },
+  "public/hero.jpg": {
+    "mtime": 1791667600.8511002,
+    "seen": 1791821460.0864913,
+    "ast_hash": "6faa637f5fa435adb4ad54588995ba46",
+    "semantic_hash": ""
+  }
+}
