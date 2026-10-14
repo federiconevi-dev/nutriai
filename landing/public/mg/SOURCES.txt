@@ -21,3 +21,10 @@ c/target_2.json https://assets-v2.lottiefiles.com/a/7c6e733e-b805-11ef-a5b3-3ff1
 c/gift_1.json https://assets-v2.lottiefiles.com/a/8294ab44-1184-11ee-8d44-2771d2baa857/Wdrh4025Yq.json
 c/calendar_0.json https://assets-v2.lottiefiles.com/a/07abcaba-1176-11ee-9d43-7b23507076f2/D8L0OsvMuj.json
 c/crown_0.json https://assets-v2.lottiefiles.com/a/7133552a-6ecb-4b36-9580-3094c8ca905f/xLRehfnqVP.json
+c/laughing_0.json https://assets-v2.lottiefiles.com/a/d47ba478-1150-11ee-82b8-8fa3db839649/aN5Nriawyn.json
+c/blown_1.json https://assets-v2.lottiefiles.com/a/1dc3dc46-1182-11ee-9fa8-bbc519404bf0/0Ilcqg7LCz.json
+https://assets-v2.lottiefiles.com/a/1dc3dc46-1182-11ee-9fa8-bbc519404bf0/0Ilcqg7LCz.json
+c/bolt_2.json https://assets-v2.lottiefiles.com/a/7caee99a-7c2f-4b69-9080-03087608e17b/qrppU7ACQe.json
+c/bell_1.json https://assets-v2.lottiefiles.com/a/5ca876dc-1174-11ee-9139-0f9df6f19ddd/15D9OpKtjQ.json
+c/explosion_3.json https://assets-v2.lottiefiles.com/a/d31d5f4e-02c2-11f0-812d-f7031a3afe90/7gGavMbQ0r.json
+c/eyes_2.json https://assets-v2.lottiefiles.com/a/16c7d954-acac-11ee-ab68-c36ab2074c76/2EiGFm9eDN.json

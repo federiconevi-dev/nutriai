@@ -1479,9 +1479,15 @@ const MG_WORDS = [
   ['calendar', /^(dias|semanas|meses|anos|fecha|calendario|lunes|diario)$/],
   ['crown', /^(rey|reina|top|lider|premium|mejores|mejor)$/],
   ['pay', /^(pagar|pago|pagan|pague|cuesta|cobro)$/],
+  ['laugh', /^(jaja|jajaja|jajajaja|gracioso|chiste|risa|reir)$/],
+  ['wow', /^(impresionante|locura|loco|wow|sorpresa|flashe|flashee|impactante|alucinante)$/],
+  ['bolt', /^(energia|poder|potente|instantaneo|velocidad|veloz)$/],
+  ['bell', /^(notificacion|notificaciones|campanita|aviso|activa)$/],
+  ['boom', /^(boom|bomba|exploto|impacto|bum)$/],
+  ['eyes', /^(mira|mirar|miren|fijate|atento|atentos|observa)$/],
   ['down', /^(abajo|comenta|comentame|link|descripcion|perfil)$/],
 ];
-const MG_SFX = { money: 'cash', coin: 'cash', pay: 'cash', crown: 'chime', gift: 'chime', target: 'hit', check: 'chime', idea: 'chime', trophy: 'chime', party: 'chime', sparkle: 'chime', rocket: 'whoosh' };
+const MG_SFX = { money: 'cash', coin: 'cash', pay: 'cash', crown: 'chime', gift: 'chime', target: 'hit', check: 'chime', idea: 'chime', trophy: 'chime', party: 'chime', sparkle: 'chime', rocket: 'whoosh', bolt: 'whoosh', boom: 'impact', bell: 'chime', wow: 'hit' };
 const mgLib = {};
 function mgLoad(name) {
   if (name in mgLib || !window.lottie) return; mgLib[name] = null;
