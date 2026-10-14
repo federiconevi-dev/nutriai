@@ -1689,6 +1689,8 @@ function gx(name, x) {
   }
   return GE[name] ? GE[name](x) : easeQ(x);
 }
+// Nothing pops out of nothing: entrances start at 55% size and fade in (scale from 0 feels cheap).
+const popS = k => .55 + .45 * Math.max(0, k);
 const seed = i => { const v = Math.sin(i * 12.9898 + 78.233) * 43758.5453; return v - Math.floor(v); };
 const moSans = s => `800 ${s}px Inter, sans-serif`, moSerif = s => `italic 400 ${s}px "Instrument Serif", serif`, moHeavy = s => `900 ${s}px Inter, sans-serif`;
 function moFit(txt, font, maxW, size, min = 28) { cx.font = font(size); while (size > min && cx.measureText(txt).width > maxW) { size -= 4; cx.font = font(size); } return size; }
@@ -1708,7 +1710,7 @@ function moIcon(name, age, x, y, z) {
   const m = name && mgLib[name]; if (!m) return;
   m.a.goToAndStop(Math.min(m.a.totalFrames - 1, age * (m.a.frameRate || 30)), true);
   const k = back((age - .2) / .45); if (k <= 0) return;
-  cx.save(); cx.translate(x, y + Math.sin(age * 2) * 8); cx.scale(k, k); cx.shadowColor = 'rgba(0,0,0,.3)'; cx.shadowBlur = 30; cx.shadowOffsetY = 14; cx.drawImage(m.cv, -z / 2, -z / 2, z, z); cx.restore();
+  cx.save(); cx.translate(x, y + Math.sin(age * 2) * 8); cx.scale(popS(k), popS(k)); cx.globalAlpha *= Math.min(1, k * 2); cx.shadowColor = 'rgba(0,0,0,.3)'; cx.shadowBlur = 30; cx.shadowOffsetY = 14; cx.drawImage(m.cv, -z / 2, -z / 2, z, z); cx.restore();
 }
 // A line of text that rises out of an invisible mask (the classic premium reveal).
 function moLine(txt, font, size, x, y, k, color, align = 'center') {
@@ -1744,7 +1746,7 @@ function moCounter(m, age, th) {
   cx.save(); cx.lineWidth = 22; cx.strokeStyle = th.soft; cx.beginPath(); cx.arc(MW / 2, cyy, R, 0, 7); cx.stroke();
   cx.strokeStyle = th.acc; cx.lineCap = 'round'; cx.beginPath(); cx.arc(MW / 2, cyy, R, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * k); cx.stroke(); cx.restore();
   const txt = moNum(m.num * k, m.unit), sz = moFit(moNum(m.num, m.unit), moHeavy, R * 1.7, 150, 50);
-  cx.save(); cx.translate(MW / 2, cyy); const p = back(age / .4); cx.scale(p, p); cx.font = moHeavy(sz); cx.fillStyle = th.ink; cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillText(txt, 0, 0); cx.restore();
+  cx.save(); cx.translate(MW / 2, cyy); const p = back(age / .4); cx.scale(popS(p), popS(p)); cx.globalAlpha = Math.min(1, p * 2); cx.font = moHeavy(sz); cx.fillStyle = th.ink; cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillText(txt, 0, 0); cx.restore();
   (m.lines.length ? m.lines : [m.key]).filter(Boolean).slice(0, 2).forEach((ln, i) => { const f = i ? moSerif : moSans, sz2 = moFit(ln, f, MW * .84, i ? 70 : 60, 34); moLine(ln, f, sz2, MW / 2, cyy + R + 110 + i * 78, moStag(age, i + 3), i ? th.acc : th.ink); });
   moIcon(m.icon, age, MW * .8, MH * .16, 220);
 }
@@ -1769,7 +1771,7 @@ function moVersus(m, age, th) {
     const sz = moFit(txt, i ? moSerif : moHeavy, cw * .84, Math.min(110, ch * .5), 34); cx.font = (i ? moSerif : moHeavy)(sz); cx.fillStyle = i ? (th === MO_TH.color ? '#111' : th.bg[1]) : th.bg[0]; cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillText(txt, 0, 6); cx.restore();
   });
   const k = back((age - .75) / .4), vy = MH * .3 + ch + (MH * .56 - MH * .3 - ch) / 2;
-  if (k > 0) { cx.save(); cx.translate(MW / 2, vy); cx.scale(k, k); cx.fillStyle = th.acc2 === '#111111' ? '#fff' : th.acc2; cx.beginPath(); cx.arc(0, 0, 62, 0, 7); cx.fill(); cx.font = moHeavy(48); cx.fillStyle = '#fff'; if (th.acc2 === '#111111') cx.fillStyle = '#111'; cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillText('VS', 0, 3); cx.restore(); }
+  if (k > 0) { cx.save(); cx.translate(MW / 2, vy); cx.scale(popS(k), popS(k)); cx.globalAlpha *= Math.min(1, k * 2); cx.fillStyle = th.acc2 === '#111111' ? '#fff' : th.acc2; cx.beginPath(); cx.arc(0, 0, 62, 0, 7); cx.fill(); cx.font = moHeavy(48); cx.fillStyle = '#fff'; if (th.acc2 === '#111111') cx.fillStyle = '#111'; cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillText('VS', 0, 3); cx.restore(); }
   const rk = ease((age - .75) / .5); if (rk > 0 && rk < 1) { cx.save(); cx.globalAlpha = 1 - rk; cx.strokeStyle = th.acc2 === '#111111' ? '#fff' : th.acc2; cx.lineWidth = 6; cx.beginPath(); cx.arc(MW / 2, vy, 62 + rk * 120, 0, 7); cx.stroke(); cx.restore(); }
 }
 function moRoll(m, age, th) {
@@ -1809,7 +1811,7 @@ function moLetters(m, age, th) {
   cx.font = moHeavy(sz); const total = cx.measureText(word).width; let x = MW / 2 - total / 2;
   cx.textAlign = 'left'; cx.textBaseline = 'middle';
   [...word].forEach((ch, i) => {
-    const w = cx.measureText(ch).width, p = gx('expo.out', (age - .1 - i * .045) / .8), q = gx('power3.in', (age - (dur - .55) - i * .015) / .5);
+    const w = cx.measureText(ch).width, p = gx('expo.out', (age - .1 - i * .045) / .8), q = gx('power2.out', (age - (dur - .45) - i * .012) / .4);
     const dx = (seed(i) - .5) * 900, dy = (seed(i + 50) - .5) * 1300, rot = (seed(i + 99) - .5) * 3, ex = (seed(i + 7) - .5) * 1400, ey = -300 - seed(i + 3) * 700;
     const px = x + (1 - p) * dx + q * ex, py = MH * .5 + (1 - p) * dy + q * ey, r = (1 - p) * rot + q * rot * 1.5, sc = .2 + .8 * p;
     if (p > 0) { cx.save(); cx.globalAlpha = Math.min(1, p * 2) * (1 - q); cx.translate(px + w / 2, py); cx.rotate(r); cx.scale(sc, sc); cx.fillStyle = i % 5 === 2 ? th.acc : th.ink; cx.fillText(ch, -w / 2, 0); cx.restore(); }
@@ -1821,7 +1823,7 @@ function moLetters(m, age, th) {
 function moMorph(m, age, th) {
   const word = m.key || m.lines[0] || '', sz = moFit(word, moHeavy, MW * .72, 110, 40); cx.font = moHeavy(sz);
   const tw = cx.measureText(word).width + 100, a = gx('back.out(2.5)', age / .4), b = gx('elastic.out(1,0.5)', (age - .35) / 1);
-  const w = (60 + (tw - 60) * b) * a, h = (60 + (sz * 1.6 - 60) * b) * a, cyy = MH * .5;
+  const w = (60 + (tw - 60) * b) * popS(a), h = (60 + (sz * 1.6 - 60) * b) * popS(a), cyy = MH * .5;
   for (let i = 0; i < 6; i++) { const an = age * (1.2 + i * .15) + i * 1.05, rr = (Math.max(w, h) * .62 + 30 + i * 12) * b, k = gx('back.out(3)', (age - .5 - i * .06) / .4); if (k <= 0) continue; cx.fillStyle = i % 2 ? th.acc2 === '#111111' ? th.ink : th.acc2 : th.ink; cx.globalAlpha = .9; cx.beginPath(); cx.arc(MW / 2 + Math.cos(an) * rr, cyy + Math.sin(an) * rr * .45, (6 + i % 3 * 4) * k, 0, 7); cx.fill(); cx.globalAlpha = 1; }
   cx.save(); cx.shadowColor = 'rgba(0,0,0,.3)'; cx.shadowBlur = 40; cx.shadowOffsetY = 16; cx.fillStyle = th.acc; rrect(MW / 2 - w / 2, cyy - h / 2, w, h, Math.min(w, h) / 2); cx.fill(); cx.restore();
   cx.save(); rrect(MW / 2 - w / 2, cyy - h / 2, w, h, Math.min(w, h) / 2); cx.clip();
@@ -1832,7 +1834,7 @@ function moMorph(m, age, th) {
 // Pull quote: giant quote mark pops, words rise one by one, a highlighter sweeps under the key phrase.
 function moQuote(m, age, th) {
   const L = m.lines.length ? m.lines : [m.key]; const qk = gx('back.out(2)', age / .45);
-  cx.save(); cx.globalAlpha = .14 * qk; cx.fillStyle = th.ink; cx.font = moSerif(520); cx.textAlign = 'left'; cx.textBaseline = 'alphabetic'; cx.translate(MW * .1, MH * .42); cx.scale(qk, qk); cx.fillText('“', 0, 0); cx.restore();
+  cx.save(); cx.globalAlpha = .14 * qk; cx.fillStyle = th.ink; cx.font = moSerif(520); cx.textAlign = 'left'; cx.textBaseline = 'alphabetic'; cx.translate(MW * .1, MH * .42); cx.scale(popS(qk), popS(qk)); cx.fillText('“', 0, 0); cx.restore();
   let y = MH * .42;
   L.forEach((ln, i) => {
     const key = m.key && norm(ln) === norm(m.key), f = key ? moSerif : moSans, sz = moFit(ln, f, MW * .8, key ? 104 : 74, 34);
@@ -1849,7 +1851,7 @@ function moTimeline(m, age, th) {
   cx.save(); cx.strokeStyle = th.ink; cx.globalAlpha = .35; cx.lineWidth = 5; cx.setLineDash([14, 12]); cx.beginPath(); cx.moveTo(x0, top); cx.lineTo(x0, top + (n - 1) * gapY * draw + 1); cx.stroke(); cx.restore();
   items.forEach((it, i) => {
     const y = top + i * gapY, k = gx('back.out(2.2)', (age - .25 - i * .16) / .35); if (k <= 0) return;
-    cx.save(); cx.translate(x0, y); cx.scale(k, k); cx.fillStyle = i === n - 1 ? th.acc : th.ink; cx.beginPath(); cx.arc(0, 0, 34, 0, 7); cx.fill();
+    cx.save(); cx.translate(x0, y); cx.scale(popS(k), popS(k)); cx.globalAlpha *= Math.min(1, k * 2); cx.fillStyle = i === n - 1 ? th.acc : th.ink; cx.beginPath(); cx.arc(0, 0, 34, 0, 7); cx.fill();
     cx.fillStyle = i === n - 1 && th !== MO_TH.dark ? '#fff' : th.bg[0]; cx.font = moHeavy(34); cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillText(String(i + 1), 0, 2); cx.restore();
     const sz = moFit(it, i === n - 1 ? moSerif : moSans, MW * .62, i === n - 1 ? 70 : 54, 28); moLine(it, i === n - 1 ? moSerif : moSans, sz, x0 + 64, y + sz * .35, moStag(age, i + 1, .16), th.ink, 'left');
   });
@@ -1868,7 +1870,7 @@ function moChat(m, age, th) {
     const sz = moFit(t, moSans, cw - 140, 34, 22); cx.font = `600 ${sz}px Inter, sans-serif`; cx.globalAlpha *= .8; cx.fillText(t, x + 112, y + 90); cx.restore();
   });
   if (shown < msgs.length) { const y = MH * .3 - 90; for (let d = 0; d < 3; d++) { cx.fillStyle = th.ink; cx.globalAlpha = .3 + .5 * (.5 + .5 * Math.sin(age * 10 - d)); cx.beginPath(); cx.arc(MW / 2 - 24 + d * 24, y, 8, 0, 7); cx.fill(); } cx.globalAlpha = 1; }
-  if (shown) { const bk = gx('back.out(3)', (age - .3) / .3); cx.save(); cx.translate(x + cw - 6, MH * .3 + 6); cx.scale(bk, bk); cx.fillStyle = '#ff3b30'; cx.beginPath(); cx.arc(0, 0, 26, 0, 7); cx.fill(); cx.fillStyle = '#fff'; cx.font = moHeavy(26); cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillText(String(shown), 0, 2); cx.restore(); }
+  if (shown) { const bk = gx('back.out(3)', (age - .3) / .3); cx.save(); cx.translate(x + cw - 6, MH * .3 + 6); cx.scale(popS(bk), popS(bk)); cx.globalAlpha *= Math.min(1, bk * 2); cx.fillStyle = '#ff3b30'; cx.beginPath(); cx.arc(0, 0, 26, 0, 7); cx.fill(); cx.fillStyle = '#fff'; cx.font = moHeavy(26); cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillText(String(shown), 0, 2); cx.restore(); }
 }
 // Loading bar fills in uneven steps, percent counts, then snaps to a check with a dot burst.
 function moProgress(m, age, th) {
@@ -1877,7 +1879,7 @@ function moProgress(m, age, th) {
   cx.fillStyle = th.soft; rrect(x, y - 18, bw, 36, 18); cx.fill(); cx.fillStyle = th.acc; rrect(x, y - 18, Math.max(36, bw * p), 36, 18); cx.fill();
   cx.font = moHeavy(44); cx.fillStyle = th.ink; cx.textAlign = 'center'; cx.textBaseline = 'alphabetic'; if (!done) cx.fillText(Math.round(p * 100) + '%', MW / 2, y + 90);
   if (done) {
-    const k = gx('back.out(2.5)', (age - 1.7) / .35); cx.save(); cx.translate(MW / 2, y + 110); cx.scale(k, k); cx.fillStyle = th.acc; cx.beginPath(); cx.arc(0, 0, 58, 0, 7); cx.fill();
+    const k = gx('back.out(2.5)', (age - 1.7) / .35); cx.save(); cx.translate(MW / 2, y + 110); cx.scale(popS(k), popS(k)); cx.globalAlpha *= Math.min(1, k * 2); cx.fillStyle = th.acc; cx.beginPath(); cx.arc(0, 0, 58, 0, 7); cx.fill();
     cx.strokeStyle = th === MO_TH.dark || th === MO_TH.color ? '#111' : '#fff'; cx.lineWidth = 12; cx.lineCap = 'round'; cx.beginPath(); cx.moveTo(-22, 2); cx.lineTo(-6, 18); cx.lineTo(24, -16); cx.stroke(); cx.restore();
     const b = (age - 1.7) / .8; if (b < 1) for (let i = 0; i < 24; i++) { const an = seed(i) * 6.28, v = 160 + seed(i + 30) * 260; cx.globalAlpha = 1 - b; cx.fillStyle = i % 3 ? th.acc : th.ink; cx.beginPath(); cx.arc(MW / 2 + Math.cos(an) * v * b, y + 110 + Math.sin(an) * v * b + 300 * b * b, 7, 0, 7); cx.fill(); } cx.globalAlpha = 1;
     if (m.key) { const sz = moFit(m.key, moSerif, MW * .86, 96, 40); moLine(m.key, moSerif, sz, MW / 2, y + 260, gx('expo.out', (age - 1.85) / .5), th.ink); }
@@ -2965,6 +2967,7 @@ window.VE = {
       const m = r && moClean(r); if (!m) return;
       const w = words[Math.max(0, Math.min(words.length - 1, Math.round(+r.at)))]; let s = Number.isFinite(+r.at) && w ? w.s : v.currentTime, hit;
       // Too close to another scene: slide it to just after that one.
+      s = Math.max(s, (words[0] ? words[0].s : 0) + 2); // the first 2 s belong to the hook
       while ((hit = userMotions.find(q => s < q.e + .5 && s + m.dur > q.s - .5))) s = hit.e + .6;
       const e = s + m.dur; if (plan && e > plan.total + .2) return;
       delete m.dur; userMotions.push({ ...m, s, e }); n++;
