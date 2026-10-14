@@ -6,9 +6,9 @@
     "semantic_hash": ""
   },
   "netlify/functions/ai-direct.mjs": {
-    "mtime": 1791911805.6491344,
-    "seen": 1791946100.9291716,
-    "ast_hash": "c6e7b62b1c9c1ad7377af84f48383c2c",
+    "mtime": 1791947339.1469414,
+    "seen": 1791951137.4040997,
+    "ast_hash": "afd0b6f2b6065a52d44394b17d111d68",
     "semantic_hash": ""
   },
   "netlify/functions/ai-health.mjs": {
@@ -54,21 +54,21 @@
     "semantic_hash": ""
   },
   "public/editor.js": {
-    "mtime": 1791917856.3698676,
-    "seen": 1791946100.9291878,
-    "ast_hash": "6587b7e530ea8a5d888f48d6371fa704",
+    "mtime": 1791951135.5343337,
+    "seen": 1791951137.4041708,
+    "ast_hash": "825acdfa6bb30e9a61adbdec99a7ade7",
     "semantic_hash": ""
   },
   "public/ui.js": {
-    "mtime": 1791914836.4981515,
-    "seen": 1791946100.929189,
-    "ast_hash": "e26314eb55dbd191c2d473bc28887e01",
+    "mtime": 1791950584.250926,
+    "seen": 1791951137.404404,
+    "ast_hash": "c931b8f1711ea3e38d0d470d3e57fe9e",
     "semantic_hash": ""
   },
   "public/index.html": {
-    "mtime": 1791841868.987851,
-    "seen": 1791841973.7914376,
-    "ast_hash": "6e665a0efed8fea85838be221c3cc363",
+    "mtime": 1791950584.2501817,
+    "seen": 1791951137.4044113,
+    "ast_hash": "1dd2700f5f980d5fe61d106254a9090b",
     "semantic_hash": ""
   },
   "public/broll.jpg": {
@@ -87,6 +87,192 @@
     "mtime": 1791911805.6422532,
     "seen": 1791946100.9291801,
     "ast_hash": "375b4d1282a389b5ff47082b059788b0",
+    "semantic_hash": ""
+  },
+  "netlify/functions/ai-motion.mjs": {
+    "mtime": 1791950569.0703754,
+    "seen": 1791951137.404138,
+    "ast_hash": "4eff52c7dd56a6cd1ea462e81caf0a3c",
+    "semantic_hash": ""
+  },
+  "public/mg/bell.json": {
+    "mtime": 1791949981.9490318,
+    "seen": 1791951137.4041743,
+    "ast_hash": "cf16a898f013d956c167fcac2334e332",
+    "semantic_hash": ""
+  },
+  "public/mg/bolt.json": {
+    "mtime": 1791949981.9207191,
+    "seen": 1791951137.4041767,
+    "ast_hash": "9b61d5b2420913f268f3425de0da3f8a",
+    "semantic_hash": ""
+  },
+  "public/mg/boom.json": {
+    "mtime": 1791949982.0145574,
+    "seen": 1791951137.4041843,
+    "ast_hash": "3e9b413bb9a5ae9f964b11f4b8f3805e",
+    "semantic_hash": ""
+  },
+  "public/mg/brain.json": {
+    "mtime": 1791949729.8344626,
+    "seen": 1791951137.404186,
+    "ast_hash": "898390acc107773449bedc1aa0e91d4f",
+    "semantic_hash": ""
+  },
+  "public/mg/calendar.json": {
+    "mtime": 1791949729.9667504,
+    "seen": 1791951137.4041944,
+    "ast_hash": "341b0f4dd29aaff40efed070fc0600fb",
+    "semantic_hash": ""
+  },
+  "public/mg/check.json": {
+    "mtime": 1791949234.8854632,
+    "seen": 1791951137.404203,
+    "ast_hash": "4f520e9ff9825a623e7c386abfb78c1b",
+    "semantic_hash": ""
+  },
+  "public/mg/clock.json": {
+    "mtime": 1791949235.0226583,
+    "seen": 1791951137.4042158,
+    "ast_hash": "825cef60947a32e01e49f781502ab195",
+    "semantic_hash": ""
+  },
+  "public/mg/coin.json": {
+    "mtime": 1791949234.682812,
+    "seen": 1791951137.4042253,
+    "ast_hash": "c3cc38646b97318811eabcd2651b3ae9",
+    "semantic_hash": ""
+  },
+  "public/mg/crown.json": {
+    "mtime": 1791949730.0014842,
+    "seen": 1791951137.404229,
+    "ast_hash": "462f5ccee866c5522f4c723275f18790",
+    "semantic_hash": ""
+  },
+  "public/mg/down.json": {
+    "mtime": 1791949235.130478,
+    "seen": 1791951137.4042363,
+    "ast_hash": "e430bb30fadb1e7fab4f4a3b5b098bf7",
+    "semantic_hash": ""
+  },
+  "public/mg/eyes.json": {
+    "mtime": 1791949982.0547028,
+    "seen": 1791951137.4042425,
+    "ast_hash": "53ad72a2e6f626df0ae07c784701aa45",
+    "semantic_hash": ""
+  },
+  "public/mg/fire.json": {
+    "mtime": 1791949234.8602974,
+    "seen": 1791951137.4042459,
+    "ast_hash": "6adb56a7da02f8915b51f4643beb39b9",
+    "semantic_hash": ""
+  },
+  "public/mg/follow.json": {
+    "mtime": 1791949235.1070914,
+    "seen": 1791951137.4042528,
+    "ast_hash": "c89d4f5448738467302fcda131f02d32",
+    "semantic_hash": ""
+  },
+  "public/mg/gift.json": {
+    "mtime": 1791949729.9385235,
+    "seen": 1791951137.4042552,
+    "ast_hash": "e538ca2bd1c17a369968e5a931975119",
+    "semantic_hash": ""
+  },
+  "public/mg/growth.json": {
+    "mtime": 1791949234.7146583,
+    "seen": 1791951137.404262,
+    "ast_hash": "271497742d15b2b6b9510138311adca6",
+    "semantic_hash": ""
+  },
+  "public/mg/heart.json": {
+    "mtime": 1791949234.9106584,
+    "seen": 1791951137.4042652,
+    "ast_hash": "444607af210f31a31098b2d2712b8da9",
+    "semantic_hash": ""
+  },
+  "public/mg/idea.json": {
+    "mtime": 1791949234.9996512,
+    "seen": 1791951137.4042735,
+    "ast_hash": "6047861ef61533634e2d9385ef21ae06",
+    "semantic_hash": ""
+  },
+  "public/mg/laugh.json": {
+    "mtime": 1791949981.8179746,
+    "seen": 1791951137.4042819,
+    "ast_hash": "4c996a735a80ca223d589f7ae739affa",
+    "semantic_hash": ""
+  },
+  "public/mg/like.json": {
+    "mtime": 1791949234.9491265,
+    "seen": 1791951137.4042838,
+    "ast_hash": "d1824941f2188a592a9fbadc4fb3b5b2",
+    "semantic_hash": ""
+  },
+  "public/mg/lock.json": {
+    "mtime": 1791949729.8611414,
+    "seen": 1791951137.404289,
+    "ast_hash": "814d4669d414c9fec9e1d4f8923394c2",
+    "semantic_hash": ""
+  },
+  "public/mg/money.json": {
+    "mtime": 1791949234.6510813,
+    "seen": 1791951137.4042966,
+    "ast_hash": "7c68f5282b9465af94320f7e00a500b1",
+    "semantic_hash": ""
+  },
+  "public/mg/party.json": {
+    "mtime": 1791949235.0534384,
+    "seen": 1791951137.4043038,
+    "ast_hash": "91b29246e21386f80dc1f39b728cd980",
+    "semantic_hash": ""
+  },
+  "public/mg/pay.json": {
+    "mtime": 1791949730.0266879,
+    "seen": 1791951137.404311,
+    "ast_hash": "7631bdfac9712c5855ad6faacd589211",
+    "semantic_hash": ""
+  },
+  "public/mg/rocket.json": {
+    "mtime": 1791949234.7588415,
+    "seen": 1791951137.404324,
+    "ast_hash": "12b754850cd17883be779a8883f3e0b6",
+    "semantic_hash": ""
+  },
+  "public/mg/sparkle.json": {
+    "mtime": 1791949235.0788794,
+    "seen": 1791951137.4043374,
+    "ast_hash": "839b21c72c38d69f7fd215d32a846850",
+    "semantic_hash": ""
+  },
+  "public/mg/target.json": {
+    "mtime": 1791949729.9011455,
+    "seen": 1791951137.4043515,
+    "ast_hash": "6dd458a7d16fed0a6608e7e3377b74ef",
+    "semantic_hash": ""
+  },
+  "public/mg/trophy.json": {
+    "mtime": 1791949234.8172708,
+    "seen": 1791951137.4043689,
+    "ast_hash": "b05cdf2ae2e777e577829570e5c3d29d",
+    "semantic_hash": ""
+  },
+  "public/mg/warning.json": {
+    "mtime": 1791949234.9746935,
+    "seen": 1791951137.4043837,
+    "ast_hash": "746c68be854e81b7286f96ab1b5077d3",
+    "semantic_hash": ""
+  },
+  "public/mg/wow.json": {
+    "mtime": 1791949981.8903735,
+    "seen": 1791951137.404395,
+    "ast_hash": "ff1f60396fa2929ebc14ce82f99aa2a3",
+    "semantic_hash": ""
+  },
+  "public/mg/SOURCES.txt": {
+    "mtime": 1791949982.0627027,
+    "seen": 1791951137.4044216,
+    "ast_hash": "17e6d87854762cb14f8132fe75c93299",
     "semantic_hash": ""
   }
 }

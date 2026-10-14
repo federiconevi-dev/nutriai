@@ -2,15 +2,15 @@
   "0": "editor.js",
   "1": "drawFrame",
   "2": "ui.js",
-  "3": "followHead",
-  "4": "ease",
+  "3": "ease",
+  "4": "theme",
   "5": "fastExport",
   "6": "guard.mjs",
   "7": "build",
   "8": "loadAiArt",
-  "9": "screenTrans",
+  "9": "sfx",
   "10": "clip.ts",
+  "11": "addMotions",
   "12": "finish",
-  "13": "typoKey",
-  "14": "cutFx"
+  "13": "typoKey"
 }

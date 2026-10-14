@@ -222,7 +222,30 @@ async function direct(request = '') {
   }
   directing = false; $('#aiGo').disabled = $('#aiAuto').disabled = false;
 }
-window.onTranscribed = () => direct();
+// ---- Motion graphics designed by the AI (own templates drawn by the engine) ----
+let moBusy = false;
+async function motions(request = '') {
+  if (moBusy || !VE.plan) return;
+  moBusy = true; $('#moGo').disabled = $('#moAuto').disabled = true;
+  $('#moRec').textContent = request ? 'Diseñando tu motion graphic…' : 'La IA está diseñando los motion graphics…';
+  try {
+    const ask = () => fetch('/api/ai-motion', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ words: VE.motionWords, request }) });
+    let r = await ask().catch(() => null);
+    if (!r || r.status >= 500) { await new Promise(ok => setTimeout(ok, 1500)); r = await ask(); }
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j.error || 'La IA no respondió.');
+    const n = VE.addMotions(j.motions, !request);
+    $('#moRec').textContent = n ? (request ? 'Listo, ya está en tu video.' : `Listo: ${n} motion graphics en tu video.`) : 'No encontré un buen lugar libre. Probá decir en qué palabra va.';
+    if (request && n) $('#moAsk').value = '';
+  } catch (e) { $('#moRec').textContent = 'La IA no pudo ahora (' + e.message + ').'; }
+  $('#moClear').hidden = !VE.motionCount;
+  moBusy = false; $('#moGo').disabled = $('#moAuto').disabled = false;
+}
+$('#moGo').onclick = () => { const q = $('#moAsk').value.trim(); if (q) motions(q); };
+$('#moAsk').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('#moGo').click(); } });
+$('#moAuto').onclick = () => motions();
+$('#moClear').onclick = () => { VE.clearMotions(); $('#moClear').hidden = true; $('#moRec').textContent = ''; };
+window.onTranscribed = async () => { await direct(); motions(); };
 $('#aiGo').onclick = () => { const q = $('#aiAsk').value.trim(); if (q) direct(q); };
 $('#aiAsk').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('#aiGo').click(); } });
 $('#aiAuto').onclick = () => direct();

@@ -1113,6 +1113,8 @@ function makeBeats(P) {
   if (P.list && (on('optMG') || style().viro)) busyRanges.push([P.list.s - .5, P.list.e + .5]);
   (P.screens || []).forEach(sc => { if (sc.type === 'stat' ? on('optStats') : on('optMG')) busyRanges.push([sc.s - .5, sc.e + .5]); });
   const ovR = on('optOverlay') ? (P.overlays || []).map(o => [o.s, o.e]) : [];
+  // Motion graphics asked to the AI go first; everything else avoids them.
+  B.motions = userMotions.map((m, i) => ({ ...m, n: i })); B.motions.forEach(m => busyRanges.push([m.s - .3, m.e + .3]));
   const free = (s, e) => !busyRanges.some(([a, b]) => s < b && e > a);
   // Visual hook: the strongest 1-2 words of the first sentence, giant, behind you.
   if (on('optHook') && hookTextType() === 'big') {
@@ -1192,7 +1194,7 @@ function makeBeats(P) {
   }
   // Pro animated stickers when a key idea is said (max ~6/min, one at a time, never over other graphics).
   B.stickers = [];
-  if (style().viro && recipeKey() !== 'minimal') {
+  if (false) { // emoji-like stickers over the speaker: off (the creator prefers full motion-graphic scenes)
     let lastSk = -9; const used = {};
     words.forEach(w => {
       const n = norm(w.t); if (w.s < 1.5 || w.s - lastSk < 5) return;
@@ -1663,8 +1665,221 @@ function glitch(k) {
 }
 
 // Called right after the video frame is drawn. Returns { hide } to hide captions while a giant word is on screen.
+// ---------- Motion graphics (own designs, Jitter-style): asked to the AI in plain words or picked automatically ----------
+// Scenes: { s, e, tpl, theme, lines[], key, num, unit, labels[], values[], icon }. Everything is drawn here, frame-exact, so it exports too.
+let userMotions = [], MW = W, MH = H, moSrc = null;
+const MO_TPL = ['reveal', 'counter', 'bars', 'versus', 'roll', 'stamp', 'strike'], MO_FRAMES = ['none', 'laptop', 'phone', 'card', 'player'];
+const MO_TH = {
+  light: { bg: ['#f6f5f1', '#dcdad3'], ink: '#111111', soft: 'rgba(17,17,17,.12)', acc: '#2f5bff', acc2: '#ff5a1f' },
+  dark: { bg: ['#1d1d1f', '#050505'], ink: '#f4f4f2', soft: 'rgba(255,255,255,.1)', acc: '#c6ff3d', acc2: '#ff4d6d' },
+  color: { bg: ['#3b63ff', '#1b33c9'], ink: '#ffffff', soft: 'rgba(255,255,255,.16)', acc: '#ffe14d', acc2: '#111111' },
+  orange: { bg: ['#ff7a2a', '#e8460c'], ink: '#111111', soft: 'rgba(0,0,0,.12)', acc: '#ffffff', acc2: '#111111' }
+};
+const moSans = s => `800 ${s}px Inter, sans-serif`, moSerif = s => `italic 400 ${s}px "Instrument Serif", serif`, moHeavy = s => `900 ${s}px Inter, sans-serif`;
+function moFit(txt, font, maxW, size, min = 28) { cx.font = font(size); while (size > min && cx.measureText(txt).width > maxW) { size -= 4; cx.font = font(size); } return size; }
+const moStag = (age, i, d = .1, len = .45) => easeQ((age - .15 - i * d) / len);
+const moNum = (n, unit) => { const s = Math.round(n).toLocaleString('es-AR'); return unit === '$' || unit === 'US$' ? unit + s : unit ? s + unit : s; };
+function moBg(th, age, n) {
+  const g = cx.createRadialGradient(MW / 2, MH * .42, 40, MW / 2, MH * .5, MH * .85); g.addColorStop(0, th.bg[0]); g.addColorStop(1, th.bg[1]);
+  cx.fillStyle = g; cx.fillRect(0, 0, MW, MH);
+  // Slow dot grid + a soft blob drifting: the background never sits still.
+  if (th === MO_TH.light) { for (let i = 0; i < 9; i++) { const r = 14 + (i * 37 % 40), px = (i * 263 + age * (8 + i * 3)) % (MW + 80) - 40, py = (i * 151 + Math.sin(age * .6 + i) * 30) % MH; cx.save(); cx.fillStyle = 'rgba(0,0,0,.13)'; if (HAS_FILTER) cx.filter = `blur(${i % 3 * 4 + 2}px)`; cx.beginPath(); cx.arc(px, py, r, 0, 7); cx.fill(); cx.restore(); } return; }
+  cx.fillStyle = th.soft; const off = (age * 14) % 48;
+  for (let y = -48; y < MH + 48; y += 48) for (let x = -48; x < MW + 48; x += 48) { cx.beginPath(); cx.arc(x + off, y + off * .5, 2.2, 0, 7); cx.fill(); }
+  cx.save(); cx.globalAlpha = .35; cx.fillStyle = th.acc; cx.filter = HAS_FILTER ? 'blur(90px)' : 'none';
+  cx.beginPath(); cx.arc(MW * (.3 + .4 * ((n % 2) ? 1 - Math.sin(age * .7) * .3 : Math.sin(age * .7) * .3 + .3)), MH * (.25 + .5 * (n % 2)), 230, 0, 7); cx.fill(); cx.restore();
+}
+function moIcon(name, age, x, y, z) {
+  const m = name && mgLib[name]; if (!m) return;
+  m.a.goToAndStop(Math.min(m.a.totalFrames - 1, age * (m.a.frameRate || 30)), true);
+  const k = back((age - .2) / .45); if (k <= 0) return;
+  cx.save(); cx.translate(x, y + Math.sin(age * 2) * 8); cx.scale(k, k); cx.shadowColor = 'rgba(0,0,0,.3)'; cx.shadowBlur = 30; cx.shadowOffsetY = 14; cx.drawImage(m.cv, -z / 2, -z / 2, z, z); cx.restore();
+}
+// A line of text that rises out of an invisible mask (the classic premium reveal).
+function moLine(txt, font, size, x, y, k, color, align = 'center') {
+  cx.font = font(size); const w = cx.measureText(txt).width, x0 = align === 'center' ? x - w / 2 : x;
+  cx.save(); cx.beginPath(); cx.rect(x0 - 20, y - size * 1.05, w + 40, size * 1.35); cx.clip();
+  cx.fillStyle = color; cx.textAlign = 'left'; cx.textBaseline = 'alphabetic'; cx.fillText(txt, x0, y + (1 - k) * size * 1.2); cx.restore();
+  return { x0, w };
+}
+// Hand-drawn ellipse around a word, drawn progressively.
+function moCircle(x, y, w, h, k, color) {
+  if (k <= 0) return; cx.save(); cx.strokeStyle = color; cx.lineWidth = 7; cx.lineCap = 'round'; cx.beginPath();
+  const steps = 60 * k; for (let i = 0; i <= steps; i++) { const a = -2.6 + i / 60 * Math.PI * 2.15, r = 1 + .04 * Math.sin(i * .5); const px = x + Math.cos(a) * w * .5 * r, py = y + Math.sin(a) * h * .5 * r; i ? cx.lineTo(px, py) : cx.moveTo(px, py); }
+  cx.stroke(); cx.restore();
+}
+function moReveal(m, age, th) {
+  const L = m.lines.length ? m.lines : [m.key]; let y = MH * .5 - (L.length - 1) * 60;
+  L.forEach((ln, i) => {
+    const k = moStag(age, i), hasKey = m.key && norm(ln).includes(norm(m.key));
+    if (hasKey && norm(ln) === norm(m.key)) {
+      const sz = moFit(ln, moSerif, MW * .86, 150, 60); if (i) y += sz * .45; const r = moLine(ln, moSerif, sz, MW / 2, y + 20, k, th.acc);
+      moCircle(MW / 2, y - sz * .3, r.w + 70, sz * 1.25, ease((age - .55 - i * .1) / .6), th.acc2); y += sz * .9 + 30;
+    } else {
+      const sz = moFit(ln, moSans, MW * .86, 84, 40); const r = moLine(ln, moSans, sz, MW / 2, y, k, th.ink);
+      if (hasKey) { const u = ease((age - .5 - i * .1) / .45); cx.fillStyle = th.acc; cx.fillRect(r.x0, y + 16, r.w * u, 10); }
+      y += sz * 1.15;
+    }
+  });
+  moIcon(m.icon, age, MW * .78, MH * .2, 260);
+}
+function moCounter(m, age, th) {
+  const k = easeQ((age - .2) / 1.1), cyy = MH * .44, R = Math.min(250, MH * .26);
+  cx.save(); cx.lineWidth = 22; cx.strokeStyle = th.soft; cx.beginPath(); cx.arc(MW / 2, cyy, R, 0, 7); cx.stroke();
+  cx.strokeStyle = th.acc; cx.lineCap = 'round'; cx.beginPath(); cx.arc(MW / 2, cyy, R, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * k); cx.stroke(); cx.restore();
+  const txt = moNum(m.num * k, m.unit), sz = moFit(moNum(m.num, m.unit), moHeavy, R * 1.7, 150, 50);
+  cx.save(); cx.translate(MW / 2, cyy); const p = back(age / .4); cx.scale(p, p); cx.font = moHeavy(sz); cx.fillStyle = th.ink; cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillText(txt, 0, 0); cx.restore();
+  (m.lines.length ? m.lines : [m.key]).filter(Boolean).slice(0, 2).forEach((ln, i) => { const f = i ? moSerif : moSans, sz2 = moFit(ln, f, MW * .84, i ? 70 : 60, 34); moLine(ln, f, sz2, MW / 2, cyy + R + 110 + i * 78, moStag(age, i + 3), i ? th.acc : th.ink); });
+  moIcon(m.icon, age, MW * .8, MH * .16, 220);
+}
+function moBars(m, age, th) {
+  const vals = m.values.length ? m.values : [30, 100], n = vals.length, mx = Math.max(...vals, 1), base = MH * .78, top = MH * .3, bw = Math.min(150, MW * .7 / n), gap = (MW * .84 - bw * n) / Math.max(1, n - 1);
+  if (m.lines[0]) { const sz = moFit(m.lines[0], moSans, MW * .86, 70, 36); moLine(m.lines[0], moSans, sz, MW / 2, MH * .18, moStag(age, 0), th.ink); }
+  cx.fillStyle = th.soft; cx.fillRect(MW * .08, base + 4, MW * .84, 4);
+  vals.forEach((v, i) => {
+    const k = easeQ((age - .3 - i * .15) / .8), h = (base - top) * v / mx * k, x = MW * .08 + i * (bw + gap) + (n === 1 ? (MW * .84 - bw) / 2 : 0), last = i === n - 1;
+    cx.fillStyle = last ? th.acc : th.ink; cx.globalAlpha = last ? 1 : .85; rrect(x, base - h, bw, h, 18); cx.fill(); cx.globalAlpha = 1;
+    cx.font = moHeavy(44); cx.textAlign = 'center'; cx.fillStyle = th.ink; if (k > .05) cx.fillText(moNum(v * k, m.unit), x + bw / 2, base - h - 22);
+    if (m.labels[i]) { const s2 = moFit(m.labels[i], moSerif, bw + gap * .9, 48, 26); cx.font = moSerif(s2); cx.fillStyle = last ? th.acc : th.ink; cx.globalAlpha = ease((age - .5 - i * .15) / .4); cx.fillText(m.labels[i], x + bw / 2, base + 64); cx.globalAlpha = 1; }
+  });
+}
+function moVersus(m, age, th) {
+  const A = m.labels[0] || 'Antes', Bt = m.labels[1] || 'Después', cw = MW * .8, ch = Math.min(300, MH * .2);
+  if (m.lines[0]) { const sz = moFit(m.lines[0], moSans, MW * .86, 66, 34); moLine(m.lines[0], moSans, sz, MW / 2, MH * .17, moStag(age, 0), th.ink); }
+  [[A, -1, MH * .3, th.ink, th.bg[0]], [Bt, 1, MH * .56, th.acc, th.acc2 === '#111111' ? '#111' : th.bg[0]]].forEach(([txt, dir, y, fill, fg], i) => {
+    const k = back((age - .2 - i * .25) / .55), x = MW / 2 - cw / 2 + dir * (1 - k) * MW;
+    cx.save(); cx.translate(x + cw / 2, y + ch / 2); cx.rotate(dir * (1 - Math.min(1, k)) * .25 + dir * -.025);
+    cx.shadowColor = 'rgba(0,0,0,.28)'; cx.shadowBlur = 40; cx.shadowOffsetY = 18; cx.fillStyle = fill; rrect(-cw / 2, -ch / 2, cw, ch, 36); cx.fill(); cx.shadowColor = 'transparent';
+    const sz = moFit(txt, i ? moSerif : moHeavy, cw * .84, Math.min(110, ch * .5), 34); cx.font = (i ? moSerif : moHeavy)(sz); cx.fillStyle = i ? (th === MO_TH.color ? '#111' : th.bg[1]) : th.bg[0]; cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillText(txt, 0, 6); cx.restore();
+  });
+  const k = back((age - .75) / .4), vy = MH * .3 + ch + (MH * .56 - MH * .3 - ch) / 2;
+  if (k > 0) { cx.save(); cx.translate(MW / 2, vy); cx.scale(k, k); cx.fillStyle = th.acc2 === '#111111' ? '#fff' : th.acc2; cx.beginPath(); cx.arc(0, 0, 62, 0, 7); cx.fill(); cx.font = moHeavy(48); cx.fillStyle = '#fff'; if (th.acc2 === '#111111') cx.fillStyle = '#111'; cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillText('VS', 0, 3); cx.restore(); }
+  const rk = ease((age - .75) / .5); if (rk > 0 && rk < 1) { cx.save(); cx.globalAlpha = 1 - rk; cx.strokeStyle = th.acc2 === '#111111' ? '#fff' : th.acc2; cx.lineWidth = 6; cx.beginPath(); cx.arc(MW / 2, vy, 62 + rk * 120, 0, 7); cx.stroke(); cx.restore(); }
+}
+function moRoll(m, age, th) {
+  const list = [...m.labels.filter(Boolean), m.key || m.labels.at(-1) || ''].filter(Boolean); if (!list.length) return;
+  if (m.lines[0]) { const sz = moFit(m.lines[0], moSans, MW * .86, 76, 36); moLine(m.lines[0], moSans, sz, MW / 2, MH * .4, moStag(age, 0), th.ink); }
+  const sz = Math.min(...list.map(w => moFit(w, moSerif, MW * .86, 150, 60))), rowH = sz * 1.1, y = MH * .56, total = list.length - 1;
+  const p = Math.min(total, total * back((age - .35) / (.4 + total * .18)));
+  cx.save(); cx.beginPath(); cx.rect(0, y - rowH * .8, MW, rowH * 1.05); cx.clip(); cx.font = moSerif(sz); cx.textAlign = 'center'; cx.textBaseline = 'alphabetic';
+  list.forEach((w, i) => { const d = i - p; if (Math.abs(d) > 1.2) return; cx.fillStyle = i === total ? th.acc : th.ink; cx.globalAlpha = 1 - Math.min(1, Math.abs(d)) * .6; cx.fillText(w, MW / 2, y + d * rowH); });
+  cx.restore();
+  const u = ease((age - .55 - total * .2) / .4); cx.fillStyle = th.acc2; cx.fillRect(MW / 2 - MW * .3 * u, y + 34, MW * .6 * u, 8);
+}
+function moStamp(m, age, th) {
+  const word = (m.key || m.lines[0] || '').toUpperCase(), sz = moFit(word, moHeavy, MW * .9, 210, 60), k = back((age - .1) / .35), sc = 1 + (1 - Math.min(1, k)) * 2.2;
+  const sh = age > .3 && age < .6 ? (Math.random() - .5) * 18 * (1 - (age - .3) / .3) : 0;
+  [0, .12].forEach(d => { const r = ease((age - .35 - d) / .6); if (r > 0 && r < 1) { cx.save(); cx.globalAlpha = 1 - r; cx.strokeStyle = th.acc; cx.lineWidth = 10 * (1 - r) + 2; cx.beginPath(); cx.arc(MW / 2, MH * .5, 120 + r * MW * .6, 0, 7); cx.stroke(); cx.restore(); } });
+  cx.save(); cx.translate(MW / 2 + sh, MH * .5 + sh * .6); cx.scale(sc, sc); cx.rotate(-.04); cx.globalAlpha = Math.min(1, k * 3);
+  cx.font = moHeavy(sz); cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillStyle = th.acc; cx.fillText(word, 6, 8); cx.fillStyle = th.ink; cx.fillText(word, 0, 0); cx.restore();
+  const sub = m.lines.find(l => norm(l) !== norm(m.key)); if (sub) { const s2 = moFit(sub, moSerif, MW * .84, 72, 34); moLine(sub, moSerif, s2, MW / 2, MH * .5 - sz * .75, moStag(age, 2), th.ink); }
+  moIcon(m.icon, age, MW * .5, MH * .74, 240);
+}
+function moStrike(m, age, th) {
+  const items = m.labels.length ? m.labels : m.lines.slice(1); let y = MH * .5 - items.length * 50;
+  if (m.lines[0]) { const sz = moFit(m.lines[0], moSans, MW * .86, 70, 34); moLine(m.lines[0], moSans, sz, MW / 2, y - 70, moStag(age, 0), th.ink); }
+  items.forEach((it, i) => {
+    const k = moStag(age, i + 1, .14), sz = moFit(it, moSerif, MW * .7, 84, 30); cx.font = moSerif(sz); const w = cx.measureText(it).width, x0 = MW / 2 - w / 2 + 20;
+    cx.save(); cx.globalAlpha = k; cx.translate(0, (1 - k) * 30); cx.fillStyle = th.ink; cx.save(); cx.translate(x0 - 40, y - sz * .3); cx.rotate(Math.PI / 4); cx.fillRect(-8, -8, 16, 16); cx.restore();
+    cx.textAlign = 'left'; cx.textBaseline = 'alphabetic'; cx.fillText(it, x0, y);
+    const u = ease((age - .7 - i * .22) / .3); if (u > 0) { cx.fillStyle = th.acc2 === '#111111' ? th.ink : th.acc2; cx.fillRect(x0 - 6, y - sz * .32, (w + 12) * u, 6); }
+    cx.restore(); y += sz * 1.3;
+  });
+  if (m.key) { const sz = moFit(m.key, moSerif, MW * .86, 120, 50); moLine(m.key, moSerif, sz, MW / 2, y + 70, ease((age - .8 - items.length * .22) / .4), th.acc); }
+}
+const MO_DRAW = { reveal: moReveal, counter: moCounter, bars: moBars, versus: moVersus, roll: moRoll, stamp: moStamp, strike: moStrike };
+// Renders a scene into an offscreen canvas of any size (used for screens inside mockups).
+let moOff = null;
+function moRender(m, age, th, w, h) {
+  if (!moOff) { moOff = document.createElement('canvas'); }
+  if (moOff.width !== w || moOff.height !== h) { moOff.width = w; moOff.height = h; }
+  const real = cx; cx = moOff.getContext('2d'); MW = w; MH = h;
+  cx.save(); moBg(th, age, m.n || 0); MO_DRAW[m.tpl](m, age, th); cx.restore();
+  cx = real; MW = W; MH = H; return moOff;
+}
+// Speaker's own frame (cover crop) into a box.
+function moVideo(x, y, w, h) {
+  if (!moSrc) return; const [s, sw, sh] = moSrc; if (!sw) return;
+  const k = Math.max(w / sw, h / sh); cx.drawImage(s, x + (w - sw * k) / 2, y + (h - sh * k) * .42, sw * k, sh * k);
+}
+// Laptop in perspective, dark room, glossy floor reflection (the screen plays the scene).
+let moPer = null;
+function moLaptop(m, age, th) {
+  const g = cx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#3a3a3c'); g.addColorStop(.5, '#151516'); g.addColorStop(1, '#232324'); cx.fillStyle = g; cx.fillRect(0, 0, W, H);
+  const scr = moRender(m, age, th, 960, 600), push = 1 + .07 * easeQ(age / 3);
+  // Screen in perspective (left edge closer), built once per frame so the reflection is clean.
+  if (!moPer) { moPer = document.createElement('canvas'); moPer.width = W; moPer.height = 460; }
+  const pc = moPer.getContext('2d'), L = W * .09, R = W * .91, hL = 380, hR = 330, N = 90, top = 20;
+  pc.clearRect(0, 0, W, 460); pc.fillStyle = '#0b0b0c';
+  pc.beginPath(); pc.moveTo(L - 12, top - 12); pc.lineTo(R + 10, top + (hL - hR) / 2 - 10); pc.lineTo(R + 10, top + (hL + hR) / 2 + 10); pc.lineTo(L - 12, top + hL + 12); pc.fill();
+  for (let i = 0; i < N; i++) { const f = i / N, x = L + (R - L) * f, hh = hL + (hR - hL) * f; pc.drawImage(scr, f * 960, 0, 960 / N, 600, Math.floor(x), top + (hL - hh) / 2, Math.ceil((R - L) / N) + 1, hh); }
+  const gl = pc.createLinearGradient(L, 0, R, top + hL); gl.addColorStop(0, 'rgba(255,255,255,.08)'); gl.addColorStop(.5, 'rgba(255,255,255,0)'); pc.fillStyle = gl; pc.fillRect(L, top, R - L, hL);
+  const y0 = H * .27, by = y0 + top + hL + 12;
+  cx.save(); cx.translate(W / 2, H * .45); cx.scale(push, push); cx.translate(-W / 2, -H * .45);
+  // Glow of the screen on the room.
+  const rg = cx.createRadialGradient(W / 2, y0 + 200, 40, W / 2, y0 + 200, W * .95); rg.addColorStop(0, th.bg[0] + '40'); rg.addColorStop(1, th.bg[0] + '00'); cx.fillStyle = rg; cx.fillRect(0, 0, W, H);
+  cx.drawImage(moPer, 0, y0);
+  // Keyboard deck: thin slab coming towards the camera.
+  cx.fillStyle = '#2e2e30'; cx.beginPath(); cx.moveTo(L - 12, by); cx.lineTo(R + 10, y0 + top + (hL + hR) / 2 + 10); cx.lineTo(R + 40, y0 + top + (hL + hR) / 2 + 34); cx.lineTo(L - 50, by + 44); cx.fill();
+  cx.fillStyle = '#4a4a4d'; cx.fillRect(L - 50, by + 44, R - L + 90, 5);
+  // Glossy floor reflection.
+  cx.save(); cx.globalAlpha = .28; cx.translate(0, by + 60 + 460); cx.scale(1, -1); cx.drawImage(moPer, 0, 0); cx.restore();
+  const fl = cx.createLinearGradient(0, by + 50, 0, by + 380); fl.addColorStop(0, 'rgba(25,25,26,.15)'); fl.addColorStop(1, 'rgba(25,25,26,1)'); cx.fillStyle = fl; cx.fillRect(0, by + 50, W, H - by);
+  cx.restore();
+}
+// Light set with floating blurred dots, the speaker inside a device/card, mixed-font title on top.
+function moDevice(m, age, th, kind) {
+  const lt = MO_TH.light; MW = W; MH = H; moBg(lt, age, m.n || 0);
+  const k = back((age - .05) / .5), fl = Math.sin(age * 1.4) * 10, tilt = Math.sin(age * .9) * .03;
+  let bw = W * .62, bh = H * .5, r = 70; if (kind === 'card') { bw = W * .66; bh = H * .56; r = 64; } if (kind === 'player') { bw = W * .86; bh = W * .86 * .62; r = 34; }
+  const bx = (W - bw) / 2, by = H * .58 - bh / 2 + fl + (1 - Math.min(1, k)) * H * .5;
+  cx.save(); cx.translate(W / 2, by + bh / 2); cx.rotate(tilt + (kind === 'card' ? -.04 : 0)); cx.scale(.9 + .1 * Math.min(1, k), .9 + .1 * Math.min(1, k)); cx.translate(-W / 2, -(by + bh / 2));
+  cx.shadowColor = 'rgba(0,0,0,.35)'; cx.shadowBlur = 60; cx.shadowOffsetY = 30; cx.fillStyle = '#0b0b0b'; rrect(bx - 12, by - 12, bw + 24, bh + 24, r + 10); cx.fill(); cx.shadowColor = 'transparent';
+  cx.save(); rrect(bx, by, bw, bh, r); cx.clip(); moVideo(bx, by, bw, bh);
+  if (kind === 'card') { const gd = cx.createLinearGradient(0, by, 0, by + bh); gd.addColorStop(0, 'rgba(0,0,0,.05)'); gd.addColorStop(.6, 'rgba(0,0,0,0)'); gd.addColorStop(1, 'rgba(0,0,0,.6)'); cx.fillStyle = gd; cx.fillRect(bx, by, bw, bh); }
+  if (kind === 'player') { cx.fillStyle = 'rgba(0,0,0,.35)'; cx.fillRect(bx, by + bh - 70, bw, 70); cx.fillStyle = 'rgba(255,255,255,.35)'; cx.fillRect(bx + 30, by + bh - 34, bw - 60, 6); cx.fillStyle = '#fff'; cx.fillRect(bx + 30, by + bh - 34, (bw - 60) * Math.min(1, age / (m.e - m.s)), 6);
+    const pk = 1 - ease((age - .4) / .3); if (pk > 0) { cx.globalAlpha = pk; cx.fillStyle = 'rgba(255,255,255,.9)'; cx.beginPath(); cx.arc(W / 2, by + bh / 2, 56, 0, 7); cx.fill(); cx.fillStyle = '#111'; cx.beginPath(); cx.moveTo(W / 2 - 16, by + bh / 2 - 24); cx.lineTo(W / 2 + 26, by + bh / 2); cx.lineTo(W / 2 - 16, by + bh / 2 + 24); cx.fill(); cx.globalAlpha = 1; } }
+  cx.restore();
+  if (kind === 'phone') { cx.fillStyle = '#0b0b0b'; rrect(W / 2 - 60, by + 14, 120, 30, 15); cx.fill(); }
+  if (kind === 'card' && m.key) { const sz = moFit(m.key, moSerif, bw * .9, 84, 36); moLine(m.key, moSerif, sz, W / 2, by + bh - 50, moStag(age, 3), '#ffffff'); }
+  cx.restore();
+  // Title: small bold line + big italic serif line (the key), rising out of masks.
+  const L1 = m.lines[0] || '', L2 = kind === 'card' ? (m.lines[1] || '') : (m.key || m.lines[1] || '');
+  let ty = Math.max(150, by - (L2 ? 150 : 60));
+  if (L1) { const sz = moFit(L1, moSans, W * .86, 56, 30); moLine(L1, moSans, sz, W / 2, ty, moStag(age, 0), '#111'); ty += sz + 30; }
+  if (L2) { const sz = moFit(L2, moSerif, W * .86, 96, 40); moLine(L2, moSerif, sz, W / 2, ty + 20, moStag(age, 1), '#111'); }
+}
+function drawMotion(m, t) {
+  const age = t - m.s, left = m.e - t, th = MO_TH[m.theme] || MO_TH.light;
+  cx.save();
+  // In: circle wipe from the center. Out: quick slide up.
+  const kin = easeQ(age / .32), out = easeQ(1 - left / .22);
+  if (kin < 1) { cx.beginPath(); cx.arc(MW / 2, MH / 2, Math.hypot(MW, MH) * .55 * kin, 0, 7); cx.clip(); }
+  if (left < .22) cx.translate(0, -MH * out);
+  if (m.frame === 'laptop') moLaptop(m, age, th);
+  else if (m.frame && m.frame !== 'none') moDevice(m, age, th, m.frame);
+  else { moBg(th, age, m.n || 0); MO_DRAW[m.tpl](m, age, th); }
+  cx.restore();
+}
+const MO_SFX = { reveal: 'whoosh', counter: 'tick', bars: 'riser', versus: 'whoosh', roll: 'tick', stamp: 'impact', strike: 'swipe' };
+// Cleans what the AI sends: only known templates/themes/icons, short texts, real numbers.
+function moClean(r) {
+  const str = (x, n) => String(x == null ? '' : x).replace(/\s+/g, ' ').trim().slice(0, n);
+  const tpl = MO_TPL.includes(r.tpl) ? r.tpl : 'reveal';
+  const m = { tpl, theme: MO_TH[r.theme] ? r.theme : 'light', lines: (Array.isArray(r.lines) ? r.lines : []).slice(0, 3).map(x => str(x, 30)).filter(Boolean), key: str(r.key, 22),
+    num: Math.max(0, Math.min(1e9, +r.num || 0)), unit: ['$', 'US$', '%', 'k', 'M', 'x', '+', ''].includes(r.unit) ? r.unit : '', labels: (Array.isArray(r.labels) ? r.labels : []).slice(0, 5).map(x => str(x, 16)).filter(Boolean),
+    values: (Array.isArray(r.values) ? r.values : []).slice(0, 4).map(x => Math.max(0, Math.min(1e9, +x || 0))), icon: MG_WORDS.some(([n]) => n === r.icon) ? r.icon : '', frame: MO_FRAMES.includes(r.frame) ? r.frame : 'none' };
+  if (tpl === 'counter' && !m.num) m.tpl = 'reveal';
+  if (tpl === 'versus' && m.labels.length < 2) m.tpl = 'reveal';
+  if (tpl === 'strike' && m.labels.length < 2) m.tpl = 'reveal';
+  if (!m.lines.length && !m.key) return null;
+  m.dur = Math.max(1.6, Math.min(4, +r.dur || (tpl === 'roll' || tpl === 'bars' ? 3 : 2.4)));
+  return m;
+}
 function fxLayer(t, ot, P, x, y, w, h, coral) {
   const B = P.beats; if (!B) return { hide: false };
+  const mo = (B.motions || []).find(q => t >= q.s && t <= q.e);
+  if (mo) { if (busy && !fired.has('mo' + mo.s)) { fired.add('mo' + mo.s); sfx(MO_SFX[mo.tpl]); if (mo.tpl === 'counter' && mo.unit === '$') sfx('cash', .9); } drawMotion(mo, t); return { hide: true }; }
   const kn = (B.kin || []).find(q => t >= q.s && t <= q.e);
   if (kn) {
     if (busy) { if (!fired.has('k' + kn.s)) { fired.add('k' + kn.s); sfx('impact'); } kn.words.forEach((w, i) => { if (t >= w.s && !fired.has('kw' + kn.s + i)) { fired.add('kw' + kn.s + i); sfx('tick'); } }); }
@@ -2126,6 +2341,7 @@ function fontOverride(base) {
 let curSrc = v, curOt = 0, fastBusy = false;
 const flipCv = document.createElement('canvas'), flipCx = flipCv.getContext('2d');
 function drawFrame(t, src, sw, sh) {
+  moSrc = [src, sw, sh];
   // "Espejar": undo the selfie-camera mirror (text on clothes reads correctly).
   if (on('optFlip')) { if (flipCv.width !== sw || flipCv.height !== sh) { flipCv.width = sw; flipCv.height = sh; } flipCx.setTransform(-1, 0, 0, 1, sw, 0); flipCx.drawImage(src, 0, 0, sw, sh); src = flipCv; }
   curSrc = src;
@@ -2628,6 +2844,23 @@ window.VE = {
     if (n) build();
   },
   get plan() { return plan; },
+  // Motion graphics: the transcript as "index:word" for the AI, then its scenes placed on those words.
+  get motionWords() { return words.map((w, i) => i + ':' + w.t).join(' ').slice(0, 6000); },
+  get motionCount() { return userMotions.length; },
+  addMotions(list, replace = false) {
+    if (replace) userMotions = [];
+    let n = 0;
+    (Array.isArray(list) ? list : []).forEach(r => {
+      const m = r && moClean(r); if (!m) return;
+      const w = words[Math.max(0, Math.min(words.length - 1, Math.round(+r.at)))]; let s = Number.isFinite(+r.at) && w ? w.s : v.currentTime, hit;
+      // Too close to another scene: slide it to just after that one.
+      while ((hit = userMotions.find(q => s < q.e + .5 && s + m.dur > q.s - .5))) s = hit.e + .6;
+      const e = s + m.dur; if (plan && e > plan.total + .2) return;
+      delete m.dur; userMotions.push({ ...m, s, e }); n++;
+    });
+    userMotions.sort((a, b) => a.s - b.s); if (n) build(); return n;
+  },
+  clearMotions() { userMotions = []; build(); },
   // Draws a preview of a motion-graphics look ('mg') or an overlay style ('ov') into a small canvas.
   thumb(c, kind, key, i = 0) {
     const real = cx, el = document.getElementById(kind === 'ov' ? 'ovStyle' : 'mg'), prev = el.value;
