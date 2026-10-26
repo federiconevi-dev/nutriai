@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Docente + IA · Recuperá tus domingos</title>
+<meta name="description" content="43 prompts listos para que la IA te haga el borrador de planificaciones, rúbricas, actividades e informes. Para docentes de inicial, primaria y secundaria de Argentina. $9.900.">
+<meta property="og:title" content="Docente + IA · Recuperá tus domingos">
+<meta property="og:description" content="43 prompts listos para planificar, evaluar e informar en minutos. PDF de descarga inmediata.">
+<meta property="og:image" content="https://federiconevi-dev.github.io/nutriai/docente/og.jpg">
+<meta name="theme-color" content="#16213E">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;600;800;900&family=Instrument+Serif:ital@1&display=swap" rel="stylesheet">
+<!-- Meta Pixel -->
+<script>
+!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+fbq('init','1389054003307161');fbq('track','PageView');fbq('track','ViewContent',{content_name:'Docente + IA',value:9900,currency:'ARS'});
+</script>
+<style>
+:root{--navy:#16213E;--navy2:#1d2a4d;--coral:#FF7A59;--coral2:#ff9475;--cream:#F7F5F0;--ink:#16213E;--muted:#5A6070;--mint:#2BBF94;--line:#e6e2d8}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter Tight',system-ui,sans-serif;background:var(--cream);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased;padding-bottom:92px}
+img{max-width:100%;display:block}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+.serif{font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;letter-spacing:-.01em}
+.co{color:var(--coral)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;background:var(--coral);color:#fff;font-weight:900;font-size:19px;text-decoration:none;padding:19px 30px;border-radius:999px;box-shadow:0 14px 34px rgba(255,122,89,.42);transition:transform .15s,box-shadow .15s;position:relative;overflow:hidden;width:100%;max-width:420px}
+.btn:active{transform:scale(.97)}
+.btn::after{content:'';position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.45),transparent);animation:shine 3.2s infinite}
+@keyframes shine{0%,60%{left:-60%}100%{left:130%}}
+.micro{font-size:14px;color:var(--muted);margin-top:12px;display:flex;flex-wrap:wrap;gap:6px 14px;justify-content:center}
+.micro span::before{content:'✓ ';color:var(--mint);font-weight:900}
+/* HERO */
+.hero{background:radial-gradient(800px 600px at 10% -10%,#2b3b6e,transparent 60%),radial-gradient(700px 600px at 110% 100%,#5a2c3a,transparent 60%),var(--navy);color:var(--cream);padding:22px 0 60px;overflow:hidden;position:relative}
+.hero::before{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);background-size:44px 44px;pointer-events:none}
+.top{display:flex;justify-content:space-between;align-items:center;font-weight:800;font-size:15px;position:relative}
+.top .tag{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);padding:6px 12px;border-radius:999px;font-size:13px}
+.hgrid{display:grid;gap:28px;align-items:center;margin-top:34px;position:relative}
+.clock{display:inline-flex;align-items:center;gap:10px;background:rgba(255,122,89,.15);color:var(--coral2);border:1px solid rgba(255,122,89,.35);padding:7px 14px;border-radius:999px;font-weight:800;font-size:14px;letter-spacing:.02em}
+.clock b{font-variant-numeric:tabular-nums}
+h1{font-size:clamp(46px,11.5vw,84px);line-height:.95;letter-spacing:-.045em;font-weight:900;margin:18px 0 18px}
+h1 .serif{font-size:1.08em;color:var(--coral)}
+.lead{font-size:19px;color:rgba(247,245,240,.82);max-width:540px}
+.lead b{color:#fff}
+.cover{position:relative;max-width:440px;margin:0 auto;animation:float 5s ease-in-out infinite}
+.cover img{border-radius:18px;filter:drop-shadow(0 40px 50px rgba(0,0,0,.45))}
+@keyframes float{50%{transform:translateY(-12px) rotate(-1deg)}}
+.badge{position:absolute;background:#fff;color:var(--ink);font-weight:900;border-radius:16px;padding:10px 14px;font-size:14px;box-shadow:0 16px 30px rgba(0,0,0,.3);line-height:1.15}
+.badge small{display:block;font-weight:600;color:var(--muted);font-size:12px}
+.b1{left:-6px;top:16%;transform:rotate(-5deg)} .b2{right:-6px;bottom:14%;transform:rotate(4deg);background:var(--coral);color:#fff} .b2 small{color:#ffe2d9}
+.hcta{margin-top:26px;text-align:center}
+.price-inline{font-size:15px;color:rgba(247,245,240,.7);margin-bottom:12px}
+.price-inline b{font-size:28px;color:#fff;letter-spacing:-.02em}
+/* MARQUEE */
+.marq{background:var(--coral);color:#fff;overflow:hidden;white-space:nowrap;font-weight:900;font-size:17px;padding:13px 0}
+.marq div{display:inline-block;animation:mq 26s linear infinite}
+.marq span{margin:0 18px}
+@keyframes mq{to{transform:translateX(-50%)}}
+section{padding:64px 0}
+h2{font-size:clamp(34px,7.6vw,54px);line-height:1;letter-spacing:-.04em;font-weight:900;margin-bottom:16px}
+h2 .serif{color:var(--coral);font-size:1.08em}
+.kicker{font-weight:800;font-size:13px;letter-spacing:.14em;color:var(--coral);text-transform:uppercase;margin-bottom:12px}
+.sub{font-size:18px;color:var(--muted);max-width:620px}
+/* DOLOR */
+.chat{margin-top:28px;display:flex;flex-direction:column;gap:10px;max-width:520px}
+.msg{background:#fff;border:1px solid var(--line);padding:14px 16px;border-radius:18px 18px 18px 4px;font-size:17px;box-shadow:0 6px 16px rgba(22,33,62,.05);transition:.5s}.js .chat:not(.go) .msg{opacity:0;transform:translateY(14px)}
+.msg.me{align-self:flex-end;background:var(--navy);color:var(--cream);border-radius:18px 18px 4px 18px;border:0}
+.msg time{display:block;font-size:12px;color:var(--muted);margin-top:4px}
+.msg.me time{color:rgba(247,245,240,.55)}
+.in .msg{opacity:1;transform:none}
+/* ANTES/DESPUES */
+.ba{display:grid;gap:16px;margin-top:30px}
+.card{background:#fff;border:1px solid var(--line);border-radius:24px;padding:24px;box-shadow:0 10px 30px rgba(22,33,62,.06)}
+.card h3{font-size:15px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px}
+.bad h3{color:#b44}.good h3{color:var(--mint)}
+.q{font-family:ui-monospace,Menlo,monospace;font-size:14.5px;background:#f3f1ec;border-radius:14px;padding:14px;margin-bottom:12px;white-space:pre-wrap}
+.good .q{background:#eefaf5}
+.res{font-size:16px;color:var(--muted)}
+/* PROBALO */
+.dark{background:var(--navy);color:var(--cream)}
+.dark .sub{color:rgba(247,245,240,.72)}
+.tabs{display:flex;gap:8px;margin:26px 0 16px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.tab{flex:none;border:1px solid rgba(255,255,255,.22);background:transparent;color:var(--cream);font:800 15px 'Inter Tight';padding:11px 16px;border-radius:999px;cursor:pointer}
+.tab.on{background:var(--coral);border-color:var(--coral);color:#fff}
+.term{background:#0e1630;border:1px solid rgba(255,255,255,.12);border-radius:22px;overflow:hidden;box-shadow:0 30px 60px rgba(0,0,0,.35)}
+.term .bar{display:flex;align-items:center;gap:7px;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.08);font-size:13px;color:rgba(247,245,240,.6)}
+.term .bar i{width:11px;height:11px;border-radius:50%;background:#ff5f57}.term .bar i:nth-child(2){background:#febc2e}.term .bar i:nth-child(3){background:#28c840}
+.term .bar span{margin-left:auto}
+.term pre{font:500 15px/1.55 ui-monospace,Menlo,monospace;padding:18px;white-space:pre-wrap;min-height:290px;color:#e9ecf5}
+.term pre .ph{color:var(--coral2)}
+.copy{margin:0 18px 18px;background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.2);font:800 15px 'Inter Tight';padding:12px 18px;border-radius:12px;cursor:pointer}
+.note{font-size:14px;color:rgba(247,245,240,.6);margin-top:14px}
+/* CONTENIDO */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:28px}
+.it{background:#fff;border:1px solid var(--line);border-radius:20px;padding:18px;transition:transform .2s}
+.it:hover{transform:translateY(-4px)}
+.it .e{font-size:28px}
+.it b{display:block;font-size:17px;line-height:1.2;margin:8px 0 4px;letter-spacing:-.01em}
+.it p{font-size:14px;color:var(--muted);line-height:1.35}
+.it.big{grid-column:span 2;background:var(--coral);color:#fff;border:0}
+.it.big p{color:#ffe7df}
+/* NIVELES */
+.levels{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:26px}
+.lv{border-radius:20px;padding:18px 12px;text-align:center;font-weight:900;font-size:17px;background:#fff;border:2px solid var(--navy)}
+.lv span{display:block;font-size:32px;margin-bottom:6px}
+.for{display:grid;gap:12px;margin-top:26px}
+.for li{list-style:none;background:#fff;border:1px solid var(--line);border-radius:16px;padding:15px 16px 15px 48px;position:relative;font-size:17px}
+.for li::before{content:'✓';position:absolute;left:16px;top:13px;width:22px;height:22px;border-radius:50%;background:var(--mint);color:#fff;font-weight:900;font-size:13px;display:flex;align-items:center;justify-content:center}
+.for li.no::before{content:'✕';background:#c9c4b8}
+/* OFERTA */
+.offer{background:radial-gradient(600px 400px at 100% 0,#5a2c3a,transparent 60%),var(--navy);color:var(--cream);border-radius:32px;padding:34px 24px;text-align:center;position:relative;overflow:hidden}
+.offer h2{color:#fff}
+.stack{text-align:left;max-width:440px;margin:24px auto;display:grid;gap:10px}
+.stack div{display:flex;justify-content:space-between;gap:12px;border-bottom:1px dashed rgba(255,255,255,.2);padding-bottom:10px;font-size:16px}
+.stack div b{color:var(--coral2);white-space:nowrap}
+.bigprice{font-size:76px;font-weight:900;letter-spacing:-.05em;line-height:1;margin:10px 0 4px}
+.bigprice small{font-size:22px;letter-spacing:0;font-weight:800;vertical-align:top;margin-right:4px}
+.cafe{font-size:15px;color:rgba(247,245,240,.7);margin-bottom:22px}
+.pay{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin-top:16px}
+.pay span{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);border-radius:10px;padding:6px 11px;font-size:13px;font-weight:700}
+.guar{display:flex;gap:14px;align-items:center;text-align:left;background:#fff;border:1px solid var(--line);border-radius:22px;padding:18px;margin-top:18px}
+.seal{flex:none;width:74px;height:74px;border-radius:50%;background:var(--mint);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:900;line-height:1;font-size:26px}
+.seal small{font-size:11px;letter-spacing:.06em}
+/* FAQ */
+details{background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px 20px;margin-top:10px}
+summary{font-weight:800;font-size:17px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:12px}
+summary::after{content:'+';font-size:24px;line-height:1;color:var(--coral);transition:transform .2s}
+details[open] summary::after{transform:rotate(45deg)}
+details p{margin-top:10px;color:var(--muted);font-size:16px}
+footer{text-align:center;color:var(--muted);font-size:13px;padding:36px 20px}
+/* STICKY */
+.sticky{position:fixed;left:0;right:0;bottom:0;z-index:50;background:rgba(22,33,62,.96);backdrop-filter:blur(10px);padding:12px 16px calc(12px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:14px;transform:translateY(110%);transition:transform .35s}
+.sticky.show{transform:none}
+.sticky .p{color:#fff;font-weight:900;font-size:21px;line-height:1;white-space:nowrap}
+.sticky .p small{display:block;font-size:12px;font-weight:600;color:rgba(247,245,240,.6);margin-top:3px}
+.sticky .btn{padding:15px 18px;font-size:17px;box-shadow:none}
+.rv{transition:transform .7s}.js .rv:not(.in){transform:translateY(18px)}
+@media(min-width:860px){
+ .hgrid{grid-template-columns:1.1fr .9fr}.hcta{text-align:left}.micro{justify-content:flex-start}
+ .ba{grid-template-columns:1fr 1fr}.grid{grid-template-columns:repeat(4,1fr)}.it.big{grid-column:span 2}
+ .for{grid-template-columns:1fr 1fr}.offer{padding:50px}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.rv,.msg{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+
+<header class="hero">
+ <div class="wrap">
+  <div class="top"><span>Docente <span class="co">+</span> IA</span><span class="tag">Para docentes de Argentina</span></div>
+  <div class="hgrid">
+   <div>
+    <span class="clock">🕙 Domingo <b id="clk">22:47</b></span>
+    <h1>Recuperá tus <span class="serif">domingos.</span></h1>
+    <p class="lead">43 prompts listos para copiar y pegar. La IA te hace el <b>primer borrador</b> de la planificación, la rúbrica y el informe <b>en minutos</b>. Vos ponés el criterio.</p>
+    <div class="hcta">
+     <div class="price-inline">Guía PDF + bonus · <b>$9.900</b> · pago único</div>
+     <a class="btn cta" href="https://pay.hotmart.com/P108184807R">Quiero mis domingos →</a>
+     <div class="micro"><span>Descarga inmediata</span><span>Mercado Pago</span><span>Garantía 7 días</span></div>
+    </div>
+   </div>
+   <div class="cover">
+    <img src="portada.jpg" alt="Tapa del ebook Docente + IA" width="900" height="900">
+   </div>
+  </div>
+ </div>
+</header>
+
+<div class="marq" aria-hidden="true"><div>
+ <span>📋 Planificación anual</span><span>✦</span><span>🧩 Secuencias didácticas</span><span>✦</span><span>📊 Rúbricas</span><span>✦</span><span>📝 Pruebas con clave</span><span>✦</span><span>💬 Notas a las familias</span><span>✦</span><span>📄 Informes narrativos</span><span>✦</span><span>🎉 Actos y efemérides</span><span>✦</span><span>♿ Adaptaciones y DUA</span><span>✦</span>
+ <span>📋 Planificación anual</span><span>✦</span><span>🧩 Secuencias didácticas</span><span>✦</span><span>📊 Rúbricas</span><span>✦</span><span>📝 Pruebas con clave</span><span>✦</span><span>💬 Notas a las familias</span><span>✦</span><span>📄 Informes narrativos</span><span>✦</span><span>🎉 Actos y efemérides</span><span>✦</span><span>♿ Adaptaciones y DUA</span><span>✦</span>
+</div></div>
+
+<section>
+ <div class="wrap">
+  <div class="kicker">¿Te suena?</div>
+  <h2 class="rv">El domingo no es tuyo. <span class="serif">Es de la escuela.</span></h2>
+  <div class="chat" id="chat">
+   <div class="msg">Mañana entrego la planificación y no arranqué 😩<time>Domingo 21:12</time></div>
+   <div class="msg">Me faltan 28 informes y la rúbrica del trabajo práctico<time>Domingo 22:05</time></div>
+   <div class="msg me">Probé ChatGPT y me dio una clase genérica que no sirve para mi grupo<time>Domingo 22:47</time></div>
+   <div class="msg">Y mañana a las 7:30 arranco otra vez…<time>Domingo 23:58</time></div>
+  </div>
+ </div>
+</section>
+
+<section style="padding-top:0">
+ <div class="wrap">
+  <div class="kicker">El secreto</div>
+  <h2 class="rv">No es la IA. <span class="serif">Es lo que le pedís.</span></h2>
+  <p class="sub rv">Con la "ficha del curso" de la guía, la IA sabe tu año, tu grupo y tus tiempos. Y te devuelve algo que podés usar el lunes.</p>
+  <div class="ba">
+   <div class="card bad rv"><h3>✕ Lo que hace casi todo el mundo</h3><div class="q">Haceme una clase sobre el agua.</div><p class="res">Resultado: una clase de manual, para nadie en particular. La tirás y empezás de cero.</p></div>
+   <div class="card good rv"><h3>✓ Con Docente + IA</h3><div class="q">[Ficha: 4° grado, 28 chicos, 80 min, poca conectividad]
+Mañana doy 80 minutos sobre el ciclo del agua.
+Proponeme inicio, desarrollo y cierre de 5 min.
+Dame una opción B por si no funciona.</div><p class="res">Resultado: un borrador hecho para tu curso, con plan B. Lo revisás y listo.</p></div>
+  </div>
+ </div>
+</section>
+
+<section class="dark">
+ <div class="wrap">
+  <div class="kicker">Probalo ahora</div>
+  <h2 class="rv">Así son los prompts <span class="serif">que te llevás.</span></h2>
+  <p class="sub">Tocá uno. Son 3 de los 43 que trae la guía, tal cual.</p>
+  <div class="tabs" role="tablist">
+   <button class="tab on" data-k="0">⚡ Clase para mañana</button>
+   <button class="tab" data-k="1">📊 Rúbrica</button>
+   <button class="tab" data-k="2">💬 Nota a las familias</button>
+  </div>
+  <div class="term">
+   <div class="bar"><i></i><i></i><i></i><span id="tname">COPIÁ Y PEGÁ · CLASE RÁPIDA</span></div>
+   <pre id="tp"></pre>
+   <button class="copy" id="cp">Copiar prompt</button>
+  </div>
+  <p class="note">Funciona con ChatGPT, Gemini, Claude o Copilot, en su versión gratis.</p>
+ </div>
+</section>
+
+<section>
+ <div class="wrap">
+  <div class="kicker">Qué trae</div>
+  <h2 class="rv">Todo lo que te come <span class="serif">el fin de semana.</span></h2>
+  <div class="grid">
+   <div class="it big rv"><div class="e">🧠</div><b>La fórmula del buen prompt docente</b><p>Los 5 datos que no pueden faltar y tu ficha del curso lista para completar.</p></div>
+   <div class="it rv"><div class="e">📋</div><b>Planificar</b><p>Anual, secuencia, clase para mañana, proyectos y suplencias.</p></div>
+   <div class="it rv"><div class="e">🧩</div><b>Actividades</b><p>El mismo tema en 3 niveles, fichas, comprensión lectora, problemas.</p></div>
+   <div class="it rv"><div class="e">📊</div><b>Evaluar</b><p>Rúbricas, listas de cotejo, pruebas con clave y autoevaluación.</p></div>
+   <div class="it rv"><div class="e">✍️</div><b>Corregir</b><p>Devoluciones que sirven y banco de comentarios.</p></div>
+   <div class="it rv"><div class="e">♿</div><b>Inclusión</b><p>Adaptaciones, lectura fácil, DUA y borrador de PPI.</p></div>
+   <div class="it rv"><div class="e">📄</div><b>Informes y familias</b><p>Informes narrativos, notas, reuniones y mails a la dirección.</p></div>
+   <div class="it rv"><div class="e">🎉</div><b>Actos y ESI</b><p>Actos escolares, efemérides del año y ESI.</p></div>
+   <div class="it rv"><div class="e">🛡️</div><b>IA con cuidado</b><p>Qué hace mal, cómo revisar y cómo cuidar los datos de tus alumnos.</p></div>
+  </div>
+  <div class="levels">
+   <div class="lv rv"><span>🧸</span>Inicial</div>
+   <div class="lv rv"><span>✏️</span>Primaria</div>
+   <div class="lv rv"><span>🎒</span>Secundaria</div>
+  </div>
+ </div>
+</section>
+
+<section style="padding-top:0">
+ <div class="wrap">
+  <div class="kicker">¿Es para vos?</div>
+  <h2 class="rv">Sí, si sos <span class="serif">docente y estás cansada.</span></h2>
+  <ul class="for">
+   <li class="rv">Das clases en inicial, primaria o secundaria, en cualquier provincia.</li>
+   <li class="rv">Nunca usaste ChatGPT, o lo usaste y te dio respuestas genéricas.</li>
+   <li class="rv">Tenés más de un cargo y necesitás ganar horas.</li>
+   <li class="rv">Querés que la IA haga el borrador y vos poner el criterio pedagógico.</li>
+   <li class="no rv">No es para quien busca que la IA dé las clases por vos.</li>
+  </ul>
+ </div>
+</section>
+
+<section id="comprar" style="padding-top:0">
+ <div class="wrap">
+  <div class="offer rv">
+   <div class="kicker">Todo esto hoy</div>
+   <h2>Tu próximo domingo, <span class="serif">libre.</span></h2>
+   <div class="stack">
+    <div>Guía completa Docente + IA (PDF)<b>✓</b></div>
+    <div>43 prompts listos para copiar y pegar<b>✓</b></div>
+    <div>Ficha del curso para completar<b>✓</b></div>
+    <div>Bonus: PDF con todos los prompts juntos<b>✓</b></div>
+    <div>Para el celu o la compu<b>✓</b></div>
+   </div>
+   <div class="bigprice"><small>$</small>9.900</div>
+   <div class="cafe">Pago único. Menos que una salida al cine y te ahorra horas cada semana.</div>
+   <a class="btn cta" href="https://pay.hotmart.com/P108184807R">Comprar ahora y descargar →</a>
+   <div class="pay"><span>Mercado Pago</span><span>Débito</span><span>Crédito</span><span>PayPal</span></div>
+  </div>
+  <div class="guar rv"><div class="seal">7<small>DÍAS</small></div><div><b>Garantía de 7 días.</b> Si no te sirve, pedís el reembolso desde Hotmart y te devuelven el 100%. Sin preguntas.</div></div>
+ </div>
+</section>
+
+<section style="padding-top:0">
+ <div class="wrap">
+  <div class="kicker">Preguntas</div>
+  <h2 class="rv">Lo que te <span class="serif">estás preguntando.</span></h2>
+  <details><summary>¿Cómo lo recibo?</summary><p>Apenas se acredita el pago, Hotmart te manda un mail con el acceso para descargar el PDF y el bonus.</p></details>
+  <details><summary>¿Necesito pagar ChatGPT?</summary><p>No. Los prompts funcionan con la versión gratis de ChatGPT, Gemini, Claude o Copilot.</p></details>
+  <details><summary>Nunca usé IA, ¿lo voy a entender?</summary><p>Sí. La guía arranca desde cero y cada prompt viene listo: completás los corchetes y pegás.</p></details>
+  <details><summary>¿Sirve para mi provincia y mi nivel?</summary><p>Sí. Está pensada para la escuela argentina, con adaptaciones para inicial y secundaria. Tu diseño curricular y tu equipo directivo siempre mandan.</p></details>
+  <details><summary>¿Y los datos de mis alumnos?</summary><p>La guía tiene un capítulo entero para usar la IA sin exponer datos personales de los chicos.</p></details>
+  <details><summary>¿Puedo pagar con Mercado Pago?</summary><p>Sí, también con débito, crédito o PayPal. El pago es seguro y lo procesa Hotmart.</p></details>
+ </div>
+</section>
+
+<footer>Docente + IA · Federico Nevi · Pago procesado por Hotmart<br>La IA genera borradores: revisalos siempre antes de usarlos.</footer>
+
+<div class="sticky" id="sticky">
+ <div class="p">$9.900<small>Descarga inmediata</small></div>
+ <a class="btn cta" href="https://pay.hotmart.com/P108184807R">Comprar →</a>
+</div>
+
+<script>
+document.documentElement.classList.add('js');setTimeout(()=>{document.querySelectorAll('.rv').forEach(e=>e.classList.add('in'));document.getElementById('chat').classList.add('go');if(!document.getElementById('tp').textContent)typeP(0)},4000);
+// reloj que corre
+(()=>{let m=22*60+47;const el=document.getElementById('clk');setInterval(()=>{m=(m+1)%1440;el.textContent=String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')},1600)})();
+// aparecer al hacer scroll
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.15});
+document.querySelectorAll('.rv').forEach(el=>io.observe(el));
+const chat=document.getElementById('chat');
+new IntersectionObserver((es,o)=>{if(es[0].isIntersecting){chat.classList.add('go');[...chat.children].forEach((m,i)=>{m.style.transitionDelay=(i*.45)+'s'});o.disconnect()}},{threshold:.3}).observe(chat);
+// prompts
+const P=[
+ ['COPIÁ Y PEGÁ · CLASE RÁPIDA',`[Pegá la ficha del curso]
+Mañana doy una clase de [duración] sobre [tema]. Venimos de trabajar [tema anterior].
+Lo que quiero que aprendan: [objetivo concreto].
+Proponeme un plan de clase con:
+1. Un inicio que despierte curiosidad (pregunta, imagen, situación).
+2. Un desarrollo con una actividad central.
+3. Un cierre de 5 minutos para ver qué entendieron.
+Dame también una opción B por si la actividad central no funciona.`],
+ ['COPIÁ Y PEGÁ · RÚBRICA',`[Pegá la ficha del curso]
+Hacé una rúbrica para evaluar [trabajo, por ejemplo: una exposición oral sobre los pueblos originarios].
+Criterios: [escribí 3 a 5 criterios o pedile que te proponga].
+Cuatro niveles de desempeño: [por ejemplo: inicial, en proceso, logrado, destacado].
+Presentala en tabla. Cada casilla tiene que describir algo observable, no adjetivos como "muy bueno".`],
+ ['COPIÁ Y PEGÁ · NOTA A LAS FAMILIAS',`Escribí una nota para las familias de [año] para [motivo: avisar de una salida, pedir materiales, informar de un cambio de horario, convocar a reunión].
+Datos: [fecha, hora, lugar, qué tienen que traer o hacer].
+Breve, cordial y clara. Que se entienda leyéndola rápido en el celular.`]];
+const tp=document.getElementById('tp'),tn=document.getElementById('tname');let tid,cur=0;
+function typeP(k){cur=k;clearInterval(tid);tn.textContent=P[k][0];const s=P[k][1];let i=0;
+ tid=setInterval(()=>{i+=3;tp.innerHTML=s.slice(0,i).replace(/\[[^\]]*\]?/g,x=>'<span class="ph">'+x+'</span>');if(i>=s.length)clearInterval(tid)},16)}
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));b.classList.add('on');typeP(+b.dataset.k)});
+const term=document.querySelector('.term');new IntersectionObserver((es,o)=>{if(es[0].isIntersecting){typeP(0);o.disconnect()}},{threshold:.3}).observe(term);
+document.getElementById('cp').onclick=e=>{navigator.clipboard&&navigator.clipboard.writeText(P[cur][1]);e.target.textContent='¡Copiado! ✓';setTimeout(()=>e.target.textContent='Copiar prompt',1500)};
+// barra fija
+const st=document.getElementById('sticky'),hero=document.querySelector('.hero');
+new IntersectionObserver(es=>st.classList.toggle('show',!es[0].isIntersecting)).observe(hero);
+// evento de pixel al ir al pago
+document.querySelectorAll('.cta').forEach(a=>a.addEventListener('click',()=>{try{fbq('track','InitiateCheckout',{value:9900,currency:'ARS'})}catch(e){}}));
+</script>
+</body>
+</html>
