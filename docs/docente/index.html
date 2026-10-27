@@ -142,6 +142,11 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:36px 20px}
  .for{grid-template-columns:1fr 1fr}.offer{padding:50px}
 }
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.rv,.msg{opacity:1;transform:none}}
+.gift .pr{background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px;margin:14px 0;text-align:left}
+.gift .pr b{display:block;margin-bottom:8px}
+.gift pre{white-space:pre-wrap;font:14px/1.5 "Inter Tight",system-ui,sans-serif;background:var(--cream);border-radius:12px;padding:12px;margin:0 0 10px}
+.gift .cp{border:0;background:var(--navy);color:var(--cream);font-weight:700;border-radius:999px;padding:9px 16px;cursor:pointer}
+.gtop{margin-top:10px;font-size:14px;font-weight:600}
 </style>
 </head>
 <body>
@@ -158,6 +163,7 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:36px 20px}
      <div class="price-inline">Guía PDF + bonus · <b>$9.900</b> · pago único</div>
      <a class="btn cta" href="https://pay.hotmart.com/P108184807R">Quiero mis domingos →</a>
      <div class="micro"><span>Descarga inmediata</span><span>Mercado Pago</span><span>Garantía 7 días</span></div>
+     <div class="gtop">🛡️ Si no te sirve, Hotmart te devuelve el 100% en 7 días. Sin preguntas.</div>
     </div>
    </div>
    <div class="cover">
@@ -256,6 +262,26 @@ Dame una opción B por si no funciona.</div><p class="res">Resultado: un borrado
  </div>
 </section>
 
+<section class="gift" style="padding-top:0">
+ <div class="wrap">
+  <div class="kicker">Probalo gratis ahora</div>
+  <h2 class="rv">3 prompts de regalo. <span class="serif">Probalos antes de comprar.</span></h2>
+  <p class="rv">Copiá uno, cambiá lo que está entre [corchetes] y pegalo en ChatGPT gratis. Si te sirve, la guía tiene 40 más como estos.</p>
+  <div class="pr rv"><b>1. Clase para mañana</b><pre>Actuá como docente de [nivel y año]. Mañana doy una clase de [duración] sobre [tema].
+Lo que quiero que aprendan: [objetivo concreto].
+Proponeme un plan de clase con:
+1. Un inicio que despierte curiosidad.
+2. Un desarrollo con una actividad central.
+3. Un cierre de 5 minutos para ver qué entendieron.
+Dame también una opción B por si la actividad central no funciona.</pre><button class="cp" type="button">Copiar prompt</button></div><div class="pr rv"><b>2. Rúbrica en tabla</b><pre>Hacé una rúbrica para evaluar [trabajo, por ejemplo: una exposición oral].
+Criterios: [3 a 5 criterios, o proponelos vos].
+Cuatro niveles: inicial, en proceso, logrado, destacado.
+Presentala en tabla. Cada casilla tiene que describir algo observable, no adjetivos como &quot;muy bueno&quot;.</pre><button class="cp" type="button">Copiar prompt</button></div><div class="pr rv"><b>3. Nota a las familias</b><pre>Escribí una nota para las familias de [año] para [motivo: salida, materiales, reunión].
+Datos: [fecha, hora, lugar, qué tienen que traer].
+Breve, cordial y clara. Que se entienda leyéndola rápido en el celular.</pre><button class="cp" type="button">Copiar prompt</button></div>
+ </div>
+</section>
+
 <section id="comprar" style="padding-top:0">
  <div class="wrap">
   <div class="offer rv">
@@ -335,6 +361,9 @@ const st=document.getElementById('sticky'),hero=document.querySelector('.hero');
 new IntersectionObserver(es=>st.classList.toggle('show',!es[0].isIntersecting)).observe(hero);
 // evento de pixel al ir al pago
 document.querySelectorAll('.cta').forEach(a=>a.addEventListener('click',()=>{try{fbq('track','InitiateCheckout',{value:9900,currency:'ARS'})}catch(e){}}));
+</script>
+<script>
+document.querySelectorAll('.gift .cp').forEach(b=>b.addEventListener('click',()=>{const t=b.previousElementSibling.textContent;(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>{b.textContent='¡Copiado! ✓';setTimeout(()=>b.textContent='Copiar prompt',2000)}).catch(()=>{const r=document.createRange();r.selectNodeContents(b.previousElementSibling);getSelection().removeAllRanges();getSelection().addRange(r)});if(window.fbq)fbq('trackCustom','CopiarPrompt')}));
 </script>
 </body>
 </html>
