@@ -69,7 +69,7 @@ details li{margin-bottom:6px}
 <div class="wrap">
   <header>
     <h1>Informes en 5 minutos</h1>
-    <p class="sub">Elegís frases ya revisadas, ponés el nombre y copiás. Funciona sin internet y todo queda en tu teléfono.</p>
+    <p class="sub">Elegís frases ya revisadas, ponés el nombre y copiás. Funciona sin internet y lo que escribís queda solo en este dispositivo.</p>
   </header>
 
   <div class="banner" id="demoBanner" hidden>
@@ -87,6 +87,11 @@ details li{margin-bottom:6px}
     <h2>2. Datos del alumno</h2>
     <label for="nombre">Nombre de pila (o iniciales)</label>
     <input type="text" id="nombre" autocomplete="off" autocapitalize="words" placeholder="Ej.: Sofi" maxlength="40">
+    <label id="tGen">¿Es nene o nena? (así las frases concuerdan)</label>
+    <div class="chips" role="group" aria-labelledby="tGen" id="genero">
+      <button class="chip" type="button" data-g="o" aria-pressed="false">Nene</button>
+      <button class="chip" type="button" data-g="a" aria-pressed="false">Nena</button>
+    </div>
     <div id="campos"></div>
     <p class="hint" id="sesion"></p>
   </section>
@@ -118,13 +123,13 @@ details li{margin-bottom:6px}
     <details>
       <summary>IA sin datos de alumnos: 5 reglas</summary>
       <ol>
-        <li>Usá solo el nombre de pila o las iniciales. Nunca el nombre completo.</li>
+        <li>En la IA no pongas el nombre del alumno: usá "Alumno A" o iniciales.</li>
         <li>No pegues DNI, dirección, teléfono ni datos de la familia.</li>
         <li>No pegues diagnósticos, certificados, datos de salud ni situaciones familiares.</li>
         <li>Si pedís ayuda a una IA, pegá las frases sin el nombre y agregalo vos al final.</li>
         <li>Revisá siempre el texto antes de mandarlo: la IA arma un borrador, el criterio es tuyo.</li>
       </ol>
-      <p class="hint" style="margin-top:8px">Esta herramienta no manda nada a ningún lado: lo que escribís queda guardado solo en este teléfono, y "Borrar todo" lo elimina.</p>
+      <p class="hint" style="margin-top:8px">Esta herramienta no manda nada a ningún lado: lo que escribís queda guardado solo en este dispositivo, y "Borrar todo" lo elimina.</p>
     </details>
   </section>
 
@@ -144,7 +149,7 @@ details li{margin-bottom:6px}
 <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="mTit">
   <div class="card">
     <h2 id="mTit">Copialo a mano</h2>
-    <p class="hint">Tu teléfono no dejó copiar automáticamente. El texto ya está seleccionado: mantené apretado y elegí "Copiar".</p>
+    <p class="hint">Tu navegador no dejó copiar automáticamente. El texto ya está seleccionado: mantené apretado y elegí "Copiar".</p>
     <textarea id="mTxt" readonly style="min-height:180px"></textarea>
     <div class="acts"><button class="btn pri full" id="mCerrar">Listo</button></div>
   </div>
@@ -176,7 +181,7 @@ var CAMPOS = {
   materia:{label:"Área o materia", ph:"Ej.: Prácticas del Lenguaje", m:["[materia]","[área]"]}
 };
 
-function nuevo(){ return {nivel: DEMO ? "A" : null, nombre:"", campos:{}, op:{}, sel:{}, tono:{}, off:{}, detalle:"", limite:800, hist:[]}; }
+function nuevo(){ return {nivel: DEMO ? "A" : null, nombre:"", genero:null, campos:{}, op:{}, sel:{}, tono:{}, off:{}, detalle:"", limite:800, hist:[]}; }
 var S = nuevo();
 var guardarOk = true;
 
@@ -225,7 +230,17 @@ function opciones(texto){
   }
   return out;
 }
+/* {o|a}: primera forma para nene, segunda para nena; sin elegir queda "o/a" */
+var GEN_RE = /\{([^|{}]*)\|([^|{}]*)\}/g;
+function genero(t){
+  return t.replace(GEN_RE, function(_, m, f){ return S.genero === "a" ? f : (S.genero === "o" ? m : m + "/" + f); });
+}
+function tieneGenero(ids){ return ids.some(function(id){ GEN_RE.lastIndex = 0; return BY_ID[id] && GEN_RE.test(BY_ID[id].texto); }); }
+function renderGenero(){
+  Array.prototype.forEach.call($("genero").querySelectorAll("button"), function(b){ b.setAttribute("aria-pressed", String(S.genero === b.getAttribute("data-g"))); });
+}
 function reemplazar(t){
+  t = genero(t);
   var nom = S.nombre.trim();
   if(nom){ t = t.split("[Nombre]").join(nom).split("{nombre}").join(nom); }
   for(var c in CAMPOS){ var v = (S.campos[c]||"").trim(); if(v) CAMPOS[c].m.forEach(function(tok){ t = t.split(tok).join(v); }); }
@@ -371,6 +386,8 @@ function renderInforme(){
   $("limTxt").textContent = lim; $("limTxt2").textContent = lim;
   var av = $("avisos"); av.innerHTML = "";
   if(n > lim) av.appendChild(el("div", {"class":"warn", text:"Te pasaste del límite por " + (n - lim) + " caracteres. Sacá una frase o acortá el detalle."}));
+  var sg = seleccion();
+  if(!S.genero && tieneGenero(sg.cuerpo.concat(sg.cierre))) av.appendChild(el("div", {"class":"warn", text:"Elegí Nene o Nena arriba: hay palabras que cambian (por ejemplo \"lo/la\")."}));
   if(t && !S.nombre.trim()) av.appendChild(el("div", {"class":"warn", text:"Falta el nombre de pila: escribilo arriba para poder copiar."}));
   else if(/\[[^\]]+\]/.test(t)) av.appendChild(el("div", {"class":"warn", text:"Quedan partes entre [corchetes] por completar (están marcadas en amarillo). Completalas en Datos del alumno."}));
   var rep = seleccion().cuerpo.concat(seleccion().cierre).filter(function(id){ return usos(id) >= REP_MAX; });
@@ -380,6 +397,7 @@ function renderInforme(){
 function renderTodo(){
   $("demoBanner").hidden = !DEMO;
   $("nombre").value = S.nombre;
+  renderGenero();
   $("detalle").value = S.detalle;
   $("limite").value = S.limite;
   renderNiveles(); renderCampos(); renderEjes();
@@ -406,7 +424,7 @@ function copiar(){
   if(!t){ toast("Todavía no elegiste ninguna frase."); return; }
   if(!S.nombre.trim()){ toast("Escribí el nombre de pila antes de copiar."); $("nombre").focus(); return; }
   var aviso = /\[[^\]]+\]/.test(t) ? " Ojo: quedan [corchetes] por completar." : "";
-  var listo = function(){ toast("Copiado. Pegalo en el boletín o en WhatsApp." + aviso); };
+  var listo = function(){ toast("Copiado. Pegalo en el boletín o en tu documento." + aviso); };
   var fallback = function(){ if(planB(t)) listo(); else manual(t); };
   try{
     if(navigator.clipboard && window.isSecureContext !== false && navigator.clipboard.writeText){
@@ -417,6 +435,9 @@ function copiar(){
 
 /* ---------- eventos ---------- */
 $("nombre").addEventListener("input", function(){ S.nombre = this.value; guardar(); renderEjes(); });
+Array.prototype.forEach.call($("genero").querySelectorAll("button"), function(b){
+  b.addEventListener("click", function(){ var g = b.getAttribute("data-g"); S.genero = (S.genero === g) ? null : g; guardar(); renderGenero(); renderEjes(); });
+});
 $("detalle").addEventListener("input", function(){ S.detalle = this.value; guardar(); renderInforme(); });
 $("limite").addEventListener("input", function(){ var v = parseInt(this.value, 10); if(v > 0){ S.limite = v; guardar(); renderInforme(); } });
 $("copiar").addEventListener("click", copiar);
@@ -426,13 +447,13 @@ $("siguiente").addEventListener("click", function(){
   var s = seleccion(), ids = s.cuerpo.concat(s.cierre);
   if(!ids.length){ toast("Elegí al menos una frase antes de pasar al siguiente."); return; }
   S.hist.push(ids);
-  S.nombre = ""; S.sel = {}; S.tono = {}; S.off = {}; S.op = {}; S.detalle = "";
+  S.nombre = ""; S.genero = null; S.sel = {}; S.tono = {}; S.off = {}; S.op = {}; S.detalle = "";
   guardar(); renderTodo();
   window.scrollTo(0, 0); toast("Listo. Informe " + S.hist.length + " guardado en la sesión. Vamos con el siguiente.");
   try{ $("nombre").focus(); }catch(e){}
 });
 $("borrar").addEventListener("click", function(){
-  if(!window.confirm("Se borran el informe actual y la sesión guardada en este teléfono. ¿Borramos todo?")) return;
+  if(!window.confirm("Se borran el informe actual y la sesión guardada en este dispositivo. ¿Borramos todo?")) return;
   try{ window.localStorage.removeItem(KEY); }catch(e){}
   S = nuevo(); renderTodo(); window.scrollTo(0, 0); toast("Listo, no quedó nada guardado.");
 });

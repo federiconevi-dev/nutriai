@@ -1,0 +1,606 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clase lista en 10 minutos (demo)</title>
+<style>
+:root{--bg:#F6FAF8;--card:#FFFFFF;--ink:#1F2A27;--muted:#5C6B66;--line:#DCE8E3;--acc:#2F7A6B;--acc-ink:#FFFFFF;--acc-soft:#E2F1EC;--acc-dark:#1F5A4E;--warn:#8A5300;--warn-bg:#FFF1D6;--err:#B3261E;--err-bg:#FDE2DF;--ini:#7FC4B2;--des:#2F7A6B;--cie:#E3A857}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;overflow-x:hidden}
+.wrap{max-width:680px;margin:0 auto;padding:16px 16px 40px}
+h1{font-size:1.5rem;line-height:1.2;margin:4px 0 2px}
+h2{font-size:1.05rem;margin:0 0 10px}
+h3{font-size:.98rem;margin:10px 0 4px}
+p{margin:0 0 8px}
+.sub{color:var(--muted);font-size:.92rem;margin-bottom:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:0 0 12px}
+.banner{background:var(--acc-soft);border:1px solid var(--acc);border-radius:14px;padding:12px 14px;margin:0 0 12px}
+.banner b{display:block;margin-bottom:4px}
+a{color:var(--acc-dark)}
+.btn{appearance:none;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:10px;padding:10px 12px;font:inherit;font-size:.95rem;cursor:pointer;min-height:44px}
+.btn.pri{background:var(--acc);border-color:var(--acc);color:var(--acc-ink);font-weight:700}
+.btn.danger{border-color:var(--err);color:var(--err)}
+.btn.link{display:inline-block;text-decoration:none;text-align:center}
+.btn.sm{min-height:36px;padding:6px 10px;font-size:.88rem}
+.btn.full{width:100%}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:0 0 12px}
+.tab{appearance:none;border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 4px;font:inherit;font-size:.85rem;line-height:1.15;cursor:pointer;min-height:44px;color:var(--ink);min-width:0;overflow-wrap:anywhere}
+.tab[aria-selected=true]{background:var(--acc);border-color:var(--acc);color:var(--acc-ink);font-weight:700}
+label,.lbl{display:block;font-size:.88rem;color:var(--muted);margin:10px 0 4px}
+input[type=text],select,textarea{width:100%;font:inherit;font-size:16px;border:1px solid var(--line);border-radius:10px;padding:10px;background:#fff;color:var(--ink);min-width:0}
+textarea{min-height:200px;resize:vertical;font-size:14px}
+input:focus,select:focus,textarea:focus,.btn:focus-visible,.tab:focus-visible,.chip:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
+input[type=range]{width:100%;accent-color:var(--acc)}
+.dos{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0 10px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.hint{color:var(--muted);font-size:.86rem;margin:0 0 8px}
+.warn{background:var(--warn-bg);color:var(--warn);border-radius:10px;padding:8px 10px;font-size:.88rem;margin:6px 0}
+.err{background:var(--err-bg);color:var(--err);border-radius:10px;padding:8px 10px;font-size:.88rem;margin:6px 0}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 14px;font:inherit;font-size:.95rem;cursor:pointer;min-height:40px;min-width:44px;color:var(--ink)}
+.chip[aria-pressed=true]{background:var(--acc);border-color:var(--acc);color:var(--acc-ink);font-weight:700}
+details{border:1px dashed var(--line);border-radius:10px;padding:8px 10px;margin:12px 0 4px}
+summary{cursor:pointer;color:var(--acc-dark);font-weight:600;font-size:.92rem}
+.reparto{font-size:.9rem;margin:6px 0 0}
+.cab{border-left:4px solid var(--acc);padding:2px 0 2px 10px;margin:0 0 12px}
+.cab h2{font-size:1.2rem;margin:0 0 2px;overflow-wrap:anywhere}
+.cab p{color:var(--muted);font-size:.9rem;margin:0}
+.blk h2{display:flex;gap:8px;align-items:baseline}
+.blk h2 .num{flex:none;display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--acc-soft);color:var(--acc-dark);font-size:.85rem}
+.barra{display:flex;height:30px;border-radius:8px;overflow:hidden;margin:4px 0 10px;font-size:.78rem;font-weight:700}
+.barra span{display:flex;align-items:center;justify-content:center;min-width:0;overflow:hidden;white-space:nowrap;color:#13201C}
+.barra .s1{background:var(--ini)}.barra .s2{background:var(--des);color:#fff}.barra .s3{background:var(--cie)}
+ul.tiempos{list-style:none;margin:0;padding:0}
+ul.tiempos li{display:flex;justify-content:space-between;gap:8px;border-top:1px solid var(--line);padding:6px 0}
+ul.tiempos li b{font-variant-numeric:tabular-nums;flex:none}
+.din{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:8px 0;background:#FBFDFC;break-inside:avoid;page-break-inside:avoid}
+.din .mom{font-size:.78rem;text-transform:uppercase;letter-spacing:.04em;color:var(--acc-dark);font-weight:700}
+.din h3{margin:2px 0 4px;overflow-wrap:anywhere}
+.meta{color:var(--muted);font-size:.84rem;margin:0 0 6px;overflow-wrap:anywhere}
+.din ol{margin:0 0 6px;padding-left:20px}
+.din li{margin:0 0 2px}
+.decir{background:var(--acc-soft);border-radius:8px;padding:6px 10px;font-style:italic;margin:6px 0;overflow-wrap:anywhere}
+.resto{font-size:.86rem;color:var(--acc-dark);margin:4px 0 0}
+.cons{border-left:3px solid var(--acc);padding:4px 0 4px 10px;margin:8px 0;overflow-wrap:anywhere}
+.cons .tipo{display:block;font-size:.78rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:700}
+ul.apoyo{margin:0;padding-left:20px}
+ul.apoyo li{margin:0 0 6px}
+.ticket{border:2px dashed var(--cie);border-radius:12px;padding:10px 12px;font-size:1.02rem;overflow-wrap:anywhere}
+ul.lista{list-style:none;padding:0;margin:8px 0 0}
+ul.lista li{display:flex;gap:8px;align-items:center;justify-content:space-between;border-top:1px solid var(--line);padding:8px 0}
+ul.lista li span{flex:1;min-width:0;overflow-wrap:anywhere}
+ul.lista li small{display:block;color:var(--muted)}
+.x{flex:none;border:0;background:transparent;font-size:1.25rem;line-height:1;cursor:pointer;color:var(--err);padding:6px 8px;min-height:36px}
+.ayuda h3{margin-top:14px}
+.ayuda ol,.ayuda ul{padding-left:20px;margin:0 0 8px}
+.foot{color:var(--muted);font-size:.85rem;text-align:center;padding:8px 0 16px}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 14px;border-radius:10px;font-size:.9rem;max-width:calc(100% - 32px);opacity:0;pointer-events:none;transition:opacity .2s}
+.toast.on{opacity:1}
+.solo-print{display:none}
+[hidden]{display:none !important}
+@media (max-width:380px){.tab{font-size:.78rem}.dos{grid-template-columns:minmax(0,1fr)}}
+@media print{
+  @page{size:A4;margin:14mm}
+  body{background:#fff;font-size:11pt;overflow:visible}
+  .wrap{max-width:none;padding:0}
+  header .sub,.tabs,.banner,.noprint,.toast,[data-pan]:not([data-pan=clase]){display:none !important}
+  .solo-print{display:block}
+  .card{border:1px solid #bbb;border-radius:8px;padding:8px 10px;margin:0 0 8px;break-inside:avoid;page-break-inside:avoid}
+  .blk[data-b="2"]{break-inside:auto;page-break-inside:auto}
+  .din{background:#fff}
+  .decir{background:#f0f0f0}
+  .barra span{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  h1{font-size:15pt}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Clase lista en 10 minutos</h1>
+    <p class="sub">Contestá 6 preguntas y armá la estructura de la clase: inicio, desarrollo y cierre con minutos, dinámicas, consignas abiertas y ticket de salida. Funciona sin internet.</p>
+  </header>
+
+  <div class="banner" id="demoBanner" hidden>
+    <b>Estás usando la versión de prueba: solo primaria, 3 áreas y 20 dinámicas.</b>
+    <p>La versión completa suma inicial y secundaria, las 8 áreas, las <span id="totDin"></span> dinámicas de Aula en marcha y 60 moldes de consigna, y guarda hasta 30 clases.</p>
+    <a class="btn pri link" href="https://federiconevi-dev.github.io/nutriai/planificador/" target="_blank" rel="noopener">Quiero la versión completa</a>
+  </div>
+
+  <nav class="tabs" role="tablist" id="tabs"></nav>
+
+  <!-- 1. Entrada -->
+  <section class="card" data-pan="entrada">
+    <h2>Tu clase</h2>
+    <form id="fClase" autocomplete="off" novalidate>
+      <div class="dos">
+        <div>
+          <label for="inNivel">1. Nivel y ciclo</label>
+          <select id="inNivel"></select>
+        </div>
+        <div>
+          <label for="inAnio">Sala, grado o año</label>
+          <select id="inAnio"></select>
+        </div>
+      </div>
+      <label for="inArea">2. Área</label>
+      <select id="inArea"></select>
+      <label for="inTema">3. Tema</label>
+      <input type="text" id="inTema" maxlength="80" placeholder="Ej.: las fracciones, los seres vivos, el cuento">
+      <p class="hint" style="margin-top:4px">Escribilo como lo dirías en una frase ("las fracciones", "el ciclo del agua"). No pongas nombres de alumnos.</p>
+      <p class="err" id="temaErr" hidden>Escribí el tema de la clase para armar las consignas.</p>
+      <span class="lbl" id="lblDur">4. Duración</span>
+      <div class="chips" role="group" aria-labelledby="lblDur" id="inDur"></div>
+      <label for="inAgr">5. Agrupamiento preferido</label>
+      <select id="inAgr"></select>
+      <span class="lbl" id="lblEst">6. Hoy el grupo está</span>
+      <div class="chips" role="group" aria-labelledby="lblEst" id="inEst"></div>
+      <details id="detReparto">
+        <summary>Ajustar el reparto de minutos (opcional)</summary>
+        <label for="inPi">Inicio: <b id="vPi"></b></label>
+        <input type="range" id="inPi" min="10" max="25" step="5">
+        <label for="inPc">Cierre: <b id="vPc"></b></label>
+        <input type="range" id="inPc" min="10" max="30" step="5">
+        <p class="reparto" id="vReparto"></p>
+        <button class="btn sm" type="button" id="bReparto">Volver a 15 / 65 / 20</button>
+      </details>
+      <button class="btn pri full" type="submit" id="bArmar" style="margin-top:14px">Armar la clase</button>
+    </form>
+  </section>
+
+  <!-- 2. Clase -->
+  <section data-pan="clase" hidden>
+    <div class="card" id="sinClase"><p class="hint" style="margin:0">Todavía no armaste ninguna clase. Completá la pestaña "Armar".</p></div>
+    <div id="clase" hidden>
+      <div class="cab" id="cab"></div>
+      <div class="card blk" data-b="1"><h2><span class="num">1</span>Estructura y minutos</h2><div id="b1"></div></div>
+      <div class="card blk" data-b="2"><h2><span class="num">2</span>Dinámica para cada momento</h2><div id="b2"></div></div>
+      <div class="card blk" data-b="3"><h2><span class="num">3</span>Consignas abiertas</h2><div id="b3"></div></div>
+      <div class="card blk" data-b="4"><h2><span class="num">4</span>Para los que terminan antes</h2><div id="b4"></div></div>
+      <div class="card blk" data-b="5"><h2><span class="num">5</span>Ajustes de apoyo</h2><div id="b5"></div></div>
+      <div class="card blk" data-b="6"><h2><span class="num">6</span>Ticket de salida</h2><div id="b6"></div></div>
+      <div class="card blk noprint" data-b="7"><h2><span class="num">7</span>Prompt para tu IA</h2><div id="b7"></div></div>
+      <div class="card blk noprint" data-b="8"><h2><span class="num">8</span>Imprimir, copiar o guardar</h2><div id="b8"></div></div>
+      <p class="foot solo-print">Clase lista en 10 minutos · Ajustalo al diseño curricular de tu jurisdicción.</p>
+    </div>
+  </section>
+
+  <!-- 3. Guardadas -->
+  <section class="card" data-pan="guardadas" hidden>
+    <h2>Clases guardadas</h2>
+    <p class="hint" id="gInfo"></p>
+    <ul class="lista" id="gLista"></ul>
+    <h3>Borrar todo</h3>
+    <p class="hint">Borra de este dispositivo las clases guardadas y lo último que cargaste.</p>
+    <button class="btn danger" type="button" id="bBorrar">Borrar todo</button>
+  </section>
+
+  <!-- 4. Ayuda y privacidad -->
+  <section class="card ayuda" data-pan="ayuda" hidden>
+    <h2>Ayuda</h2>
+    <h3>Cómo se usa</h3>
+    <ol>
+      <li>En "Armar", elegí nivel, área, duración y cómo está el grupo hoy, y escribí el tema.</li>
+      <li>Tocá "Armar la clase". Los minutos se reparten 15 % inicio, 65 % desarrollo y 20 % cierre; lo podés cambiar en "Ajustar el reparto".</li>
+      <li>Si una dinámica o una consigna no te sirve, tocá "Otra" en ese bloque.</li>
+      <li>Imprimila, copiala o guardala. En "Guardadas" la volvés a abrir tal cual.</li>
+    </ol>
+    <h3>De dónde sale cada cosa</h3>
+    <ul>
+      <li>Las dinámicas son las de <i>Aula en marcha</i> (<span id="ayDin"></span> en esta versión). Se filtran por nivel, por cómo está el grupo y por los minutos del bloque: ninguna dura más que el bloque donde aparece.</li>
+      <li>Las consignas salen de <span id="ayMol"></span> moldes de redacción propia (comparar, explicar a otro, inventar un ejemplo, encontrar el error, conectar con el barrio y opinar con razones), completados con tu tema.</li>
+      <li>No trae expectativas de logro ni contenidos oficiales: ajustalo al diseño curricular de tu jurisdicción.</li>
+      <li>Si el grupo está movido o vuelve de un acto, el inicio puede sugerir una dinámica para volver a la calma.</li>
+    </ul>
+    <h3 id="privacidad">Privacidad</h3>
+    <ul>
+      <li>Este archivo funciona sin internet: no se conecta a ningún servidor, no usa analytics y no manda nada a ningún lado.</li>
+      <li>Las clases que guardás quedan solo en este navegador, en este dispositivo (máximo <span id="ayMax"></span>). Si borrás los datos del navegador, se pierden.</li>
+      <li>No escribas nombres ni datos de tus alumnos en el tema. El prompt para la IA se arma solo con la estructura de la clase.</li>
+      <li>"Borrar todo" (en Guardadas) elimina todo lo guardado por este archivo.</li>
+    </ul>
+    <p class="hint" id="saveInfo"></p>
+  </section>
+
+  <p class="foot noprint">Ajustalo al diseño curricular de tu jurisdicción.</p>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+"use strict";
+var D = {"momentos": [{"clave": "inicio", "titulo": "Inicio y entrada", "cupo": 20}, {"clave": "transiciones", "titulo": "Transiciones", "cupo": 15}, {"clave": "desarrollo", "titulo": "Desarrollo y trabajo en grupos", "cupo": 25}, {"clave": "cierre", "titulo": "Cierre y ticket de salida", "cupo": 20}, {"clave": "terminan_antes", "titulo": "Para los que terminan antes", "cupo": 15}, {"clave": "lluvia", "titulo": "Día de lluvia o recreo adentro", "cupo": 15}, {"clave": "calma", "titulo": "Volver a la calma y manejo del grupo", "cupo": 10}], "niveles": [{"clave": "P1", "titulo": "Primaria, 1er ciclo"}, {"clave": "P2", "titulo": "Primaria, 2do ciclo"}], "agrupamientos": ["individual", "parejas", "grupos chicos", "grupo total"], "estados_grupo": [{"clave": "tranquilo", "titulo": "Tranquilo"}, {"clave": "movido", "titulo": "Movido"}, {"clave": "despues_acto", "titulo": "Después de un acto"}], "materiales": ["pizarrón", "tiza o fibrón", "hojas", "lápiz", "lápices de colores", "goma", "tijera", "plasticola", "cinta de papel", "papelitos", "caja o bolsa", "reloj o cronómetro", "cuaderno o carpeta", "libros del aula", "pelota blanda"], "dinamicas": [{"id": "AM-001", "n": 1, "nombre": "Termómetro con los dedos", "momento": "inicio", "niveles": ["I", "P1", "P2", "S"], "minutos": 2, "agrupamiento": "grupo total", "materiales": ["ninguno"], "pasos": ["Pedí que todos escondan la mano detrás de la espalda.", "Explicá la escala: un dedo es \"vengo con poca pila\" y cinco es \"vengo con todo\".", "Contá hasta tres y que todos muestren la mano al mismo tiempo.", "Mirá al grupo de un vistazo y decí en voz alta lo que ves, sin nombrar a nadie."], "que_decir": "\"A la cuenta de tres, mostrame con la mano cuánta energía traés hoy. Uno, dos, tres.\"", "apoyo": "Si a alguien le cuesta elegir un número, que te muestre el puño cerrado y lo charlan después.", "otro_nivel": "Para inicial: en lugar de dedos, caras dibujadas en el pizarrón (contenta, cansada, enojada) y cada chico señala una.", "error_comun": "Comentar el número de un chico frente a todos. La lectura es del grupo; lo individual se habla aparte.", "estados_grupo": ["tranquilo", "movido", "despues_acto"], "modulo_40": false, "inspirada_en": null, "en_regalo": true}, {"id": "AM-002", "n": 2, "nombre": "Dos verdades y una mentira del tema", "momento": "inicio", "niveles": ["P2", "S"], "minutos": 5, "agrupamiento": "grupo total", "materiales": ["pizarrón", "tiza o fibrón"], "pasos": ["Escribí en el pizarrón tres afirmaciones sobre el tema de hoy: dos ciertas y una falsa.", "Da un minuto para que cada uno elija cuál es la falsa, sin hablar.", "Pedí que voten levantando uno, dos o tres dedos.", "Revelá la falsa y pedí a dos personas que expliquen por qué la eligieron."], "que_decir": "\"Una de estas tres es mentira. No la busquen en la carpeta: apuesten con lo que ya saben.\"", "apoyo": "Si a alguien le cuesta leer las tres, leelas vos en voz alta antes de votar.", "otro_nivel": "Para 1er ciclo: dos afirmaciones en vez de tres, con dibujo al lado de cada una.", "error_comun": "Armar una mentira tan obvia que nadie piensa. La falsa tiene que sonar creíble.", "estados_grupo": ["tranquilo", "movido"], "modulo_40": true, "inspirada_en": null, "en_regalo": false}, {"id": "AM-003", "n": 3, "nombre": "Letras en goteo", "momento": "inicio", "niveles": ["P1", "P2", "S"], "minutos": 4, "agrupamiento": "parejas", "materiales": ["pizarrón", "tiza o fibrón", "reloj o cronómetro"], "pasos": ["Elegí una palabra clave de la clase y dibujá en el pizarrón una raya por cada letra.", "Cada veinte segundos completá una letra, empezando por las del medio.", "Las parejas pueden arriesgar una sola vez; si fallan, quedan afuera de esa palabra.", "Cuando alguien acierta, preguntá qué creen que vamos a hacer hoy con esa palabra."], "que_decir": "\"Tienen un solo intento por pareja. Si se apuran, lo pierden. Piensen juntos antes de hablar.\"", "apoyo": "Si a alguien le cuesta, dale una pista de categoría: \"es un animal\", \"es un número\".", "otro_nivel": "Para inicial: una palabra corta con dibujos en lugar de letras, que se van revelando de a uno.", "error_comun": "Elegir una palabra que no vuelve a aparecer en la clase. Tiene que ser la llave del tema.", "estados_grupo": ["tranquilo", "movido"], "modulo_40": false, "inspirada_en": null, "en_regalo": false}, {"id": "AM-004", "n": 4, "nombre": "La pelota que pregunta", "momento": "inicio", "niveles": ["I", "P1"], "minutos": 8, "agrupamiento": "grupo total", "materiales": ["pelota blanda"], "pasos": ["Sentá al grupo en ronda en el piso o en las sillas.", "Decí la pregunta del día, siempre corta: \"¿Qué comiste ayer?\", \"¿Con quién jugaste?\".", "Pasá la pelota rodando a un chico; contesta y la hace rodar a otro que todavía no habló.", "Cerrá cuando todos la tuvieron, aunque alguno haya pasado sin hablar."], "que_decir": "\"La pelota va rodando, no volando. El que la tiene habla y los demás escuchamos con los ojos.\"", "apoyo": "Si a alguien le cuesta hablar en ronda, que pase la pelota diciendo solo \"paso\", y vuelve al final si quiere.", "otro_nivel": "Para 2do ciclo: la pregunta es sobre el tema (\"decí algo que sepas de los volcanes\") y no se puede repetir lo que ya dijeron.", "error_comun": "Obligar a contestar. La ronda se sostiene porque es segura, no porque es obligatoria.", "estados_grupo": ["tranquilo", "despues_acto"], "modulo_40": false, "inspirada_en": null, "en_regalo": false}, {"id": "AM-005", "n": 5, "nombre": "Veo, pienso, me pregunto", "momento": "inicio", "niveles": ["P2", "S"], "minutos": 8, "agrupamiento": "grupo total", "materiales": ["libros del aula", "pizarrón", "tiza o fibrón"], "pasos": ["Mostrá una imagen del libro relacionada con el tema, sin explicar nada.", "Pedí primero solo lo que ven: cosas, colores, personas, sin interpretar.", "Después preguntá qué piensan que está pasando y por qué.", "Al final, cada uno dice algo que se pregunta. Anotá las preguntas en un costado del pizarrón.", "Volvé a esas preguntas al cierre de la clase."], "que_decir": "\"Primero solo lo que ven tus ojos. Todavía no me digas qué pasa: decime qué hay.\"", "apoyo": "Si a alguien le cuesta separar ver de pensar, dale el arranque: \"Yo veo...\".", "otro_nivel": "Para 1er ciclo: solo los dos primeros pasos, con una imagen grande y cercana a su vida.", "error_comun": "Saltar directo a la interpretación. El paso de mirar es el que hace que todos puedan entrar.", "estados_grupo": ["tranquilo"], "modulo_40": true, "inspirada_en": {"texto": "Rutina de pensamiento \"See, Think, Wonder\", Project Zero, Harvard", "url": "https://pz.harvard.edu/resources/see-think-wonder"}, "en_regalo": false}, {"id": "AM-006", "n": 6, "nombre": "La estimación imposible", "momento": "inicio", "niveles": ["P2", "S"], "minutos": 5, "agrupamiento": "individual", "materiales": ["hojas", "lápiz"], "pasos": ["Escribí una pregunta que no se pueda contestar con exactitud: \"¿Cuántas hojas tiene un árbol de la vereda?\".", "Cada uno anota un número sin hablar con nadie.", "Pedí el número más bajo y el más alto y escribilos en el pizarrón.", "Preguntá a dos personas cómo llegaron a su número."], "que_decir": "\"No hay respuesta exacta. Lo que me importa es cómo lo pensaste, no si le pegaste.\"", "apoyo": "Si a alguien le cuesta arrancar, preguntale algo más chico: \"¿cuántas hay en una rama?\".", "otro_nivel": "Para 1er ciclo: estimar cuántos lápices entran en una cartuchera y después contar.", "error_comun": "Decir quién estuvo más cerca y cortar ahí. El valor está en las estrategias.", "estados_grupo": ["tranquilo", "movido"], "modulo_40": true, "inspirada_en": null, "en_regalo": false}, {"id": "AM-008", "n": 8, "nombre": "Lo que me llevé ayer", "momento": "inicio", "niveles": ["P1", "P2", "S"], "minutos": 5, "agrupamiento": "parejas", "materiales": ["ninguno"], "pasos": ["Pedí que se pongan de frente con el compañero de al lado.", "Uno habla un minuto sobre lo que recuerda de la clase anterior; el otro solo escucha.", "Cambian los roles.", "Pedí tres recuerdos al grupo y escribilos en el pizarrón como punto de partida."], "que_decir": "\"Un minuto cada uno. El que escucha no corrige: después tiene su turno.\"", "apoyo": "Si a alguien le cuesta recordar, que mire la última página de su carpeta antes de hablar.", "otro_nivel": "Para inicial: lo hacen en ronda con la ayuda de una foto o un dibujo de lo que hicieron ayer.", "error_comun": "Usarlo para tomar lección. Si suena a examen, nadie arriesga.", "estados_grupo": ["tranquilo", "movido"], "modulo_40": true, "inspirada_en": null, "en_regalo": false}, {"id": "AM-009", "n": 9, "nombre": "Votá al entrar", "momento": "inicio", "niveles": ["I", "P1", "P2", "S"], "minutos": 3, "agrupamiento": "individual", "materiales": ["pizarrón", "tiza o fibrón"], "pasos": ["Antes de que lleguen, escribí una pregunta con dos opciones en el pizarrón.", "Al entrar, cada uno hace una rayita debajo de la opción que elige.", "Cuando están todos, cuenten las rayitas juntos.", "Usá el resultado para abrir el tema: \"¿por qué creen que ganó esta?\"."], "que_decir": "\"Antes de sentarte, votá con una rayita. No hay opción correcta.\"", "apoyo": "Si a alguien le cuesta leer la pregunta, poné un dibujo al lado de cada opción.", "otro_nivel": "Para secundaria: tres opciones y después calculan el porcentaje de cada una.", "error_comun": "Hacer preguntas de sí o no. Las dos opciones tienen que dar ganas de defenderlas.", "estados_grupo": ["tranquilo", "movido", "despues_acto"], "modulo_40": false, "inspirada_en": null, "en_regalo": true}, {"id": "AM-010", "n": 10, "nombre": "Número con historia", "momento": "inicio", "niveles": ["P2", "S"], "minutos": 4, "agrupamiento": "grupo total", "materiales": ["pizarrón", "tiza o fibrón"], "pasos": ["Escribí un número grande en el pizarrón que tenga que ver con el tema (por ejemplo, 206).", "Pedí que arriesguen qué puede significar. Anotá tres o cuatro ideas.", "Da una pista por vez hasta que alguien se acerque.", "Contá el dato y preguntá qué les sorprende."], "que_decir": "\"Este número tiene que ver con lo que vamos a ver hoy. ¿Qué puede ser?\"", "apoyo": "Si a alguien le cuesta arriesgar, ofrecé dos opciones para que elija.", "otro_nivel": "Para 1er ciclo: un número chico y cercano, como la cantidad de patas de una araña.", "error_comun": "Dar el dato enseguida. Lo valioso es el rato en que no lo saben.", "estados_grupo": ["tranquilo"], "modulo_40": true, "inspirada_en": null, "en_regalo": false}, {"id": "AM-011", "n": 11, "nombre": "Ronda de saludos elegidos", "momento": "inicio", "niveles": ["I", "P1"], "minutos": 5, "agrupamiento": "grupo total", "materiales": ["ninguno"], "pasos": ["Mostrá tres formas de saludar: con la mano, con los codos o con una reverencia.", "En ronda, cada chico saluda al de al lado con la forma que elige.", "El saludado responde con la misma forma y saluda al siguiente.", "Cerrá con un saludo de todo el grupo a la vez."], "que_decir": "\"Elegís cómo saludar. Si tu compañero no quiere tocar, saludan de lejos.\"", "apoyo": "Si a alguien le cuesta el contacto, el saludo a distancia vale igual.", "otro_nivel": "Para 2do ciclo: cada uno inventa un saludo de tres movimientos y se lo enseña a otro.", "error_comun": "Apurar la ronda. El ritmo tranquilo es parte de la entrada.", "estados_grupo": ["tranquilo", "movido"], "modulo_40": false, "inspirada_en": null, "en_regalo": false}, {"id": "AM-037", "n": 37, "nombre": "Primero solo, después de a dos", "momento": "desarrollo", "niveles": ["P1", "P2", "S"], "minutos": 8, "agrupamiento": "parejas", "materiales": ["hojas", "lápiz"], "pasos": ["Planteá una pregunta abierta.", "Da dos minutos para pensar solos y anotar una idea.", "Comparen en parejas durante tres minutos.", "Pedí a tres parejas que cuenten en qué coincidían y en qué no."], "que_decir": "\"Dos minutos en silencio para vos. Después, con tu compañero.\"", "apoyo": "Si a alguien le cuesta escribir la idea, puede dibujarla o decírtela.", "otro_nivel": "Para inicial: piensan con los ojos cerrados y después se lo cuentan al de al lado.", "error_comun": "Saltear el tiempo solo. Sin ese tiempo, habla siempre el mismo.", "estados_grupo": ["tranquilo", "movido", "despues_acto"], "modulo_40": true, "inspirada_en": null, "en_regalo": true}, {"id": "AM-039", "n": 39, "nombre": "Grupos por papelitos", "momento": "desarrollo", "niveles": ["I", "P1", "P2", "S"], "minutos": 3, "agrupamiento": "grupos chicos", "materiales": ["papelitos", "caja o bolsa"], "pasos": ["Prepará papelitos con dibujos, números o palabras que formen grupos (cuatro animales del agua, cuatro de la tierra).", "Cada uno saca uno de la caja.", "Buscan a los que tienen el mismo tipo de papelito.", "El grupo se sienta junto."], "que_decir": "\"Sacá un papelito y buscá a tu familia de papelitos sin gritar.\"", "apoyo": "Si a alguien le cuesta encontrar su grupo, mostrale cuál es la categoría.", "otro_nivel": "Para secundaria: los papelitos son conceptos y definiciones que se tienen que encontrar.", "error_comun": "Armar siempre grupos al azar. A veces conviene armarlos vos.", "estados_grupo": ["tranquilo", "movido", "despues_acto"], "modulo_40": false, "inspirada_en": null, "en_regalo": true}, {"id": "AM-061", "n": 61, "nombre": "Ticket 3-2-1", "momento": "cierre", "niveles": ["P2", "S"], "minutos": 5, "agrupamiento": "individual", "materiales": ["papelitos", "lápiz"], "pasos": ["Repartí un papelito a cada uno.", "Escriben tres cosas que aprendieron, dos que les interesaron y una pregunta.", "Lo entregan al salir.", "Usá las preguntas para empezar la clase siguiente."], "que_decir": "\"Tres, dos, uno. La pregunta del final es la más importante.\"", "apoyo": "Si a alguien le cuesta escribir tanto, que haga uno-uno-uno.", "otro_nivel": "Para 1er ciclo: un dibujo de lo que aprendieron y una palabra.", "error_comun": "Leerlos y no volver a ellos. Al día siguiente tienen que aparecer.", "estados_grupo": ["tranquilo", "movido"], "modulo_40": true, "inspirada_en": null, "en_regalo": true}, {"id": "AM-063", "n": 63, "nombre": "Semáforo en un papelito", "momento": "cierre", "niveles": ["P1", "P2", "S"], "minutos": 2, "agrupamiento": "individual", "materiales": ["papelitos", "lápices de colores"], "pasos": ["Cada uno pinta un círculo en un papelito: verde, amarillo o rojo.", "Verde es \"lo entendí\", amarillo \"más o menos\" y rojo \"necesito ayuda\".", "Escriben su nombre atrás y lo entregan.", "Separá los rojos para empezar con ellos la próxima clase."], "que_decir": "\"Nadie ve tu color salvo yo. Elegí el que es verdad.\"", "apoyo": "Si a alguien le cuesta elegir, que pinte dos colores y lo hablan.", "otro_nivel": "Para inicial: cada uno pone una pinza o una tarjeta en el color que siente.", "error_comun": "Mostrar los colores al grupo. Es privado.", "estados_grupo": ["tranquilo", "movido", "despues_acto"], "modulo_40": false, "inspirada_en": null, "en_regalo": false}, {"id": "AM-068", "n": 68, "nombre": "Pulgares de confianza", "momento": "cierre", "niveles": ["I", "P1", "P2", "S"], "minutos": 2, "agrupamiento": "grupo total", "materiales": ["ninguno"], "pasos": ["Leé dos frases sobre lo que trabajaron hoy.", "Después de cada una, cada uno muestra el pulgar: arriba si lo puede hacer solo, al costado si necesita ayuda, abajo si todavía no.", "Mirá el resultado y anotá cuántos hay de cada uno."], "que_decir": "\"No te fijes en el de al lado. ¿Esto lo podés hacer solo?\"", "apoyo": "Si a alguien le cuesta decidir, que muestre el pulgar al costado.", "otro_nivel": "Para secundaria: las frases las escriben ellos y se las leen a la pareja.", "error_comun": "Hacer frases vagas (\"¿entendieron?\"). Que sean concretas.", "estados_grupo": ["tranquilo", "movido", "despues_acto"], "modulo_40": false, "inspirada_en": null, "en_regalo": true}, {"id": "AM-081", "n": 81, "nombre": "Terminé, ¿y ahora?", "momento": "terminan_antes", "niveles": ["I", "P1", "P2", "S"], "minutos": 10, "agrupamiento": "individual", "materiales": ["pizarrón", "tiza o fibrón", "libros del aula"], "pasos": ["Escribí en un costado fijo del pizarrón cuatro opciones para quien termina: leer, revisar, ayudar si me piden, desafío.", "Presentá las opciones el primer día y practicalas una vez cada una.", "Cuando alguien termina, te muestra el trabajo y después elige una opción sin preguntarte.", "Cambiá una sola opción por mes para que el cartel no se gaste."], "que_decir": "\"Si terminaste, primero me mostrás. Después mirás el cartel y elegís vos.\"", "apoyo": "Si a alguien le cuesta elegir, sugerile siempre la misma primera opción hasta que se anime a otra.", "otro_nivel": "Para inicial: el cartel lleva cuatro dibujos (libro, lápiz, mano, estrella) y cada dibujo es un rincón.", "error_comun": "Dar más ejercicios iguales como premio. Quien termina aprende que terminar rápido trae más de lo mismo.", "estados_grupo": ["tranquilo", "movido", "despues_acto"], "modulo_40": false, "inspirada_en": null, "en_regalo": true}, {"id": "AM-085", "n": 85, "nombre": "Dibujá lo que entendiste", "momento": "terminan_antes", "niveles": ["I", "P1", "P2"], "minutos": 8, "agrupamiento": "individual", "materiales": ["hojas", "lápices de colores"], "pasos": ["Quien termina dibuja en una hoja lo que aprendió hoy.", "Le pone un título y, si puede, una o dos palabras con flechas.", "Pegá los dibujos en una pared del aula como galería del tema."], "que_decir": "\"Si tuvieras que explicárselo a alguien sin hablar, ¿qué dibujarías?\"", "apoyo": "Si a alguien le cuesta dibujar, que use flechas, palotes y palabras sueltas: vale igual.", "otro_nivel": "Para secundaria: arman una infografía de media hoja con tres datos y un esquema.", "error_comun": "Corregirlo como un trabajo de arte. Lo que se mira es si muestra la idea.", "estados_grupo": ["tranquilo", "despues_acto"], "modulo_40": false, "inspirada_en": null, "en_regalo": false}, {"id": "AM-091", "n": 91, "nombre": "El problema al revés", "momento": "terminan_antes", "niveles": ["P1", "P2", "S"], "minutos": 8, "agrupamiento": "individual", "materiales": ["hojas", "lápiz"], "pasos": ["Escribí una respuesta en el pizarrón: \"La respuesta es 24\".", "Quien termina inventa un problema cuya respuesta sea esa.", "Lo intercambia con otro que terminó, que lo resuelve.", "Comparan si el problema llevaba a esa respuesta."], "que_decir": "\"Te regalo la respuesta. Lo que falta es el problema.\"", "apoyo": "Si a alguien le cuesta arrancar, dale un escenario: un kiosco, un micro, un cumpleaños.", "otro_nivel": "Para inicial: con objetos en la mesa: \"Tengo tres tapitas. ¿Cómo puede ser?\".", "error_comun": "Elegir una respuesta que solo admite un problema posible. Que haya muchos caminos.", "estados_grupo": ["tranquilo", "movido"], "modulo_40": true, "inspirada_en": null, "en_regalo": true}, {"id": "AM-111", "n": 111, "nombre": "La flor y la vela", "momento": "calma", "niveles": ["I", "P1", "P2"], "minutos": 2, "agrupamiento": "grupo total", "materiales": ["ninguno"], "pasos": ["Pedí que imaginen una flor en una mano y una vela en la otra.", "Acercan la flor a la nariz y la huelen lento, por la nariz.", "Acercan la vela y la soplan despacio, para que se doble la llama sin apagarse.", "Repiten tres veces, cada vez más lento."], "que_decir": "\"Olemos la flor... despacito. Ahora soplamos la vela, pero sin apagarla.\"", "apoyo": "Si a alguien le cuesta respirar lento, que cuente con los dedos de la mano mientras sopla.", "otro_nivel": "Para secundaria: inhalan en cuatro tiempos y exhalan en seis, contados en voz baja por vos.", "error_comun": "Soplar fuerte. La idea es que el aire salga largo y suave.", "estados_grupo": ["movido", "despues_acto"], "modulo_40": false, "inspirada_en": null, "en_regalo": true}, {"id": "AM-112", "n": 112, "nombre": "Respiración en cuadrado", "momento": "calma", "niveles": ["P2", "S"], "minutos": 3, "agrupamiento": "individual", "materiales": ["pizarrón", "tiza o fibrón"], "pasos": ["Dibujá un cuadrado grande en el pizarrón.", "Recorré con la tiza el primer lado mientras inhalan en cuatro tiempos.", "Segundo lado: sostienen el aire; tercer lado: exhalan; cuarto lado: esperan.", "Repiten tres vueltas en silencio."], "que_decir": "\"Sigan la tiza con los ojos. Subimos el aire... lo sostenemos... lo soltamos... esperamos.\"", "apoyo": "Si a alguien le cuesta sostener el aire, que haga cada lado en tres tiempos.", "otro_nivel": "Para 1er ciclo: el cuadrado se dibuja en el aire con el dedo y cada lado dura tres tiempos.", "error_comun": "Hacer muchas vueltas. Con tres alcanza para bajar el ritmo.", "estados_grupo": ["movido", "despues_acto"], "modulo_40": true, "inspirada_en": null, "en_regalo": true}], "areas": [{"clave": "lengua", "titulo": "Lengua / Prácticas del Lenguaje", "grupo": "lengua"}, {"clave": "matematica", "titulo": "Matemática", "grupo": "matematica"}, {"clave": "naturales", "titulo": "Ciencias Naturales", "grupo": "naturales"}], "anios": {"P1": ["1.er grado", "2.° grado", "3.er grado"], "P2": ["4.° grado", "5.° grado", "6.° grado", "7.° grado"]}, "moldes": [{"id": "L-01", "grupo": "lengua", "tipo": "comparar", "niveles": ["P1", "P2", "S"], "texto": "Buscá en los textos del aula dos ejemplos relacionados con {tema} y anotá en qué se parecen y en qué se diferencian."}, {"id": "L-02", "grupo": "lengua", "tipo": "comparar", "niveles": ["I", "P1"], "texto": "Mirá las dos palabras, dibujos o textos cortos sobre {tema} que va a mostrar tu docente: ¿en qué se parecen y en qué no? Contalo o dibujalo."}, {"id": "L-03", "grupo": "lengua", "tipo": "explicar a otro", "niveles": ["I", "P1", "P2"], "texto": "Contale a un compañero qué aprendiste hoy sobre {tema}, como si hubiera faltado a la clase."}, {"id": "L-04", "grupo": "lengua", "tipo": "explicar a otro", "niveles": ["P2", "S"], "texto": "Escribí un mensaje corto para alguien de un grado más chico explicándole {tema}. Usá palabras que pueda entender."}, {"id": "L-05", "grupo": "lengua", "tipo": "inventar un ejemplo", "niveles": ["I", "P1", "P2"], "texto": "Inventá una oración, una rima o un trabalenguas que tenga que ver con {tema}. Decila en voz alta o escribila."}, {"id": "L-06", "grupo": "lengua", "tipo": "inventar un ejemplo", "niveles": ["P2", "S"], "texto": "Escribí tres o cuatro oraciones (el comienzo de un cuento, una noticia o una carta) en las que uses lo que trabajamos sobre {tema}."}, {"id": "L-07", "grupo": "lengua", "tipo": "encontrar el error", "niveles": ["P1", "P2"], "texto": "Tu docente va a mostrar un texto corto con dos errores relacionados con {tema}. Encontralos y contá cómo los corregirías."}, {"id": "L-08", "grupo": "lengua", "tipo": "encontrar el error", "niveles": ["P2", "S"], "texto": "Escribí una oración con un error a propósito relacionado con {tema}. Cambiala con un compañero y que cada uno encuentre el error del otro."}, {"id": "L-09", "grupo": "lengua", "tipo": "conectar con el barrio", "niveles": ["I", "P1", "P2"], "texto": "Buscá fuera del aula (en un cartel, un envase, la tele o el barrio) algo que tenga que ver con {tema}. Contá qué encontraste y dónde."}, {"id": "L-10", "grupo": "lengua", "tipo": "conectar con el barrio", "niveles": ["P2", "S"], "texto": "Pensá en un cartel, una publicidad o un mensaje que hayas visto en el barrio y que tenga que ver con {tema}. Contá qué decía y para qué lo escribieron."}, {"id": "L-11", "grupo": "lengua", "tipo": "opinar con razones", "niveles": ["I", "P1"], "texto": "¿Qué te gustó más de lo que hicimos con {tema} y por qué? Decilo empezando con: \"A mí me gustó... porque...\"."}, {"id": "L-12", "grupo": "lengua", "tipo": "opinar con razones", "niveles": ["P2", "S"], "texto": "¿Para qué te sirve lo que trabajamos sobre {tema} cuando leés o escribís? Escribí dos razones y comparalas con las de un compañero."}, {"id": "M-01", "grupo": "matematica", "tipo": "comparar", "niveles": ["I", "P1"], "texto": "Mirá los dos grupos de objetos o dibujos que preparó tu docente para trabajar {tema}: ¿en qué se parecen y en qué se diferencian? ¿Cómo te diste cuenta?"}, {"id": "M-02", "grupo": "matematica", "tipo": "comparar", "niveles": ["P2", "S"], "texto": "Resolvé un problema de {tema} de dos maneras distintas. ¿Cuál te resultó más rápida? ¿Cuál es más fácil de explicar?"}, {"id": "M-03", "grupo": "matematica", "tipo": "explicar a otro", "niveles": ["P1", "P2", "S"], "texto": "Explicale a un compañero, paso a paso, cómo resolviste un problema de {tema}. Después de escucharte, tiene que poder hacerlo solo."}, {"id": "M-04", "grupo": "matematica", "tipo": "explicar a otro", "niveles": ["I", "P1"], "texto": "Mostrale a un compañero cómo contaste o cómo armaste tu respuesta sobre {tema}. Podés usar los dedos, dibujos o materiales del aula."}, {"id": "M-05", "grupo": "matematica", "tipo": "inventar un ejemplo", "niveles": ["P1", "P2"], "texto": "Inventá un problema de {tema} que tenga que ver con algo de todos los días. Después dáselo a otro para que lo resuelva."}, {"id": "M-06", "grupo": "matematica", "tipo": "inventar un ejemplo", "niveles": ["P2", "S"], "texto": "Elegí vos un resultado y después inventá un cálculo o un problema de {tema} que llegue a ese resultado. Contá cómo lo armaste."}, {"id": "M-07", "grupo": "matematica", "tipo": "encontrar el error", "niveles": ["P1", "P2"], "texto": "Tu docente va a mostrar un problema de {tema} resuelto con un error. Encontralo y explicá qué pasó."}, {"id": "M-08", "grupo": "matematica", "tipo": "encontrar el error", "niveles": ["P2", "S"], "texto": "Resolvé un ejercicio de {tema} con un error a propósito. Cambiá con un compañero: cada uno busca el error del otro y explica cómo arreglarlo."}, {"id": "M-09", "grupo": "matematica", "tipo": "conectar con el barrio", "niveles": ["I", "P1", "P2"], "texto": "¿En qué lugares del barrio te encontrás con {tema}: en el almacén, en la feria, en el colectivo o en la cancha? Contá un ejemplo."}, {"id": "M-10", "grupo": "matematica", "tipo": "conectar con el barrio", "niveles": ["P2", "S"], "texto": "Pensá una situación del barrio (compras, horarios, distancias, una receta) en la que haga falta lo que sabés de {tema}. Armá una pregunta sobre esa situación y respondela."}, {"id": "M-11", "grupo": "matematica", "tipo": "opinar con razones", "niveles": ["I", "P1", "P2"], "texto": "¿Te pareció fácil o difícil trabajar {tema}? Elegí una parte y contá por qué."}, {"id": "M-12", "grupo": "matematica", "tipo": "opinar con razones", "niveles": ["P2", "S"], "texto": "Un compañero dice que hay una sola forma correcta de resolver un problema de {tema}. ¿Estás de acuerdo? Da dos razones."}, {"id": "N-01", "grupo": "naturales", "tipo": "comparar", "niveles": ["I", "P1", "P2"], "texto": "Observá dos cosas relacionadas con {tema} y contá en qué se parecen y en qué se diferencian. Podés dibujarlas."}, {"id": "N-02", "grupo": "naturales", "tipo": "comparar", "niveles": ["P2", "S"], "texto": "Compará lo que pensabas sobre {tema} antes de la clase con lo que pensás ahora. ¿Qué idea cambió?"}, {"id": "N-03", "grupo": "naturales", "tipo": "explicar a otro", "niveles": ["I", "P1"], "texto": "Mostrale a un compañero qué descubriste sobre {tema}. Usá las manos, un dibujo o un objeto para explicarlo."}, {"id": "N-04", "grupo": "naturales", "tipo": "explicar a otro", "niveles": ["P2", "S"], "texto": "Explicale a un compañero por qué pasa lo que vimos sobre {tema}. Te puede hacer dos preguntas y vos tenés que responderlas."}, {"id": "N-05", "grupo": "naturales", "tipo": "inventar un ejemplo", "niveles": ["I", "P1", "P2"], "texto": "Pensá algo sobre {tema} que no hayamos nombrado en clase: un ejemplo, un caso o una pregunta. Contalo o dibujalo."}, {"id": "N-06", "grupo": "naturales", "tipo": "inventar un ejemplo", "niveles": ["P2", "S"], "texto": "Inventá una pregunta sobre {tema} que se pueda responder con un experimento o una observación. Contá qué harías para responderla."}, {"id": "N-07", "grupo": "naturales", "tipo": "encontrar el error", "niveles": ["P1", "P2"], "texto": "Tu docente va a decir una idea equivocada sobre {tema}. ¿Por qué está mal? ¿Qué dirías vos?"}, {"id": "N-08", "grupo": "naturales", "tipo": "encontrar el error", "niveles": ["P2", "S"], "texto": "Escribí una afirmación sobre {tema} que mucha gente cree pero que no es correcta. Explicá cuál sería la idea correcta."}, {"id": "N-09", "grupo": "naturales", "tipo": "conectar con el barrio", "niveles": ["I", "P1", "P2"], "texto": "¿Hay algo de {tema} que se pueda ver, escuchar o encontrar cerca de tu casa, en la plaza o en el patio? Si no, ¿dónde lo podríamos ver?"}, {"id": "N-10", "grupo": "naturales", "tipo": "conectar con el barrio", "niveles": ["P2", "S"], "texto": "Pensá si {tema} tiene que ver con algo del barrio (la plaza, el agua, la basura, la luz, los animales). Si es así, proponé una idea para cuidar o mejorar algo; si no, explicá por qué."}, {"id": "N-11", "grupo": "naturales", "tipo": "opinar con razones", "niveles": ["I", "P1"], "texto": "¿Qué fue lo que más te sorprendió de {tema}? Contalo y explicá por qué."}, {"id": "N-12", "grupo": "naturales", "tipo": "opinar con razones", "niveles": ["P2", "S"], "texto": "¿Te parece importante aprender sobre {tema}? Escribí tu respuesta con dos razones."}], "tickets": {"P1": ["En un papelito, dibujá algo que aprendiste de {tema} y escribí una palabra al lado.", "Completá la frase \"Hoy aprendí que...\" sobre {tema}.", "Escribí una pregunta que todavía tengas sobre {tema}."], "P2": ["3-2-1: tres cosas que aprendiste de {tema}, dos que te llamaron la atención y una pregunta.", "Explicá {tema} en una sola oración, como si fuera un mensaje de texto.", "¿Qué parte de {tema} podrías explicarle a otro y qué parte todavía no?"]}, "apoyos": [{"titulo": "Dividir en pasos", "texto": "Partí la consigna en pasos cortos y numerados, y entregalos de a uno: \"1. Leé... 2. Marcá... 3. Escribí...\". Quien quiera, tacha cada paso cuando lo termina."}, {"titulo": "Ejemplo resuelto", "texto": "Antes de empezar, resolvé en el pizarrón un ejemplo parecido a la primera consigna y dejalo a la vista mientras trabajan."}, {"titulo": "Opción oral", "texto": "Ofrecé responder en voz alta, con un dibujo o con un esquema en lugar de escribir. Lo que importa es la idea, no el formato."}], "total_dinamicas": 120};
+var DEMO = true;
+var MAXG = DEMO ? 3 : 30;
+var KEY = DEMO ? "clase_lista_demo_v1" : "clase_lista_v1";
+var DURS = [20, 40, 60, 80, 120];
+var PI0 = 15, PC0 = 20;
+var TABS = [["entrada","Armar"],["clase","Clase"],["guardadas","Guardadas"],["ayuda","Ayuda"]];
+
+function $(id){ return document.getElementById(id); }
+function el(tag, attrs, kids){
+  var n = document.createElement(tag);
+  if(attrs) Object.keys(attrs).forEach(function(k){
+    var v = attrs[k];
+    if(v === null || v === undefined || v === false) return;
+    if(k === "text") n.textContent = v;
+    else if(k === "class") n.className = v;
+    else n.setAttribute(k, v === true ? "" : v);
+  });
+  (kids || []).forEach(function(c){ if(c !== null && c !== undefined) n.appendChild(typeof c === "string" ? document.createTextNode(c) : c); });
+  return n;
+}
+var tt;
+function toast(m){ var t = $("toast"); t.textContent = m; t.classList.add("on"); clearTimeout(tt); tt = setTimeout(function(){ t.classList.remove("on"); }, 2400); }
+function porClave(lista, k){ for(var i = 0; i < lista.length; i++) if(lista[i].clave === k) return lista[i]; return null; }
+function tituloNivel(k){ var n = porClave(D.niveles, k); return n ? n.titulo : k; }
+function tituloArea(k){ var a = porClave(D.areas, k); return a ? a.titulo : k; }
+function tituloEstado(k){ var e = porClave(D.estados_grupo, k); return e ? e.titulo.toLowerCase() : k; }
+function tituloMomento(k){ var m = porClave(D.momentos, k); return m ? m.titulo : k; }
+function hash(s){ var h = 5381; for(var i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0; return h; }
+function hoy(){ var d = new Date(); return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2); }
+function fechaCorta(iso){ var p = String(iso || "").split("-"); return p.length === 3 ? (p[2] + "/" + p[1] + "/" + p[0]) : ""; }
+
+/* ---------- estado y guardado ---------- */
+function entradaInicial(){
+  return {nivel: D.niveles[0].clave, anio: "", area: D.areas[0].clave, tema: "", dur: 40, agr: "", estado: D.estados_grupo[0].clave, pi: PI0, pc: PC0};
+}
+var S = {inp: entradaInicial(), idx: {inicio:0, desarrollo:0, cierre:0, antes:0, cons:0, ticket:0}, armada: false, tab: "entrada"};
+var G = {guardadas: [], ultima: null};
+var guardarOk = true;
+function cargar(){
+  try{
+    var raw = window.localStorage.getItem(KEY);
+    if(raw){ var g = JSON.parse(raw); if(g && Array.isArray(g.guardadas)) G = {guardadas: g.guardadas.slice(0, MAXG), ultima: g.ultima || null}; }
+  }catch(e){ guardarOk = false; }
+  if(G.ultima && entradaValida(G.ultima)) S.inp = Object.assign(entradaInicial(), G.ultima);
+}
+function persistir(){
+  try{ window.localStorage.setItem(KEY, JSON.stringify(G)); guardarOk = true; }catch(e){ guardarOk = false; }
+  renderSave();
+}
+function entradaValida(x){
+  return x && porClave(D.niveles, x.nivel) && porClave(D.areas, x.area) && DURS.indexOf(+x.dur) >= 0 && porClave(D.estados_grupo, x.estado);
+}
+
+/* ---------- cálculo de la clase ---------- */
+function minutos(dur, pi, pc){
+  var ini = Math.max(2, Math.round(dur * pi / 100));
+  var cie = Math.max(2, Math.round(dur * pc / 100));
+  return {ini: ini, des: dur - ini - cie, cie: cie};
+}
+function limpiarTema(t){
+  t = String(t || "").replace(/\s+/g, " ").trim().replace(/[.;:,]+$/, "");
+  return t;
+}
+function conTema(txt, tema){
+  return txt.split("{tema}").join(tema).replace(/\bde el\b/g, "del").replace(/\ba el\b/g, "al").replace(/\bDe el\b/g, "Del");
+}
+function momentosDe(slot, estado){
+  if(slot === "inicio") return estado === "tranquilo" ? ["inicio"] : ["inicio", "calma"];
+  if(slot === "antes") return ["terminan_antes"];
+  return [slot];
+}
+function candidatos(slot, inp, max){
+  var moms = momentosDe(slot, inp.estado);
+  var base = D.dinamicas.filter(function(d){ return moms.indexOf(d.momento) >= 0 && d.niveles.indexOf(inp.nivel) >= 0 && d.minutos <= max; });
+  var L = base.filter(function(d){ return d.estados_grupo.indexOf(inp.estado) >= 0; });
+  if(!L.length) L = base;
+  var semilla = [inp.nivel, inp.area, limpiarTema(inp.tema).toLowerCase(), inp.dur, inp.estado, slot].join("|");
+  function puntos(d){
+    var p = 0;
+    if(inp.agr && d.agrupamiento === inp.agr && slot !== "inicio") p += 2;
+    if(inp.nivel === "S" && inp.dur <= 40 && d.modulo_40) p += 1;
+    if(slot === "inicio" && inp.estado !== "tranquilo" && d.momento === "calma") p += 1;
+    return p;
+  }
+  return L.map(function(d){ return {d: d, p: puntos(d), h: hash(semilla + d.id)}; })
+    .sort(function(a, b){ return b.p - a.p || a.h - b.h; })
+    .map(function(x){ return x.d; });
+}
+function elegir(lista, i){ return lista.length ? lista[((i % lista.length) + lista.length) % lista.length] : null; }
+function consignas(inp, i){
+  var grupo = porClave(D.areas, inp.area).grupo;
+  var L = D.moldes.filter(function(m){ return m.grupo === grupo && m.niveles.indexOf(inp.nivel) >= 0; });
+  if(L.length < 2) L = D.moldes.filter(function(m){ return m.niveles.indexOf(inp.nivel) >= 0; });
+  var semilla = [inp.nivel, inp.area, limpiarTema(inp.tema).toLowerCase()].join("|");
+  L = L.slice().sort(function(a, b){ return hash(semilla + a.id) - hash(semilla + b.id); });
+  var a = L[(i * 2) % L.length], b = null;
+  for(var k = 1; k < L.length && !b; k++){ var c = L[(i * 2 + k) % L.length]; if(c.tipo !== a.tipo) b = c; }
+  return [a, b || L[(i * 2 + 1) % L.length]];
+}
+function plan(inp, idx){
+  var tema = limpiarTema(inp.tema);
+  var m = minutos(+inp.dur, +inp.pi, +inp.pc);
+  var lim = {inicio: m.ini, desarrollo: m.des, cierre: m.cie, antes: m.des};
+  var din = {}, cands = {};
+  ["inicio", "desarrollo", "cierre", "antes"].forEach(function(s){
+    cands[s] = candidatos(s, inp, lim[s]);
+    din[s] = elegir(cands[s], idx[s]);
+  });
+  var cs = consignas(inp, idx.cons);
+  var tk = D.tickets[inp.nivel];
+  return {
+    inp: inp, tema: tema, min: m, lim: lim, din: din, cuantas: {inicio: cands.inicio.length, desarrollo: cands.desarrollo.length, cierre: cands.cierre.length, antes: cands.antes.length},
+    cons: cs.map(function(c){ return {id: c.id, tipo: c.tipo, texto: conTema(c.texto, tema)}; }),
+    apoyos: D.apoyos.map(function(a){ return {titulo: a.titulo, texto: conTema(a.texto, tema)}; }),
+    ticket: conTema(elegir(tk, idx.ticket), tema)
+  };
+}
+var RESTO = {inicio: "presentar el tema y la consigna", desarrollo: "la actividad principal con las consignas del bloque 3", cierre: "el ticket de salida y ordenar el aula"};
+
+/* ---------- textos para copiar ---------- */
+function encabezado(P){
+  var i = P.inp;
+  return tituloArea(i.area) + " · " + tituloNivel(i.nivel) + (i.anio ? " (" + i.anio + ")" : "") + " · " + i.dur + " min · el grupo está " + tituloEstado(i.estado);
+}
+function lineaDin(d){ return d ? d.nombre + " (" + d.minutos + " min, " + d.agrupamiento + ")" : "sin dinámica"; }
+function textoClase(P){
+  var L = [], m = P.min;
+  L.push("CLASE: " + P.tema.toUpperCase());
+  L.push(encabezado(P)); L.push("");
+  L.push("1. ESTRUCTURA");
+  L.push("Inicio: " + m.ini + " min · Desarrollo: " + m.des + " min · Cierre: " + m.cie + " min"); L.push("");
+  L.push("2. DINÁMICAS");
+  [["inicio","Inicio"],["desarrollo","Desarrollo"],["cierre","Cierre"]].forEach(function(x){
+    var d = P.din[x[0]];
+    L.push(x[1] + ": " + lineaDin(d));
+    if(d){ d.pasos.forEach(function(p, k){ L.push("   " + (k + 1) + ". " + p); }); L.push("   Qué decir: " + d.que_decir); }
+  });
+  L.push(""); L.push("3. CONSIGNAS ABIERTAS");
+  P.cons.forEach(function(c, k){ L.push((k + 1) + ") [" + c.tipo + "] " + c.texto); });
+  L.push(""); L.push("4. PARA LOS QUE TERMINAN ANTES");
+  L.push(lineaDin(P.din.antes)); if(P.din.antes) P.din.antes.pasos.forEach(function(p, k){ L.push("   " + (k + 1) + ". " + p); });
+  L.push(""); L.push("5. AJUSTES DE APOYO");
+  P.apoyos.forEach(function(a){ L.push("- " + a.titulo + ": " + a.texto); });
+  L.push(""); L.push("6. TICKET DE SALIDA"); L.push(P.ticket);
+  L.push(""); L.push("Ajustalo al diseño curricular de tu jurisdicción.");
+  return L.join("\n");
+}
+function textoPrompt(P){
+  var i = P.inp, m = P.min, d = P.din;
+  return [
+    "Actuá como colega docente con experiencia en " + tituloNivel(i.nivel).toLowerCase() + " en Argentina.",
+    "Quiero preparar una clase de " + tituloArea(i.area) + " sobre \"" + P.tema + "\" para " + (i.anio || tituloNivel(i.nivel).toLowerCase()) + ", de " + i.dur + " minutos. Hoy el grupo está " + tituloEstado(i.estado) + (i.agr ? " y prefiero trabajar en " + i.agr : "") + ".",
+    "",
+    "Esta es la estructura que ya tengo:",
+    "- Inicio (" + m.ini + " min): " + lineaDin(d.inicio) + ".",
+    "- Desarrollo (" + m.des + " min): " + lineaDin(d.desarrollo) + ", con estas consignas:",
+    "  1) " + P.cons[0].texto,
+    "  2) " + P.cons[1].texto,
+    "- Cierre (" + m.cie + " min): " + lineaDin(d.cierre) + ". Ticket de salida: " + P.ticket,
+    "",
+    "Te pido:",
+    "1. Una actividad principal para el desarrollo, con pasos y minutos para cada uno, que entre en " + m.des + " minutos.",
+    "2. Dos preguntas para hacerle al grupo durante la clase.",
+    "3. Una versión más simple y una más desafiante de la primera consigna.",
+    "4. Los materiales necesarios, que se consigan en un aula común.",
+    "",
+    "No agregues expectativas de logro ni contenidos oficiales: los ajusto yo al diseño curricular de mi jurisdicción. No hace falta ningún dato de los alumnos. Escribí en español rioplatense, con voseo."
+  ].join("\n");
+}
+
+/* ---------- copiar ---------- */
+function copiar(txt, ok){
+  function plan_b(){
+    var ta = el("textarea", {style:"position:fixed;top:-1000px;left:0;opacity:0", readonly: true}); ta.value = txt;
+    document.body.appendChild(ta); ta.select();
+    var r = false; try{ r = document.execCommand("copy"); }catch(e){}
+    document.body.removeChild(ta);
+    toast(r ? ok : "No se pudo copiar solo: seleccioná el texto y copialo a mano.");
+  }
+  try{
+    if(navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(txt).then(function(){ toast(ok); }, plan_b);
+    else plan_b();
+  }catch(e){ plan_b(); }
+}
+
+/* ---------- render de la entrada ---------- */
+function opciones(sel, lista, valor){
+  sel.innerHTML = "";
+  lista.forEach(function(o){ var op = el("option", {value: o[0], text: o[1]}); if(String(o[0]) === String(valor)) op.selected = true; sel.appendChild(op); });
+}
+function renderEntrada(){
+  var i = S.inp;
+  opciones($("inNivel"), D.niveles.map(function(n){ return [n.clave, n.titulo]; }), i.nivel);
+  opciones($("inAnio"), [["", "Sin especificar"]].concat((D.anios[i.nivel] || []).map(function(a){ return [a, a]; })), i.anio);
+  opciones($("inArea"), D.areas.map(function(a){ return [a.clave, a.titulo]; }), i.area);
+  $("inTema").value = i.tema;
+  opciones($("inAgr"), [["", "Sin preferencia"]].concat(D.agrupamientos.map(function(a){ return [a, a.charAt(0).toUpperCase() + a.slice(1)]; })), i.agr);
+  var bd = $("inDur"); bd.innerHTML = "";
+  DURS.forEach(function(d){
+    var b = el("button", {type: "button", "class": "chip", "data-dur": d, "aria-pressed": String(+i.dur === d), text: d + " min"});
+    b.addEventListener("click", function(){ S.inp.dur = d; renderEntrada(); });
+    bd.appendChild(b);
+  });
+  var be = $("inEst"); be.innerHTML = "";
+  D.estados_grupo.forEach(function(e){
+    var b = el("button", {type: "button", "class": "chip", "data-est": e.clave, "aria-pressed": String(i.estado === e.clave), text: e.titulo});
+    b.addEventListener("click", function(){ S.inp.estado = e.clave; renderEntrada(); });
+    be.appendChild(b);
+  });
+  $("inPi").value = i.pi; $("inPc").value = i.pc;
+  renderReparto();
+}
+function renderReparto(){
+  var i = S.inp, m = minutos(+i.dur, +i.pi, +i.pc);
+  $("vPi").textContent = i.pi + " %"; $("vPc").textContent = i.pc + " %";
+  $("vReparto").textContent = "Con " + i.dur + " min: inicio " + m.ini + ", desarrollo " + m.des + " y cierre " + m.cie + " min.";
+}
+$("inNivel").addEventListener("change", function(){ S.inp.nivel = this.value; S.inp.anio = ""; renderEntrada(); });
+$("inAnio").addEventListener("change", function(){ S.inp.anio = this.value; });
+$("inArea").addEventListener("change", function(){ S.inp.area = this.value; });
+$("inTema").addEventListener("input", function(){ S.inp.tema = this.value; if(limpiarTema(this.value)) $("temaErr").hidden = true; });
+$("inAgr").addEventListener("change", function(){ S.inp.agr = this.value; });
+$("inPi").addEventListener("input", function(){ S.inp.pi = +this.value; renderReparto(); });
+$("inPc").addEventListener("input", function(){ S.inp.pc = +this.value; renderReparto(); });
+$("bReparto").addEventListener("click", function(){ S.inp.pi = PI0; S.inp.pc = PC0; $("inPi").value = PI0; $("inPc").value = PC0; renderReparto(); });
+$("fClase").addEventListener("submit", function(ev){
+  ev.preventDefault();
+  S.inp.tema = $("inTema").value;
+  if(!limpiarTema(S.inp.tema)){ $("temaErr").hidden = false; $("inTema").focus(); return; }
+  S.idx = {inicio:0, desarrollo:0, cierre:0, antes:0, cons:0, ticket:0};
+  S.armada = true;
+  G.ultima = Object.assign({}, S.inp); persistir();
+  renderClase(); irA("clase"); window.scrollTo(0, 0);
+});
+
+/* ---------- render de la clase ---------- */
+function cardDin(d, slot, max, P){
+  var box = el("div", {"class": "din", "data-slot": slot, "data-min": d ? d.minutos : "", "data-max": max, "data-id": d ? d.id : ""});
+  var rotulo = slot === "antes" ? "Mientras los demás terminan" : ({inicio: "Inicio", desarrollo: "Desarrollo", cierre: "Cierre"})[slot] + " · " + max + " min";
+  box.appendChild(el("div", {"class": "mom", text: rotulo}));
+  if(!d){ box.appendChild(el("p", {"class": "hint", text: "No hay una dinámica que entre en este bloque."})); return box; }
+  box.appendChild(el("h3", {text: d.nombre}));
+  var mats = d.materiales[0] === "ninguno" ? "sin materiales" : d.materiales.join(", ");
+  var extra = (d.momento === "calma" && slot === "inicio") ? " · para volver a la calma" : "";
+  box.appendChild(el("p", {"class": "meta", text: d.minutos + " min · " + d.agrupamiento + " · " + mats + extra}));
+  var ol = el("ol"); d.pasos.forEach(function(p){ ol.appendChild(el("li", {text: p})); }); box.appendChild(ol);
+  box.appendChild(el("p", {"class": "decir", text: d.que_decir}));
+  box.appendChild(el("p", {"class": "hint", text: d.apoyo}));
+  if(slot !== "antes" && max - d.minutos > 0) box.appendChild(el("p", {"class": "resto", text: (max - d.minutos === 1 ? "Te queda 1 min para " : "Te quedan " + (max - d.minutos) + " min para ") + RESTO[slot] + "."}));
+  var b = el("button", {type: "button", "class": "btn sm noprint", "data-otra": slot, text: P.cuantas[slot] > 1 ? "Otra dinámica (" + P.cuantas[slot] + " posibles)" : "Es la única que entra"});
+  if(P.cuantas[slot] < 2) b.disabled = true;
+  b.addEventListener("click", function(){ S.idx[slot]++; renderClase(); });
+  box.appendChild(b);
+  return box;
+}
+function vaciar(id){ var n = $(id); n.innerHTML = ""; return n; }
+function renderClase(){
+  $("sinClase").hidden = S.armada; $("clase").hidden = !S.armada;
+  if(!S.armada) return;
+  var P = plan(S.inp, S.idx), m = P.min;
+  var cab = vaciar("cab");
+  cab.appendChild(el("h2", {text: P.tema.charAt(0).toUpperCase() + P.tema.slice(1)}));
+  cab.appendChild(el("p", {text: encabezado(P)}));
+  cab.appendChild(el("p", {"class": "solo-print", text: "Fecha: ____ / ____ / ________"}));
+
+  var b1 = vaciar("b1");
+  b1.setAttribute("data-ini", m.ini); b1.setAttribute("data-des", m.des); b1.setAttribute("data-cie", m.cie); b1.setAttribute("data-dur", P.inp.dur);
+  var barra = el("div", {"class": "barra", "aria-hidden": "true"});
+  [["s1", m.ini, "Inicio"], ["s2", m.des, "Desarrollo"], ["s3", m.cie, "Cierre"]].forEach(function(x){
+    barra.appendChild(el("span", {"class": x[0], style: "width:" + (100 * x[1] / P.inp.dur) + "%", text: x[1] + "'"}));
+  });
+  b1.appendChild(barra);
+  var ul = el("ul", {"class": "tiempos"});
+  [["Inicio", m.ini, "enganche y presentación del tema"], ["Desarrollo", m.des, "trabajo con las consignas"], ["Cierre", m.cie, "síntesis y ticket de salida"]].forEach(function(x){
+    ul.appendChild(el("li", null, [el("span", {text: x[0] + ": " + x[2]}), el("b", {text: x[1] + " min"})]));
+  });
+  ul.appendChild(el("li", null, [el("span", {text: "Total"}), el("b", {text: (m.ini + m.des + m.cie) + " min"})]));
+  b1.appendChild(ul);
+
+  var b2 = vaciar("b2");
+  ["inicio", "desarrollo", "cierre"].forEach(function(s){ b2.appendChild(cardDin(P.din[s], s, P.lim[s], P)); });
+
+  var b3 = vaciar("b3");
+  b3.appendChild(el("p", {"class": "hint", text: "Para el desarrollo. Leelas en voz alta o copialas en el pizarrón."}));
+  P.cons.forEach(function(c, k){
+    b3.appendChild(el("div", {"class": "cons", "data-molde": c.id}, [el("span", {"class": "tipo", text: (k + 1) + " · " + c.tipo}), el("span", {text: c.texto})]));
+  });
+  var bc = el("button", {type: "button", "class": "btn sm noprint", text: "Otras consignas"});
+  bc.addEventListener("click", function(){ S.idx.cons++; renderClase(); });
+  b3.appendChild(bc);
+
+  var b4 = vaciar("b4");
+  b4.appendChild(el("p", {"class": "hint", text: "Dejala explicada desde el principio, así nadie queda esperando."}));
+  b4.appendChild(cardDin(P.din.antes, "antes", P.lim.antes, P));
+
+  var b5 = vaciar("b5");
+  var ua = el("ul", {"class": "apoyo"});
+  P.apoyos.forEach(function(a){ ua.appendChild(el("li", null, [el("b", {text: a.titulo + ": "}), a.texto])); });
+  b5.appendChild(ua);
+  b5.appendChild(el("p", {"class": "hint", text: "Sirven para cualquiera que los necesite hoy, sin etiquetar a nadie."}));
+
+  var b6 = vaciar("b6");
+  b6.appendChild(el("div", {"class": "ticket", text: P.ticket}));
+  var bt = el("button", {type: "button", "class": "btn sm noprint", style: "margin-top:8px", text: "Otro ticket"});
+  bt.addEventListener("click", function(){ S.idx.ticket++; renderClase(); });
+  b6.appendChild(bt);
+
+  var b7 = vaciar("b7");
+  b7.appendChild(el("p", {"class": "hint", text: "Arma un pedido para Gemini, ChatGPT u otra IA con la estructura de esta clase. No incluye datos de alumnos: no los agregues vos tampoco."}));
+  var ta = el("textarea", {id: "taPrompt", readonly: true, "aria-label": "Prompt para tu IA"}); ta.value = textoPrompt(P); ta.hidden = true;
+  var bp = el("button", {type: "button", "class": "btn pri", id: "bPrompt", text: "Prompt para tu IA"});
+  bp.addEventListener("click", function(){ ta.hidden = false; ta.focus(); ta.select(); copiar(ta.value, "Prompt copiado. Pegalo en tu IA."); });
+  b7.appendChild(bp); b7.appendChild(ta);
+
+  var b8 = vaciar("b8");
+  var row = el("div", {"class": "row"});
+  var bi = el("button", {type: "button", "class": "btn pri", text: "Imprimir"}); bi.addEventListener("click", function(){ window.print(); });
+  var bk = el("button", {type: "button", "class": "btn", text: "Copiar la clase"}); bk.addEventListener("click", function(){ copiar(textoClase(P), "Clase copiada."); });
+  var bg = el("button", {type: "button", "class": "btn", id: "bGuardar", text: "Guardar"}); bg.addEventListener("click", guardarClase);
+  row.appendChild(bi); row.appendChild(bk); row.appendChild(bg);
+  b8.appendChild(row);
+  b8.appendChild(el("p", {"class": "hint", style: "margin-top:8px", text: "Al imprimir salen los bloques 1 a 6 en A4. Guardadas: " + G.guardadas.length + " de " + MAXG + "."}));
+}
+
+/* ---------- guardadas ---------- */
+function guardarClase(){
+  if(G.guardadas.length >= MAXG){ toast("Ya tenés " + MAXG + " clases guardadas. Borrá alguna en Guardadas."); return; }
+  G.guardadas.unshift({id: Date.now().toString(36) + Math.floor(Math.random() * 1e4), fecha: hoy(), inp: Object.assign({}, S.inp), idx: Object.assign({}, S.idx)});
+  persistir(); renderGuardadas(); renderClase();
+  toast(guardarOk ? "Clase guardada en este dispositivo." : "Este navegador no deja guardar.");
+}
+function renderGuardadas(){
+  var ul = vaciar("gLista");
+  $("gInfo").textContent = G.guardadas.length ? (G.guardadas.length + " de " + MAXG + " clases guardadas en este dispositivo.") : "Todavía no guardaste ninguna clase (podés guardar hasta " + MAXG + ").";
+  G.guardadas.forEach(function(g, k){
+    var abrir = el("button", {type: "button", "class": "btn sm", text: "Abrir"});
+    abrir.addEventListener("click", function(){
+      if(!entradaValida(g.inp)){ toast("Esa clase no se puede abrir en esta versión."); return; }
+      S.inp = Object.assign(entradaInicial(), g.inp); S.idx = Object.assign({inicio:0, desarrollo:0, cierre:0, antes:0, cons:0, ticket:0}, g.idx); S.armada = true;
+      renderEntrada(); renderClase(); irA("clase"); window.scrollTo(0, 0);
+    });
+    var x = el("button", {type: "button", "class": "x", "aria-label": "Borrar esta clase", text: "×"});
+    x.addEventListener("click", function(){ G.guardadas.splice(k, 1); persistir(); renderGuardadas(); });
+    var t = limpiarTema(g.inp.tema) || "(sin tema)";
+    ul.appendChild(el("li", null, [el("span", null, [t, el("small", {text: fechaCorta(g.fecha) + " · " + tituloArea(g.inp.area) + " · " + tituloNivel(g.inp.nivel) + " · " + g.inp.dur + " min"})]), abrir, x]));
+  });
+}
+$("bBorrar").addEventListener("click", function(){
+  if(!window.confirm("Se borran todas las clases guardadas y lo último que cargaste en este dispositivo. ¿Borramos todo?")) return;
+  try{ window.localStorage.removeItem(KEY); }catch(e){}
+  G = {guardadas: [], ultima: null}; S.inp = entradaInicial(); S.armada = false;
+  renderEntrada(); renderClase(); renderGuardadas(); renderSave();
+  toast("Listo, no quedó nada guardado.");
+});
+function renderSave(){
+  $("saveInfo").textContent = guardarOk ? ("Ahora hay " + G.guardadas.length + " clases guardadas en este dispositivo.") : "Este navegador no deja guardar: si cerrás la página se pierde lo cargado.";
+}
+
+/* ---------- pestañas ---------- */
+function irA(tab){
+  S.tab = tab;
+  TABS.forEach(function(t){
+    var b = $("tab-" + t[0]); if(b) b.setAttribute("aria-selected", String(t[0] === tab));
+    document.querySelector('[data-pan="' + t[0] + '"]').hidden = t[0] !== tab;
+  });
+}
+function renderTabs(){
+  var nav = $("tabs"); nav.innerHTML = "";
+  TABS.forEach(function(t){
+    var b = el("button", {type: "button", "class": "tab", role: "tab", id: "tab-" + t[0], "aria-selected": "false", text: t[1]});
+    b.addEventListener("click", function(){ if(t[0] === "guardadas") renderGuardadas(); irA(t[0]); });
+    nav.appendChild(b);
+  });
+}
+
+function iniciar(){
+  $("demoBanner").hidden = !DEMO;
+  $("totDin").textContent = D.total_dinamicas;
+  $("ayDin").textContent = D.dinamicas.length;
+  $("ayMol").textContent = D.moldes.length;
+  $("ayMax").textContent = MAXG + " clases";
+  cargar();
+  renderTabs(); renderEntrada(); renderClase(); renderGuardadas(); renderSave();
+  irA("entrada");
+}
+window.ClaseLista = {plan: plan, minutos: minutos, datos: D};
+iniciar();
+})();
+</script>
+</body>
+</html>
