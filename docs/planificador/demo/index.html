@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Informes en 5 minutos (demo)</title>
+<style>
+:root{--bg:#FFF8F0;--card:#FFFFFF;--ink:#2B2522;--muted:#6B605A;--line:#EEDFD2;--acc:#E8735A;--acc-ink:#2A120B;--acc-soft:#FCE6DF;--acc-dark:#A8432C;--ok:#2F7D4F;--warn:#9A5B00;--warn-bg:#FFF1D6}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;overflow-x:hidden}
+.wrap{max-width:640px;margin:0 auto;padding:16px 16px 96px}
+h1{font-size:1.5rem;line-height:1.2;margin:4px 0 2px}
+h2{font-size:1.05rem;margin:0 0 10px}
+p{margin:0 0 8px}
+.sub{color:var(--muted);font-size:.92rem;margin-bottom:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:0 0 12px}
+.banner{background:var(--acc-soft);border:1px solid var(--acc);border-radius:14px;padding:12px 14px;margin:0 0 12px}
+.banner b{display:block;margin-bottom:4px}
+a{color:var(--acc-dark)}
+.btn{appearance:none;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:10px;padding:10px 12px;font:inherit;font-size:.95rem;cursor:pointer;min-height:44px}
+.btn.pri{background:var(--acc);border-color:var(--acc);color:var(--acc-ink);font-weight:700}
+.btn.link{display:inline-block;text-decoration:none;text-align:center}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.sm{min-height:36px;padding:6px 10px;font-size:.88rem}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.niv{text-align:left;line-height:1.2}
+.niv small{display:block;color:var(--muted);font-size:.78rem;margin-top:2px}
+.niv[aria-pressed=true]{border-color:var(--acc);background:var(--acc-soft);font-weight:700}
+label{display:block;font-size:.88rem;color:var(--muted);margin:8px 0 4px}
+input[type=text],input[type=number],select,textarea{width:100%;font:inherit;font-size:16px;border:1px solid var(--line);border-radius:10px;padding:10px;background:#fff;color:var(--ink)}
+textarea{min-height:76px;resize:vertical}
+input:focus,select:focus,textarea:focus,.btn:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
+.chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 12px;font:inherit;font-size:.88rem;cursor:pointer;min-height:36px;color:var(--ink)}
+.chip[aria-pressed=true]{background:var(--acc);border-color:var(--acc);color:var(--acc-ink);font-weight:700}
+.sug{display:block;width:100%;text-align:left;border:1px dashed var(--line);background:#FFFCF9;border-radius:10px;padding:10px 12px;margin:0 0 6px;font:inherit;font-size:.95rem;color:var(--ink);cursor:pointer}
+.sug:active{background:var(--acc-soft)}
+.sug .tag,.sel .tag{display:inline-block;font-size:.72rem;color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:0 5px;margin-left:4px;white-space:nowrap}
+.sug .rep{display:block;font-size:.8rem;color:var(--warn);margin-top:4px}
+.sel{display:flex;gap:8px;align-items:flex-start;background:var(--acc-soft);border-radius:10px;padding:8px 10px;margin:0 0 6px;font-size:.95rem}
+.sel span{flex:1;min-width:0;overflow-wrap:anywhere}
+.sel button{flex:none;border:0;background:transparent;font-size:1.2rem;line-height:1;cursor:pointer;color:var(--acc-dark);padding:2px 4px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.hint{color:var(--muted);font-size:.86rem;margin:0 0 8px}
+.warn{background:var(--warn-bg);color:var(--warn);border-radius:10px;padding:8px 10px;font-size:.88rem;margin:6px 0}
+.out{white-space:pre-wrap;overflow-wrap:anywhere;background:#FFFCF9;border:1px solid var(--line);border-radius:10px;padding:12px;min-height:90px;font-size:.98rem}
+.out mark{background:#FFE08A;color:inherit;border-radius:3px;padding:0 2px}
+.count{font-variant-numeric:tabular-nums;font-weight:700}
+.count.over{color:#B3261E}
+.acts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.acts .full{grid-column:1/-1}
+.bar{position:fixed;left:0;right:0;bottom:0;background:rgba(255,248,240,.97);border-top:1px solid var(--line);padding:8px 16px calc(8px + env(safe-area-inset-bottom))}
+.bar .in{max-width:640px;margin:0 auto;display:flex;gap:8px;align-items:center}
+.bar .in .meta{flex:1;min-width:0;font-size:.86rem;color:var(--muted)}
+details summary{cursor:pointer;font-weight:700}
+details ol{padding-left:20px;margin:10px 0 0}
+details li{margin-bottom:6px}
+.foot{color:var(--muted);font-size:.85rem;text-align:center;padding:8px 0 16px}
+.toast{position:fixed;left:50%;bottom:76px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 14px;border-radius:10px;font-size:.9rem;max-width:calc(100% - 32px);opacity:0;pointer-events:none;transition:opacity .2s}
+.toast.on{opacity:1}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;padding:16px}
+.modal.on{display:flex}
+.modal .card{width:100%;max-width:520px;margin:0}
+.lock{font-size:.75rem;display:block;color:var(--acc-dark);margin-top:2px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Informes en 5 minutos</h1>
+    <p class="sub">Elegís frases ya revisadas, ponés el nombre y copiás. Funciona sin internet y todo queda en tu teléfono.</p>
+  </header>
+
+  <div class="banner" id="demoBanner" hidden>
+    <b>Estás usando la versión de prueba (30 frases de primaria).</b>
+    <p>La versión completa trae las 300 frases del banco: inicial, primaria primer y segundo ciclo y secundaria, con aperturas y cierres para cada nivel.</p>
+    <a class="btn pri link" href="https://federiconevi-dev.github.io/nutriai/planificador/" target="_blank" rel="noopener">Quiero la versión completa</a>
+  </div>
+
+  <section class="card">
+    <h2>1. Nivel</h2>
+    <div class="grid2" id="niveles"></div>
+  </section>
+
+  <section class="card">
+    <h2>2. Datos del alumno</h2>
+    <label for="nombre">Nombre de pila (o iniciales)</label>
+    <input type="text" id="nombre" autocomplete="off" autocapitalize="words" placeholder="Ej.: Sofi" maxlength="40">
+    <div id="campos"></div>
+    <p class="hint" id="sesion"></p>
+  </section>
+
+  <div id="ejes"></div>
+
+  <section class="card">
+    <h2 id="tDet">Detalle propio (opcional)</h2>
+    <p class="hint">Una observación tuya hace que la familia reconozca a su hijo en el texto. Va antes del cierre.</p>
+    <textarea id="detalle" aria-labelledby="tDet" placeholder="Ej.: Le encantó el proyecto de la huerta."></textarea>
+  </section>
+
+  <section class="card" id="informe">
+    <h2>3. Tu informe</h2>
+    <div class="out" id="out" aria-live="polite"></div>
+    <div id="avisos"></div>
+    <div class="row" style="margin-top:10px;justify-content:space-between">
+      <span><span class="count" id="count">0</span> / <span id="limTxt">800</span> caracteres</span>
+      <span class="row"><label for="limite" style="margin:0">Límite</label><input type="number" id="limite" min="100" max="5000" step="50" style="width:92px"></span>
+    </div>
+    <div class="acts">
+      <button class="btn pri full" id="copiar">Copiar</button>
+      <button class="btn" id="siguiente">Siguiente alumno</button>
+      <button class="btn" id="borrar">Borrar todo</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <details>
+      <summary>IA sin datos de alumnos: 5 reglas</summary>
+      <ol>
+        <li>Usá solo el nombre de pila o las iniciales. Nunca el nombre completo.</li>
+        <li>No pegues DNI, dirección, teléfono ni datos de la familia.</li>
+        <li>No pegues diagnósticos, certificados, datos de salud ni situaciones familiares.</li>
+        <li>Si pedís ayuda a una IA, pegá las frases sin el nombre y agregalo vos al final.</li>
+        <li>Revisá siempre el texto antes de mandarlo: la IA arma un borrador, el criterio es tuyo.</li>
+      </ol>
+      <p class="hint" style="margin-top:8px">Esta herramienta no manda nada a ningún lado: lo que escribís queda guardado solo en este teléfono, y "Borrar todo" lo elimina.</p>
+    </details>
+  </section>
+
+  <footer class="foot">
+    <p><b>Planificador Docente 2027 + IA</b> · FedericoMarketing</p>
+    <p><a href="https://federiconevi-dev.github.io/nutriai/planificador/" target="_blank" rel="noopener">Conseguí el Planificador completo</a></p>
+  </footer>
+</div>
+
+<div class="bar"><div class="in">
+  <div class="meta"><span class="count" id="count2">0</span> / <span id="limTxt2">800</span> · <a href="#informe">ver informe</a></div>
+  <button class="btn pri sm" id="copiar2">Copiar</button>
+</div></div>
+
+<div class="toast" id="toast" role="status"></div>
+
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="mTit">
+  <div class="card">
+    <h2 id="mTit">Copialo a mano</h2>
+    <p class="hint">Tu teléfono no dejó copiar automáticamente. El texto ya está seleccionado: mantené apretado y elegí "Copiar".</p>
+    <textarea id="mTxt" readonly style="min-height:180px"></textarea>
+    <div class="acts"><button class="btn pri full" id="mCerrar">Listo</button></div>
+  </div>
+</div>
+
+<script id="datos" type="application/json">{"frases": [{"id": "A1", "nivel": "A", "eje": "Lengua y comunicación", "tono": "logrado", "texto": "Lee textos breves con fluidez y comprende lo que lee."}, {"id": "A2", "nivel": "A", "eje": "Lengua y comunicación", "tono": "logrado", "texto": "Escribe textos breves de manera autónoma, con ideas que se entienden."}, {"id": "A3", "nivel": "A", "eje": "Lengua y comunicación", "tono": "logrado", "texto": "Participa en las conversaciones sobre lo leído y da su opinión con razones sencillas."}, {"id": "A4", "nivel": "A", "eje": "Lengua y comunicación", "tono": "en_proceso", "texto": "Lee palabras y oraciones cortas y está ganando velocidad y seguridad."}, {"id": "A5", "nivel": "A", "eje": "Lengua y comunicación", "tono": "en_proceso", "texto": "Escribe respetando el orden de las letras y está aprendiendo a separar las palabras."}, {"id": "A6", "nivel": "A", "eje": "Lengua y comunicación", "tono": "en_proceso", "texto": "Comprende los textos que se le leen y está avanzando en la comprensión cuando lee sin ayuda."}, {"id": "A7", "nivel": "A", "eje": "Lengua y comunicación", "tono": "acompanamiento", "texto": "Reconoce algunas letras y sílabas; con acompañamiento cercano está avanzando en la lectura."}, {"id": "A8", "nivel": "A", "eje": "Lengua y comunicación", "tono": "acompanamiento", "texto": "Necesita apoyo para escribir sus ideas; en clase usamos el dictado a la docente como paso previo para que escriba por su cuenta."}, {"id": "A9", "nivel": "A", "eje": "Matemática", "tono": "logrado", "texto": "Resuelve sumas y restas con distintas estrategias y explica cómo lo pensó."}, {"id": "A10", "nivel": "A", "eje": "Matemática", "tono": "logrado", "texto": "Lee, escribe y ordena los números trabajados en el grado."}, {"id": "A11", "nivel": "A", "eje": "Matemática", "tono": "logrado", "texto": "Resuelve problemas sencillos y elige la operación adecuada."}, {"id": "A12", "nivel": "A", "eje": "Matemática", "tono": "en_proceso", "texto": "Resuelve cálculos con el apoyo de material concreto o de dibujos."}, {"id": "A13", "nivel": "A", "eje": "Matemática", "tono": "en_proceso", "texto": "Está aprendiendo a interpretar los enunciados de los problemas."}, {"id": "A14", "nivel": "A", "eje": "Matemática", "tono": "en_proceso", "texto": "Reconoce los números trabajados y está afianzando su escritura."}, {"id": "A15", "nivel": "A", "eje": "Matemática", "tono": "acompanamiento", "texto": "Necesita material concreto (tapitas, palitos, la banda numérica) para resolver; con ese apoyo avanza."}, {"id": "A16", "nivel": "A", "eje": "Matemática", "tono": "acompanamiento", "texto": "Le cuesta identificar qué pregunta un problema; leemos juntos el enunciado y lo representamos con dibujos."}, {"id": "A25", "nivel": "A", "eje": "Socioemocional y convivencia", "tono": "logrado", "texto": "Mantiene vínculos de respeto y compañerismo con todo el grupo."}, {"id": "A26", "nivel": "A", "eje": "Socioemocional y convivencia", "tono": "logrado", "texto": "Resuelve los desacuerdos conversando y busca acuerdos."}, {"id": "A27", "nivel": "A", "eje": "Socioemocional y convivencia", "tono": "logrado", "texto": "Respeta los acuerdos de convivencia del aula y ayuda a sostenerlos."}, {"id": "A28", "nivel": "A", "eje": "Socioemocional y convivencia", "tono": "en_proceso", "texto": "Está aprendiendo a escuchar otras opiniones y a aceptar cuando no se hace lo que propone."}, {"id": "A29", "nivel": "A", "eje": "Socioemocional y convivencia", "tono": "en_proceso", "texto": "Va ampliando su grupo de compañeros en el aula y en el recreo."}, {"id": "A30", "nivel": "A", "eje": "Socioemocional y convivencia", "tono": "en_proceso", "texto": "Con recordatorios, sostiene los acuerdos de convivencia."}, {"id": "A31", "nivel": "A", "eje": "Socioemocional y convivencia", "tono": "acompanamiento", "texto": "En situaciones de conflicto necesita la intervención del adulto para calmarse y volver a conversar; está mejorando."}, {"id": "A32", "nivel": "A", "eje": "Socioemocional y convivencia", "tono": "acompanamiento", "texto": "Le cuesta integrarse en juegos grupales; le proponemos tareas en pareja para que gane confianza."}, {"id": "A33", "nivel": "A", "eje": "Socioemocional y convivencia", "tono": "acompanamiento", "texto": "Necesita apoyo para expresar el enojo sin lastimar a otros; trabajamos juntos formas de pedir ayuda."}, {"id": "AP-A1", "nivel": "A", "eje": "apertura", "tono": null, "texto": "[Nombre] termina [grado] con aprendizajes que vale la pena destacar."}, {"id": "AP-A2", "nivel": "A", "eje": "apertura", "tono": null, "texto": "Este fue un año de mucho aprendizaje para [Nombre]."}, {"id": "AP-A4", "nivel": "A", "eje": "apertura", "tono": null, "texto": "A lo largo del año, [Nombre] mostró interés y ganas de aprender."}, {"id": "CI-A2", "nivel": "A", "eje": "cierre", "tono": null, "texto": "Gracias por el acompañamiento de la familia durante todo el año."}, {"id": "CI-A3", "nivel": "A", "eje": "cierre", "tono": null, "texto": "Quedamos a disposición para conversar sobre este informe."}], "ejes": {"A": ["Lengua y comunicación", "Matemática", "Socioemocional y convivencia"]}}</script>
+<script>
+(function(){
+"use strict";
+var DEMO = true;
+var DATA = JSON.parse(document.getElementById("datos").textContent);
+var KEY = DEMO ? "informes5min_demo_v1" : "informes5min_v1";
+var NIVELES = [
+  {k:"I", n:"Inicial", d:"Jardín, todas las salas"},
+  {k:"A", n:"Primaria 1.er ciclo", d:"1.° a 3.° grado"},
+  {k:"B", n:"Primaria 2.° ciclo", d:"4.° a 6.° o 7.° grado"},
+  {k:"S", n:"Secundaria", d:"Informe por materia"}
+];
+var TONOS = [["logrado","Logrado"],["en_proceso","En proceso"],["acompanamiento","Requiere acompañamiento"]];
+var TONO_TXT = {logrado:"logrado", en_proceso:"en proceso", acompanamiento:"acompañamiento"};
+var REP_MAX = 3;
+var BY_ID = {};
+DATA.frases.forEach(function(f){ BY_ID[f.id] = f; });
+
+/* Campos que completan los [corchetes] del banco */
+var CAMPOS = {
+  curso:{label:"Sala o grado", ph:"Ej.: 2.° grado", m:["[sala]","[grado]"]},
+  siguiente:{label:"Grado o nivel siguiente", ph:"Ej.: 3.er grado / la escuela secundaria", m:["[grado siguiente]","[grado siguiente / la escuela secundaria]"]},
+  materia:{label:"Área o materia", ph:"Ej.: Prácticas del Lenguaje", m:["[materia]","[área]"]}
+};
+
+function nuevo(){ return {nivel: DEMO ? "A" : null, nombre:"", campos:{}, op:{}, sel:{}, tono:{}, off:{}, detalle:"", limite:800, hist:[]}; }
+var S = nuevo();
+var guardarOk = true;
+
+function cargar(){
+  try{
+    var raw = window.localStorage.getItem(KEY);
+    if(raw){ var o = JSON.parse(raw); if(o && typeof o === "object"){ var b = nuevo(); for(var k in b){ if(o[k] !== undefined) b[k] = o[k]; } S = b; } }
+  }catch(e){ guardarOk = false; }
+  if(DEMO) S.nivel = "A";
+  if(S.nivel && !DATA.ejes[S.nivel]) S.nivel = null;
+}
+function guardar(){
+  try{ window.localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){ guardarOk = false; }
+}
+
+/* ---------- utilidades ---------- */
+function $(id){ return document.getElementById(id); }
+function el(tag, attrs, kids){
+  var n = document.createElement(tag);
+  if(attrs) for(var a in attrs){ if(a === "text") n.textContent = attrs[a]; else if(a === "on") { for(var ev in attrs.on) n.addEventListener(ev, attrs.on[ev]); } else n.setAttribute(a, attrs[a]); }
+  (kids||[]).forEach(function(k){ if(k) n.appendChild(typeof k === "string" ? document.createTextNode(k) : k); });
+  return n;
+}
+function bloques(){
+  if(!S.nivel) return [];
+  var b = [{k:"apertura", t:"Apertura", ac:true}];
+  DATA.ejes[S.nivel].forEach(function(e){ b.push({k:e, t:e, ac:false}); });
+  b.push({k:"cierre", t:"Cierre", ac:true});
+  return b;
+}
+function frasesDe(eje){ return DATA.frases.filter(function(f){ return f.nivel === S.nivel && f.eje === eje; }); }
+function usos(id){ var n = 0; S.hist.forEach(function(h){ if(h.indexOf(id) >= 0) n++; }); return n; }
+function seleccion(){
+  var ids = [];
+  bloques().forEach(function(b){ if(b.k !== "cierre") (S.sel[b.k]||[]).forEach(function(id){ ids.push(id); }); });
+  return {cuerpo: ids, cierre: (S.sel.cierre||[]).slice()};
+}
+function opciones(texto){
+  /* corchetes con opciones tipo [esfuerzo / interés / compromiso] que no son un campo fijo */
+  var out = [], re = /\[([^\]]+)\]/g, m;
+  while((m = re.exec(texto))){
+    var tok = m[0], fijo = false;
+    for(var c in CAMPOS){ if(CAMPOS[c].m.indexOf(tok) >= 0) fijo = true; }
+    if(tok === "[Nombre]") fijo = true;
+    if(!fijo && m[1].indexOf("/") >= 0) out.push(tok);
+  }
+  return out;
+}
+function reemplazar(t){
+  var nom = S.nombre.trim();
+  if(nom){ t = t.split("[Nombre]").join(nom).split("{nombre}").join(nom); }
+  for(var c in CAMPOS){ var v = (S.campos[c]||"").trim(); if(v) CAMPOS[c].m.forEach(function(tok){ t = t.split(tok).join(v); }); }
+  opciones(t).forEach(function(tok){ var v = S.op[tok]; if(v) t = t.split(tok).join(v); });
+  return t;
+}
+function textoFinal(){
+  var s = seleccion(), partes = [];
+  s.cuerpo.forEach(function(id){ if(BY_ID[id]) partes.push(reemplazar(BY_ID[id].texto)); });
+  var d = S.detalle.trim(); if(d) partes.push(reemplazar(d));
+  s.cierre.forEach(function(id){ if(BY_ID[id]) partes.push(reemplazar(BY_ID[id].texto)); });
+  return partes.join(" ");
+}
+
+/* ---------- render ---------- */
+function renderNiveles(){
+  var box = $("niveles"); box.innerHTML = "";
+  NIVELES.forEach(function(nv){
+    var habil = !!DATA.ejes[nv.k];
+    var b = el("button", {"class":"btn niv", type:"button", "aria-pressed": String(S.nivel === nv.k)}, [nv.n, el("small",{text:nv.d})]);
+    if(!habil){ b.disabled = true; b.appendChild(el("span",{"class":"lock", text:"En la versión completa"})); }
+    b.addEventListener("click", function(){
+      if(S.nivel === nv.k) return;
+      var hay = Object.keys(S.sel).some(function(k){ return (S.sel[k]||[]).length; });
+      if(hay && !window.confirm("Si cambiás de nivel se borran las frases elegidas para este alumno. ¿Seguimos?")) return;
+      S.nivel = nv.k; S.sel = {}; S.tono = {}; S.off = {}; S.op = {};
+      guardar(); renderTodo();
+    });
+    box.appendChild(b);
+  });
+}
+function renderCampos(){
+  var box = $("campos"); box.innerHTML = "";
+  if(!S.nivel) return;
+  var textos = DATA.frases.filter(function(f){ return f.nivel === S.nivel; }).map(function(f){ return f.texto; }).join(" ");
+  Object.keys(CAMPOS).forEach(function(c){
+    var cf = CAMPOS[c];
+    if(!cf.m.some(function(tok){ return textos.indexOf(tok) >= 0; })) return;
+    var id = "campo_" + c;
+    var inp = el("input", {type:"text", id:id, placeholder:cf.ph, autocomplete:"off", maxlength:"60"});
+    inp.value = S.campos[c] || "";
+    inp.addEventListener("input", function(){ S.campos[c] = inp.value; guardar(); renderInforme(); });
+    box.appendChild(el("label", {"for":id, text:cf.label + " (si alguna frase lo pide)"}));
+    box.appendChild(inp);
+  });
+}
+function renderSesion(){
+  var n = S.hist.length;
+  $("sesion").textContent = n ? ("Informes terminados en esta sesión: " + n + ".") : "";
+  if(!guardarOk) $("sesion").textContent += " (Este navegador no deja guardar: si cerrás la página se pierde lo elegido.)";
+}
+function renderEjes(){
+  var box = $("ejes"); box.innerHTML = "";
+  if(!S.nivel){ box.appendChild(el("section",{"class":"card"},[el("p",{"class":"hint", text:"Elegí un nivel para ver las frases."})])); return; }
+  bloques().forEach(function(b, i){
+    var card = el("section", {"class":"card", "data-eje": b.k});
+    card.appendChild(el("h2", {text: b.t}));
+    var todas = frasesDe(b.k);
+    if(!b.ac){
+      var chips = el("div", {"class":"chips", role:"group", "aria-label":"Cómo le fue en " + b.t});
+      TONOS.forEach(function(t){
+        chips.appendChild(el("button", {"class":"chip", type:"button", "aria-pressed": String(S.tono[b.k] === t[0]), "data-tono": t[0], on:{click:function(){
+          S.tono[b.k] = (S.tono[b.k] === t[0]) ? null : t[0]; S.off[b.k] = 0; guardar(); renderEjes();
+        }}}, [t[1]]));
+      });
+      card.appendChild(chips);
+    }
+    /* elegidas */
+    (S.sel[b.k]||[]).forEach(function(id){
+      var f = BY_ID[id]; if(!f) return;
+      card.appendChild(el("div", {"class":"sel"}, [
+        el("span", {text: "✓ " + reemplazar(f.texto)}),
+        el("button", {type:"button", "aria-label":"Sacar esta frase", text:"×", on:{click:function(){
+          S.sel[b.k] = (S.sel[b.k]||[]).filter(function(x){ return x !== id; }); guardar(); renderEjes();
+        }}})
+      ]));
+    });
+    /* sugeridas */
+    if(!b.ac && !S.tono[b.k]){
+      card.appendChild(el("p", {"class":"hint", text:"Tocá cómo le fue y te sugiero 3 frases."}));
+    } else {
+      var pool = todas;
+      if(!b.ac){
+        var t0 = S.tono[b.k];
+        pool = todas.filter(function(f){ return f.tono === t0; }).concat(todas.filter(function(f){ return f.tono !== t0; }));
+      }
+      var elegidas = S.sel[b.k] || [];
+      pool = pool.filter(function(f){ return elegidas.indexOf(f.id) < 0; });
+      if(pool.length){
+        var off = (S.off[b.k] || 0) % pool.length, vis = [];
+        for(var j = 0; j < Math.min(3, pool.length); j++) vis.push(pool[(off + j) % pool.length]);
+        vis.forEach(function(f){
+          var u = usos(f.id);
+          var kids = [reemplazar(f.texto)];
+          if(!b.ac && f.tono !== S.tono[b.k]) kids.push(el("span",{"class":"tag", text: TONO_TXT[f.tono]}));
+          if(u >= REP_MAX) kids.push(el("span",{"class":"rep", text:"Ya la usaste en " + u + " informes de esta sesión. Probá con otra para que no suenen iguales."}));
+          else if(u > 0) kids.push(el("span",{"class":"tag", text:"usada " + u}));
+          card.appendChild(el("button", {"class":"sug", type:"button", "data-id": f.id, on:{click:function(){
+            S.sel[b.k] = (S.sel[b.k]||[]).concat([f.id]); guardar(); renderEjes();
+          }}}, kids));
+        });
+        if(pool.length > 3 || (S.off[b.k]||0) > 0){
+          card.appendChild(el("div",{"class":"row"},[el("button", {"class":"btn sm", type:"button", text:"Otra", "aria-label":"Otra frase para " + b.t, on:{click:function(){
+            S.off[b.k] = ((S.off[b.k]||0) + 1) % Math.max(pool.length,1); guardar(); renderEjes();
+          }}})]));
+        }
+      } else {
+        card.appendChild(el("p", {"class":"hint", text:"Ya elegiste todas las frases de esta parte."}));
+      }
+    }
+    box.appendChild(card);
+  });
+  renderOpciones();
+  renderInforme();
+}
+function renderOpciones(){
+  /* selects para corchetes con opciones dentro de las frases elegidas */
+  var s = seleccion(), toks = [];
+  s.cuerpo.concat(s.cierre).forEach(function(id){ opciones(BY_ID[id] ? BY_ID[id].texto : "").forEach(function(t){ if(toks.indexOf(t) < 0) toks.push(t); }); });
+  var box = $("campos");
+  Array.prototype.slice.call(box.querySelectorAll(".op")).forEach(function(n){ n.remove(); });
+  toks.forEach(function(tok, i){
+    var id = "op_" + i, ops = tok.slice(1, -1).split("/").map(function(x){ return x.trim(); });
+    var sel = el("select", {id:id});
+    sel.appendChild(el("option", {value:"", text:"Elegí una opción"}));
+    ops.forEach(function(o){ var op = el("option", {value:o, text:o}); if(S.op[tok] === o) op.selected = true; sel.appendChild(op); });
+    sel.addEventListener("change", function(){ S.op[tok] = sel.value; guardar(); renderEjes(); });
+    var wrap = el("div", {"class":"op"}, [el("label", {"for":id, text:"Completá " + tok}), sel]);
+    box.appendChild(wrap);
+  });
+}
+function renderInforme(){
+  var t = textoFinal(), out = $("out");
+  out.innerHTML = "";
+  if(!t){ out.appendChild(el("span", {"class":"hint", text:"Acá se arma el informe a medida que elegís frases."})); }
+  else {
+    var re = /\[[^\]]+\]|\{nombre\}/g, last = 0, m;
+    while((m = re.exec(t))){ out.appendChild(document.createTextNode(t.slice(last, m.index))); out.appendChild(el("mark", {text:m[0]})); last = m.index + m[0].length; }
+    out.appendChild(document.createTextNode(t.slice(last)));
+  }
+  var n = t.length, lim = parseInt(S.limite, 10) || 800;
+  ["count","count2"].forEach(function(id){ $(id).textContent = n; $(id).classList.toggle("over", n > lim); });
+  $("limTxt").textContent = lim; $("limTxt2").textContent = lim;
+  var av = $("avisos"); av.innerHTML = "";
+  if(n > lim) av.appendChild(el("div", {"class":"warn", text:"Te pasaste del límite por " + (n - lim) + " caracteres. Sacá una frase o acortá el detalle."}));
+  if(t && !S.nombre.trim()) av.appendChild(el("div", {"class":"warn", text:"Falta el nombre de pila: escribilo arriba para poder copiar."}));
+  else if(/\[[^\]]+\]/.test(t)) av.appendChild(el("div", {"class":"warn", text:"Quedan partes entre [corchetes] por completar (están marcadas en amarillo). Completalas en Datos del alumno."}));
+  var rep = seleccion().cuerpo.concat(seleccion().cierre).filter(function(id){ return usos(id) >= REP_MAX; });
+  if(rep.length) av.appendChild(el("div", {"class":"warn", text: rep.length + (rep.length === 1 ? " frase de este informe ya se usó" : " frases de este informe ya se usaron") + " en " + REP_MAX + " informes o más de esta sesión."}));
+  renderSesion();
+}
+function renderTodo(){
+  $("demoBanner").hidden = !DEMO;
+  $("nombre").value = S.nombre;
+  $("detalle").value = S.detalle;
+  $("limite").value = S.limite;
+  renderNiveles(); renderCampos(); renderEjes();
+}
+
+/* ---------- copiar ---------- */
+function toast(msg){ var t = $("toast"); t.textContent = msg; t.classList.add("on"); clearTimeout(toast._t); toast._t = setTimeout(function(){ t.classList.remove("on"); }, 2600); }
+function planB(texto){
+  var ta = document.createElement("textarea");
+  ta.value = texto; ta.setAttribute("readonly", ""); ta.style.position = "fixed"; ta.style.top = "0"; ta.style.left = "0"; ta.style.opacity = "0";
+  document.body.appendChild(ta); ta.focus(); ta.select();
+  try{ ta.setSelectionRange(0, texto.length); }catch(e){}
+  var ok = false;
+  try{ ok = document.execCommand("copy"); }catch(e){ ok = false; }
+  document.body.removeChild(ta);
+  return ok;
+}
+function manual(texto){
+  $("mTxt").value = texto; $("modal").classList.add("on");
+  setTimeout(function(){ try{ $("mTxt").focus(); $("mTxt").select(); $("mTxt").setSelectionRange(0, texto.length); }catch(e){} }, 50);
+}
+function copiar(){
+  var t = textoFinal();
+  if(!t){ toast("Todavía no elegiste ninguna frase."); return; }
+  if(!S.nombre.trim()){ toast("Escribí el nombre de pila antes de copiar."); $("nombre").focus(); return; }
+  var aviso = /\[[^\]]+\]/.test(t) ? " Ojo: quedan [corchetes] por completar." : "";
+  var listo = function(){ toast("Copiado. Pegalo en el boletín o en WhatsApp." + aviso); };
+  var fallback = function(){ if(planB(t)) listo(); else manual(t); };
+  try{
+    if(navigator.clipboard && window.isSecureContext !== false && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(t).then(listo, fallback);
+    } else fallback();
+  }catch(e){ fallback(); }
+}
+
+/* ---------- eventos ---------- */
+$("nombre").addEventListener("input", function(){ S.nombre = this.value; guardar(); renderEjes(); });
+$("detalle").addEventListener("input", function(){ S.detalle = this.value; guardar(); renderInforme(); });
+$("limite").addEventListener("input", function(){ var v = parseInt(this.value, 10); if(v > 0){ S.limite = v; guardar(); renderInforme(); } });
+$("copiar").addEventListener("click", copiar);
+$("copiar2").addEventListener("click", copiar);
+$("mCerrar").addEventListener("click", function(){ $("modal").classList.remove("on"); });
+$("siguiente").addEventListener("click", function(){
+  var s = seleccion(), ids = s.cuerpo.concat(s.cierre);
+  if(!ids.length){ toast("Elegí al menos una frase antes de pasar al siguiente."); return; }
+  S.hist.push(ids);
+  S.nombre = ""; S.sel = {}; S.tono = {}; S.off = {}; S.op = {}; S.detalle = "";
+  guardar(); renderTodo();
+  window.scrollTo(0, 0); toast("Listo. Informe " + S.hist.length + " guardado en la sesión. Vamos con el siguiente.");
+  try{ $("nombre").focus(); }catch(e){}
+});
+$("borrar").addEventListener("click", function(){
+  if(!window.confirm("Se borran el informe actual y la sesión guardada en este teléfono. ¿Borramos todo?")) return;
+  try{ window.localStorage.removeItem(KEY); }catch(e){}
+  S = nuevo(); renderTodo(); window.scrollTo(0, 0); toast("Listo, no quedó nada guardado.");
+});
+
+cargar();
+renderTodo();
+})();
+</script>
+</body>
+</html>
