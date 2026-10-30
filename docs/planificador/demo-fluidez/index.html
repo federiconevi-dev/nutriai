@@ -1,0 +1,701 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fluidez en 1 minuto (demo)</title>
+<style>
+:root{--bg:#FFF8F0;--card:#FFFFFF;--ink:#2B2522;--muted:#6B605A;--line:#EEDFD2;--acc:#E8735A;--acc-ink:#2A120B;--acc-soft:#FCE6DF;--acc-dark:#A8432C;--ok:#2F7D4F;--ok-bg:#E3F2E8;--warn:#9A5B00;--warn-bg:#FFF1D6;--err:#B3261E;--err-bg:#FDE2DF}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;overflow-x:hidden}
+.wrap{max-width:640px;margin:0 auto;padding:16px 16px 40px}
+h1{font-size:1.5rem;line-height:1.2;margin:4px 0 2px}
+h2{font-size:1.05rem;margin:0 0 10px}
+h3{font-size:.98rem;margin:12px 0 6px}
+p{margin:0 0 8px}
+.sub{color:var(--muted);font-size:.92rem;margin-bottom:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:0 0 12px}
+.banner{background:var(--acc-soft);border:1px solid var(--acc);border-radius:14px;padding:12px 14px;margin:0 0 12px}
+.banner b{display:block;margin-bottom:4px}
+a{color:var(--acc-dark)}
+.btn{appearance:none;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:10px;padding:10px 12px;font:inherit;font-size:.95rem;cursor:pointer;min-height:44px}
+.btn.pri{background:var(--acc);border-color:var(--acc);color:var(--acc-ink);font-weight:700}
+.btn.danger{border-color:var(--err);color:var(--err)}
+.btn.link{display:inline-block;text-decoration:none;text-align:center}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.sm{min-height:36px;padding:6px 10px;font-size:.88rem}
+.btn[aria-pressed=true]{border-color:var(--acc);background:var(--acc-soft);font-weight:700}
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:0 0 12px}
+.tab{appearance:none;border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 4px;font:inherit;font-size:.8rem;line-height:1.15;cursor:pointer;min-height:44px;color:var(--ink);min-width:0;overflow-wrap:anywhere}
+.tab[aria-selected=true]{background:var(--acc);border-color:var(--acc);color:var(--acc-ink);font-weight:700}
+label{display:block;font-size:.88rem;color:var(--muted);margin:8px 0 4px}
+input[type=text],input[type=number],input[type=date],select,textarea{width:100%;font:inherit;font-size:16px;border:1px solid var(--line);border-radius:10px;padding:10px;background:#fff;color:var(--ink);min-width:0}
+textarea{min-height:120px;resize:vertical}
+input:focus,select:focus,textarea:focus,.btn:focus-visible,.tab:focus-visible,.w:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.row > input{flex:1}
+.hint{color:var(--muted);font-size:.86rem;margin:0 0 8px}
+.warn{background:var(--warn-bg);color:var(--warn);border-radius:10px;padding:8px 10px;font-size:.88rem;margin:6px 0}
+.okb{background:var(--ok-bg);color:var(--ok);border-radius:10px;padding:8px 10px;font-size:.88rem;margin:6px 0}
+ul.lista{list-style:none;padding:0;margin:8px 0 0}
+ul.lista li{display:flex;gap:8px;align-items:center;justify-content:space-between;border-top:1px solid var(--line);padding:6px 0}
+ul.lista li span{flex:1;min-width:0;overflow-wrap:anywhere}
+.x{flex:none;border:0;background:transparent;font-size:1.25rem;line-height:1;cursor:pointer;color:var(--acc-dark);padding:6px 8px;min-height:36px}
+.txt{display:block;width:100%;text-align:left;border:1px solid var(--line);background:#FFFCF9;border-radius:10px;padding:10px 12px;margin:0 0 6px;font:inherit;font-size:.95rem;color:var(--ink);cursor:pointer}
+.txt[aria-pressed=true]{border-color:var(--acc);background:var(--acc-soft)}
+.txt small{display:block;color:var(--muted);font-size:.8rem}
+.timer{font-size:2.6rem;font-weight:800;font-variant-numeric:tabular-nums;text-align:center;line-height:1;margin:6px 0}
+.timer.fin{color:var(--err)}
+.lectura{font-size:1.3rem;line-height:2.1;background:#FFFCF9;border:1px solid var(--line);border-radius:12px;padding:10px 8px;overflow-wrap:anywhere;user-select:none;-webkit-user-select:none}
+.w{display:inline;border:0;background:transparent;font:inherit;color:inherit;padding:2px 3px;margin:0 1px;border-radius:6px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.w.e{background:var(--err-bg);color:var(--err);text-decoration:line-through;text-decoration-thickness:2px}
+.w.u{outline:3px solid var(--ok);outline-offset:0}
+.w.post{opacity:.38}
+.p{color:var(--muted)}
+.modo{background:var(--warn-bg);color:var(--warn);border-radius:10px;padding:8px 10px;font-weight:700;text-align:center;margin:8px 0}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}
+.stat{border:1px solid var(--line);border-radius:12px;padding:10px;background:#FFFCF9}
+.stat b{display:block;font-size:1.6rem;font-variant-numeric:tabular-nums;line-height:1.1}
+.stat span{font-size:.82rem;color:var(--muted)}
+.stat.big{grid-column:1/-1;border-color:var(--acc);background:var(--acc-soft)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 14px;font:inherit;cursor:pointer;min-height:40px;min-width:44px;color:var(--ink)}
+.chip[aria-pressed=true]{background:var(--acc);border-color:var(--acc);color:var(--acc-ink);font-weight:700}
+.tblw{overflow-x:auto;max-width:100%}
+table{border-collapse:collapse;width:100%;font-size:.86rem}
+th,td{text-align:left;padding:6px 4px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-weight:600}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+svg text{font-family:inherit}
+.chart{width:100%;height:auto;display:block}
+.cortes{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:6px 8px;align-items:end}
+.foot{color:var(--muted);font-size:.85rem;text-align:center;padding:8px 0 16px}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 14px;border-radius:10px;font-size:.9rem;max-width:calc(100% - 32px);opacity:0;pointer-events:none;transition:opacity .2s}
+.toast.on{opacity:1}
+.cnt{font-size:.8rem;color:var(--muted);text-align:right}
+[hidden]{display:none !important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Fluidez en 1 minuto</h1>
+    <p class="sub">Registro de lectura en voz alta para 1.° a 3.° grado (sirve hasta 6.°). Funciona sin internet y los datos quedan solo en este dispositivo.</p>
+  </header>
+
+  <div class="banner" id="demoBanner" hidden>
+    <b>Estás usando la versión de prueba: 5 alumnos y 1 texto.</b>
+    <p>La versión completa registra hasta 40 alumnos, trae 9 textos (3 por grado, de 1.° a 3.°) y te deja pegar el texto que usa tu escuela.</p>
+    <a class="btn pri link" href="https://federiconevi-dev.github.io/nutriai/planificador/" target="_blank" rel="noopener">Quiero la versión completa</a>
+  </div>
+
+  <nav class="tabs" role="tablist" id="tabs"></nav>
+
+  <!-- 1. Alumnos -->
+  <section class="card" data-pan="alumnos">
+    <h2>Alumnos</h2>
+    <p class="hint">Usá solo el nombre de pila o un código (por ejemplo, "A12"). Máximo <span id="maxAl"></span>.</p>
+    <form id="fAl" class="row" autocomplete="off">
+      <input type="text" id="nuevoAl" maxlength="30" placeholder="Ej.: Sofi" aria-label="Nombre de pila o código">
+      <button class="btn pri" type="submit">Agregar</button>
+    </form>
+    <p class="hint" id="alCount" style="margin-top:8px"></p>
+    <ul class="lista" id="listaAl"></ul>
+  </section>
+
+  <!-- 2. Texto -->
+  <section class="card" data-pan="texto" hidden>
+    <h2>Texto</h2>
+    <p class="hint">Elegí un texto incluido o pegá el que usa tu escuela. Las palabras se cuentan solas.</p>
+    <div id="listaTx"></div>
+    <div id="propioBox">
+      <h3>Pegar un texto propio</h3>
+      <label for="pTit">Título</label>
+      <input type="text" id="pTit" maxlength="60" placeholder="Ej.: Texto del manual">
+      <label for="pTxt">Texto</label>
+      <textarea id="pTxt" placeholder="Pegá acá el texto."></textarea>
+      <p class="hint" id="pCnt">0 palabras</p>
+      <button class="btn pri" type="button" id="pAdd">Guardar texto</button>
+    </div>
+    <p class="hint" id="propioDemo" hidden>En la versión completa podés pegar tus propios textos.</p>
+  </section>
+
+  <!-- 3. Toma -->
+  <section class="card" data-pan="toma" hidden>
+    <h2>Toma</h2>
+    <div id="tomaSetup">
+      <label for="selAl">Alumno</label>
+      <select id="selAl"></select>
+      <p class="hint" id="tomaTxt" style="margin-top:8px"></p>
+      <label>Tiempo</label>
+      <div class="row" role="group" aria-label="Modo de tiempo">
+        <button class="btn" type="button" id="m60" aria-pressed="true">60 segundos</button>
+        <button class="btn" type="button" id="mTot" aria-pressed="false">Tiempo total</button>
+      </div>
+      <p class="hint" id="modoHint" style="margin-top:6px"></p>
+    </div>
+    <div class="timer" id="timer" aria-live="off">1:00</div>
+    <div class="row" style="justify-content:center;margin-bottom:8px">
+      <button class="btn pri" type="button" id="bStart">Empezar</button>
+      <button class="btn" type="button" id="bStop" hidden>Terminar</button>
+      <button class="btn" type="button" id="bUlt" aria-pressed="false" hidden>Marcar última palabra</button>
+    </div>
+    <div class="modo" id="modoUlt" hidden>Tocá la última palabra que leyó</div>
+    <p class="hint" id="tomaAyuda">Durante la lectura, tocá cada palabra leída mal para marcarla como error (otro toque la desmarca).</p>
+    <div class="lectura" id="lectura" aria-label="Texto de la lectura"></div>
+    <div class="row" style="margin-top:10px;justify-content:space-between">
+      <span class="hint" id="tomaVivo" style="margin:0"></span>
+      <span class="row">
+        <button class="btn sm" type="button" id="bReset">Reiniciar</button>
+        <button class="btn pri" type="button" id="bRes" disabled>Ver resultado</button>
+      </span>
+    </div>
+  </section>
+
+  <!-- 4. Resultado -->
+  <section class="card" data-pan="resultado" hidden>
+    <h2>Resultado</h2>
+    <p class="hint" id="resQuien"></p>
+    <div class="stats">
+      <div class="stat big"><b id="rPcpm">0</b><span>palabras correctas por minuto (PCPM)</span></div>
+      <div class="stat"><b id="rLeidas">0</b><span>palabras leídas</span></div>
+      <div class="stat"><b id="rErr">0</b><span>errores</span></div>
+      <div class="stat"><b id="rPrec">0%</b><span>precisión</span></div>
+      <div class="stat"><b id="rSeg">0</b><span>segundos</span></div>
+    </div>
+    <p class="hint" id="rCuenta"></p>
+    <div id="rNivel"></div>
+    <label for="rFecha">Fecha</label>
+    <input type="date" id="rFecha">
+    <label>Prosodia (opcional, de 1 a 4: tu propia escala)</label>
+    <div class="chips" id="pros" role="group" aria-label="Prosodia"></div>
+    <label for="rNota">Nota (opcional)</label>
+    <textarea id="rNota" maxlength="140" style="min-height:70px" placeholder="Ej.: Se apuró en el final."></textarea>
+    <div class="cnt"><span id="rNotaN">0</span>/140</div>
+    <div class="row" style="margin-top:10px">
+      <button class="btn pri" type="button" id="bGuardar">Guardar toma</button>
+      <button class="btn" type="button" id="bVolver">Volver a la toma</button>
+    </div>
+  </section>
+
+  <!-- 5. Evolución -->
+  <section class="card" data-pan="evolucion" hidden>
+    <h2>Evolución</h2>
+    <label for="evAl">Alumno</label>
+    <select id="evAl"></select>
+    <div id="evChart" style="margin-top:10px"></div>
+    <div id="evTomas"></div>
+    <h3>Tabla del grupo</h3>
+    <div class="tblw" id="evGrupo"></div>
+  </section>
+
+  <!-- 6. Niveles -->
+  <section class="card" data-pan="niveles" hidden>
+    <h2>Niveles</h2>
+    <div class="warn"><b>Cargá los cortes del manual de tu provincia.</b> Los cortes no son iguales entre provincias, por eso esta herramienta no trae ninguno cargado.</div>
+    <p class="hint">Ejemplos de manuales: <a href="https://sinigep.bue.edu.ar/docs/adjuntos/2023/manual_de_evaluacion_fluidezycomprension_lectora_2023-final.pdf" target="_blank" rel="noopener">CABA</a> · <a href="https://www.mendoza.gov.ar/prensa/censo-de-fluidez-lectora-estudiantes-de-primaria-y-secundaria-comenzaron-a-ser-evaluados/" target="_blank" rel="noopener">Mendoza</a>. Usá los del grado y el momento del año que estás evaluando.</p>
+    <p class="hint">Escribí el nombre de cada nivel y desde cuántas PCPM empieza. Podés dejar filas vacías.</p>
+    <div class="cortes" id="cortes"></div>
+    <div class="row" style="margin-top:10px">
+      <button class="btn pri" type="button" id="bCortes">Guardar cortes</button>
+      <button class="btn" type="button" id="bCortesVaciar">Vaciar cortes</button>
+    </div>
+  </section>
+
+  <!-- 7. Datos -->
+  <section class="card" data-pan="datos" hidden>
+    <h2>Datos</h2>
+    <h3>Exportar CSV</h3>
+    <p class="hint">Columnas: alumno, fecha, texto, PCPM, precisión, nota (y además palabras leídas, errores, segundos, prosodia y nivel). Separado por punto y coma, para pegar en tu planilla o en el Semáforo del grado. Abre en Excel y en Google Sheets.</p>
+    <button class="btn pri" type="button" id="bCsv">Descargar CSV</button>
+    <p class="hint" id="csvInfo" style="margin-top:6px"></p>
+    <h3>Borrar todo</h3>
+    <p class="hint">Elimina alumnos, textos propios, tomas y cortes de este dispositivo. No se puede deshacer: si querés conservarlos, descargá antes el CSV.</p>
+    <button class="btn danger" type="button" id="bBorrar">Borrar todo</button>
+    <p class="hint" id="saveInfo" style="margin-top:8px"></p>
+  </section>
+
+  <!-- 8. Privacidad -->
+  <section class="card" data-pan="privacidad" hidden>
+    <h2>Privacidad</h2>
+    <ul>
+      <li>Todo se guarda <b>solo en este dispositivo</b> (en el almacenamiento del navegador). No hay cuentas, ni servidores, ni estadísticas de uso.</li>
+      <li>El archivo no se conecta a internet: podés usarlo en modo avión.</li>
+      <li>Usá nombre de pila o un código. No cargues apellidos, DNI ni datos de salud.</li>
+      <li>La nota es para observaciones de la lectura, no para diagnósticos.</li>
+      <li>Si el teléfono es compartido, al terminar descargá el CSV y usá "Borrar todo".</li>
+      <li>Si borrás los datos del navegador o usás una ventana privada, los registros se pierden.</li>
+      <li>Este registro es una herramienta del docente para seguir al grupo. No reemplaza las evaluaciones ni los protocolos de tu escuela.</li>
+    </ul>
+  </section>
+
+  <!-- 9. Por qué medir -->
+  <section class="card" data-pan="porque" hidden>
+    <h2>Por qué medir</h2>
+    <p>En Aprender Alfabetización 2024, el 45% de los chicos de 3.° grado leía en el nivel esperable (<a href="https://www.eltucumano.com/adjunto/2025/05/07/aprender_2024_alfabetizacio.pdf" target="_blank" rel="noopener">informe en PDF</a>).</p>
+    <p>Varias jurisdicciones miden la fluidez en palabras por minuto, cada una con sus propios cortes. Tomar un minuto de lectura a cada chico, varias veces en el año, te deja ver quién avanza y a quién conviene acompañar más.</p>
+    <h3>Cómo tomar</h3>
+    <ol>
+      <li>Elegí un texto que el chico no haya leído antes.</li>
+      <li>Pedile que lea en voz alta "como lee siempre", sin apurarse.</li>
+      <li>Tocá Empezar cuando lea la primera palabra.</li>
+      <li>Marcá como error las palabras omitidas, cambiadas o mal leídas. Las que corrige solo, no.</li>
+      <li>Al minuto, tocá la última palabra que leyó.</li>
+    </ol>
+    <p class="hint">PCPM = (palabras leídas − errores) × 60 ÷ segundos. Precisión = (palabras leídas − errores) ÷ palabras leídas.</p>
+  </section>
+
+  <footer class="foot">
+    <p><b>Planificador Docente 2027 + IA</b> · FedericoMarketing</p>
+    <p><a href="https://federiconevi-dev.github.io/nutriai/planificador/" target="_blank" rel="noopener">Conseguí el Planificador completo</a></p>
+  </footer>
+</div>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script id="datos" type="application/json">{"textos": [{"id": "t2a", "grado": 2, "titulo": "La bicicleta verde", "texto": "Para su cumpleaños, Martina recibió una bicicleta verde con un timbre que suena fuerte. Al principio se caía todo el tiempo, porque no sabía mantener el equilibrio. Su hermano mayor la ayudaba: sostenía el asiento mientras ella pedaleaba despacio por la vereda. Una tarde, sin avisar, él la soltó. Martina siguió andando sola hasta la esquina. Cuando miró hacia atrás y vio a su hermano tan lejos, gritó de sorpresa y casi se cae otra vez."}]}</script>
+<script>
+(function(){
+"use strict";
+var DEMO = true;
+var DATA = JSON.parse(document.getElementById("datos").textContent);
+var KEY = DEMO ? "fluidez1min_demo_v1" : "fluidez1min_v1";
+var MAX_AL = DEMO ? 5 : 40;
+var N_CORTES = 4;
+var TABS = [["alumnos","Alumnos"],["texto","Texto"],["toma","Toma"],["evolucion","Evolución"],["niveles","Niveles"],["datos","Datos"],["privacidad","Privacidad"],["porque","Por qué medir"]];
+
+/* ---------- palabras: misma regla que contar_palabras() del generador ---------- */
+var LETRA = /[0-9A-Za-zÀ-ɏͰ-ϿЀ-ӿ]/;
+function tokens(t){ return String(t||"").split(/\s+/).filter(function(x){ return x.length; }); }
+function esPalabra(tok){ return LETRA.test(tok); }
+function contar(t){ return tokens(t).filter(esPalabra).length; }
+
+function nuevo(){ return {alumnos:[], propios:[], textoSel: DATA.textos[0].id, modo:"60", tomas:[], cortes:[], tab:"alumnos", seq:1}; }
+var S = nuevo();
+var guardarOk = true;
+function cargar(){
+  try{
+    var raw = window.localStorage.getItem(KEY);
+    if(raw){ var o = JSON.parse(raw); if(o && typeof o === "object"){ var b = nuevo(); for(var k in b){ if(o[k] !== undefined) b[k] = o[k]; } S = b; } }
+  }catch(e){ guardarOk = false; }
+  if(DEMO){ S.propios = []; S.alumnos = S.alumnos.slice(0, MAX_AL); }
+  if(!textoPorId(S.textoSel)) S.textoSel = DATA.textos[0].id;
+}
+function guardar(){
+  try{ window.localStorage.setItem(KEY, JSON.stringify(S)); guardarOk = true; }catch(e){ guardarOk = false; }
+  renderSave();
+}
+
+/* ---------- utilidades ---------- */
+function $(id){ return document.getElementById(id); }
+function el(tag, attrs, kids){
+  var n = document.createElement(tag);
+  if(attrs) for(var a in attrs){ if(a === "text") n.textContent = attrs[a]; else if(a === "on"){ for(var ev in attrs.on) n.addEventListener(ev, attrs.on[ev]); } else n.setAttribute(a, attrs[a]); }
+  (kids||[]).forEach(function(k){ if(k !== null && k !== undefined) n.appendChild(typeof k === "string" ? document.createTextNode(k) : k); });
+  return n;
+}
+function toast(msg){ var t = $("toast"); t.textContent = msg; t.classList.add("on"); clearTimeout(toast._t); toast._t = setTimeout(function(){ t.classList.remove("on"); }, 2600); }
+function hoy(){ var d = new Date(); return d.getFullYear() + "-" + ("0" + (d.getMonth()+1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2); }
+function fechaCorta(iso){ var p = String(iso).split("-"); return p.length === 3 ? (p[2] + "/" + p[1]) : iso; }
+function todosTextos(){ return DATA.textos.concat(DEMO ? [] : S.propios); }
+function textoPorId(id){ var l = todosTextos(); for(var i = 0; i < l.length; i++) if(l[i].id === id) return l[i]; return null; }
+function alumnoPorId(id){ for(var i = 0; i < S.alumnos.length; i++) if(S.alumnos[i].id === id) return S.alumnos[i]; return null; }
+function nid(p){ S.seq = (S.seq||1) + 1; return p + S.seq + "_" + Date.now().toString(36); }
+function cortesValidos(){ return (S.cortes||[]).filter(function(c){ return c && String(c.nombre||"").trim() && c.desde !== "" && c.desde !== null && !isNaN(parseFloat(c.desde)); }).map(function(c){ return {nombre:String(c.nombre).trim(), desde:parseFloat(c.desde)}; }).sort(function(a,b){ return a.desde - b.desde; }); }
+function nivelDe(pcpm){ var c = cortesValidos(), n = ""; c.forEach(function(x){ if(pcpm >= x.desde) n = x.nombre; }); return n; }
+
+/* ---------- pestañas ---------- */
+function irA(tab){
+  S.tab = tab;
+  Array.prototype.forEach.call(document.querySelectorAll("[data-pan]"), function(p){ p.hidden = p.getAttribute("data-pan") !== tab; });
+  Array.prototype.forEach.call(document.querySelectorAll(".tab"), function(b){ b.setAttribute("aria-selected", String(b.getAttribute("data-tab") === tab)); });
+  if(tab === "toma") renderToma();
+  if(tab === "evolucion") renderEvolucion();
+  if(tab === "texto") renderTextos();
+  if(tab === "niveles") renderCortes();
+  guardar();
+}
+function renderTabs(){
+  var box = $("tabs"); box.innerHTML = "";
+  TABS.forEach(function(t){
+    box.appendChild(el("button", {"class":"tab", type:"button", role:"tab", "data-tab":t[0], "aria-selected":"false", text:t[1], on:{click:function(){ if(T.corriendo){ toast("Terminá la toma antes de cambiar de pantalla."); return; } irA(t[0]); }}}));
+  });
+}
+
+/* ---------- alumnos ---------- */
+function renderAlumnos(){
+  $("maxAl").textContent = MAX_AL;
+  $("alCount").textContent = S.alumnos.length + " de " + MAX_AL + " alumnos.";
+  var ul = $("listaAl"); ul.innerHTML = "";
+  S.alumnos.forEach(function(a){
+    var n = S.tomas.filter(function(t){ return t.alumnoId === a.id; }).length;
+    ul.appendChild(el("li", null, [
+      el("span", {text: a.nombre + (n ? "  ·  " + n + (n === 1 ? " toma" : " tomas") : "")}),
+      el("button", {"class":"x", type:"button", "aria-label":"Quitar a " + a.nombre, text:"×", on:{click:function(){
+        if(n && !window.confirm("Se borran también las " + n + " tomas de " + a.nombre + ". ¿Seguimos?")) return;
+        S.alumnos = S.alumnos.filter(function(x){ return x.id !== a.id; });
+        S.tomas = S.tomas.filter(function(t){ return t.alumnoId !== a.id; });
+        guardar(); renderAlumnos();
+      }}})
+    ]));
+  });
+}
+$("fAl").addEventListener("submit", function(ev){
+  ev.preventDefault();
+  var v = $("nuevoAl").value.trim();
+  if(!v) return;
+  if(S.alumnos.length >= MAX_AL){ toast(DEMO ? "La versión de prueba admite 5 alumnos. La completa, hasta 40." : "Llegaste al máximo de 40 alumnos."); return; }
+  if(S.alumnos.some(function(a){ return a.nombre.toLowerCase() === v.toLowerCase(); })){ toast("Ya hay un alumno con ese nombre. Agregá una inicial o un número."); return; }
+  S.alumnos.push({id: nid("a"), nombre: v});
+  $("nuevoAl").value = ""; guardar(); renderAlumnos(); $("nuevoAl").focus();
+});
+
+/* ---------- textos ---------- */
+function renderTextos(){
+  var box = $("listaTx"); box.innerHTML = "";
+  var grados = {};
+  todosTextos().forEach(function(t){
+    var g = t.grado ? (t.grado + ".° grado") : "Textos propios";
+    if(!grados[g]){ grados[g] = []; }
+    grados[g].push(t);
+  });
+  Object.keys(grados).forEach(function(g){
+    box.appendChild(el("h3", {text:g}));
+    grados[g].forEach(function(t){
+      var kids = [el("b", {text:t.titulo}), el("small", {text: contar(t.texto) + " palabras" + (t.grado ? " · redacción propia" : "")})];
+      var b = el("button", {"class":"txt", type:"button", "aria-pressed": String(S.textoSel === t.id), "data-id":t.id, on:{click:function(){ S.textoSel = t.id; reiniciarToma(); guardar(); renderTextos(); toast("Texto elegido: " + t.titulo); }}}, kids);
+      box.appendChild(b);
+      if(!t.grado){
+        box.appendChild(el("div", {"class":"row", style:"justify-content:flex-end;margin:-2px 0 8px"}, [el("button", {"class":"btn sm", type:"button", text:"Borrar este texto", on:{click:function(){
+          if(!window.confirm("¿Borrar el texto “" + t.titulo + "”? Las tomas guardadas conservan su título.")) return;
+          S.propios = S.propios.filter(function(x){ return x.id !== t.id; });
+          if(S.textoSel === t.id) S.textoSel = DATA.textos[0].id;
+          guardar(); renderTextos();
+        }}})]));
+      }
+    });
+  });
+  $("propioBox").hidden = DEMO; $("propioDemo").hidden = !DEMO;
+}
+$("pTxt").addEventListener("input", function(){ var n = contar(this.value); $("pCnt").textContent = n + (n === 1 ? " palabra" : " palabras"); });
+$("pAdd").addEventListener("click", function(){
+  var tx = $("pTxt").value.trim(), ti = $("pTit").value.trim() || "Texto propio";
+  if(contar(tx) < 5){ toast("Pegá un texto de al menos 5 palabras."); return; }
+  var t = {id: nid("p"), grado: 0, titulo: ti, texto: tx};
+  S.propios.push(t); S.textoSel = t.id; $("pTxt").value = ""; $("pTit").value = ""; $("pCnt").textContent = "0 palabras";
+  reiniciarToma(); guardar(); renderTextos(); toast("Texto guardado y elegido.");
+});
+
+/* ---------- toma ---------- */
+var T = {};
+function reiniciarToma(){
+  if(T.int) clearInterval(T.int);
+  T = {corriendo:false, terminado:false, t0:0, ms:0, err:{}, ult:-1, modoUlt:false, int:null};
+}
+reiniciarToma();
+function palabrasTexto(){ var t = textoPorId(S.textoSel); return t ? tokens(t.texto) : []; }
+function idxPalabras(){ var tk = palabrasTexto(), r = []; tk.forEach(function(x, i){ if(esPalabra(x)) r.push(i); }); return r; }
+function fmt(ms){ var s = Math.max(0, Math.floor(ms/1000)); return Math.floor(s/60) + ":" + ("0" + (s%60)).slice(-2); }
+function ahora(){ return (window.performance && performance.now) ? performance.now() : Date.now(); }
+function renderTimer(){
+  var tm = $("timer");
+  if(S.modo === "60"){ var rest = 60000 - T.ms; tm.textContent = fmt(T.corriendo ? Math.ceil(Math.max(0, rest)/1000)*1000 : (T.terminado ? 0 : 60000) ); }
+  else tm.textContent = fmt(T.ms);
+  tm.classList.toggle("fin", T.terminado);
+}
+function calc(){
+  var idx = idxPalabras(), total = idx.length;
+  var ultPos = T.ult >= 0 ? idx.indexOf(T.ult) : -1;
+  var leidas = ultPos >= 0 ? ultPos + 1 : 0;
+  var errores = 0;
+  for(var i = 0; i < leidas; i++){ if(T.err[idx[i]]) errores++; }
+  var seg = S.modo === "60" ? Math.min(60, T.ms/1000) : T.ms/1000;
+  seg = Math.round(seg * 10) / 10;
+  var correctas = leidas - errores;
+  var pcpm = seg > 0 ? Math.round(correctas * 60 / seg) : 0;
+  var prec = leidas > 0 ? Math.round(correctas * 100 / leidas) : 0;
+  return {total:total, leidas:leidas, errores:errores, correctas:correctas, seg:seg, pcpm:pcpm, prec:prec};
+}
+function renderLectura(){
+  var box = $("lectura"); box.innerHTML = "";
+  var tk = palabrasTexto();
+  tk.forEach(function(x, i){
+    if(i) box.appendChild(document.createTextNode(" "));
+    if(!esPalabra(x)){ box.appendChild(el("span", {"class":"p", text:x})); return; }
+    var c = "w" + (T.err[i] ? " e" : "") + (T.ult === i ? " u" : "") + (T.ult >= 0 && i > T.ult ? " post" : "");
+    box.appendChild(el("button", {"class":c, type:"button", "data-i":String(i), text:x}));
+  });
+}
+$("lectura").addEventListener("click", function(ev){
+  var b = ev.target.closest ? ev.target.closest(".w") : null;
+  if(!b) return;
+  var i = parseInt(b.getAttribute("data-i"), 10);
+  if(!T.corriendo && !T.terminado){ toast("Tocá Empezar cuando el chico lea la primera palabra."); return; }
+  if(T.modoUlt){ T.ult = i; T.modoUlt = false; }
+  else { if(T.err[i]) delete T.err[i]; else T.err[i] = 1; }
+  renderTomaEstado();
+});
+function terminar(auto){
+  if(!T.corriendo) return;
+  T.ms = auto ? 60000 : Math.min(ahora() - T.t0, S.modo === "60" ? 60000 : Infinity);
+  T.corriendo = false; T.terminado = true;
+  clearInterval(T.int); T.int = null;
+  if(S.modo === "60"){
+    T.modoUlt = true;
+    try{ if(navigator.vibrate) navigator.vibrate([200, 100, 200]); }catch(e){}
+    pitido();
+  } else {
+    var idx = idxPalabras(); if(T.ult < 0 && idx.length) T.ult = idx[idx.length - 1];
+  }
+  renderTomaEstado();
+}
+function pitido(){
+  try{
+    var AC = window.AudioContext || window.webkitAudioContext; if(!AC) return;
+    var ac = pitido.ac || (pitido.ac = new AC()), o = ac.createOscillator(), g = ac.createGain();
+    o.frequency.value = 880; g.gain.value = 0.15; o.connect(g); g.connect(ac.destination); o.start(); o.stop(ac.currentTime + 0.35);
+  }catch(e){}
+}
+function tick(){
+  T.ms = ahora() - T.t0;
+  if(S.modo === "60" && T.ms >= 60000){ terminar(true); return; }
+  renderTimer();
+  var r = calc(); $("tomaVivo").textContent = "Errores marcados: " + Object.keys(T.err).length;
+}
+$("bStart").addEventListener("click", function(){
+  if(!S.alumnos.length){ toast("Primero agregá un alumno."); irA("alumnos"); return; }
+  if(!$("selAl").value){ toast("Elegí un alumno."); return; }
+  reiniciarToma();
+  T.corriendo = true; T.t0 = ahora();
+  T.int = setInterval(tick, 200);
+  renderTomaEstado();
+});
+$("bStop").addEventListener("click", function(){ terminar(false); });
+$("bUlt").addEventListener("click", function(){ T.modoUlt = !T.modoUlt; renderTomaEstado(); });
+$("bReset").addEventListener("click", function(){
+  if((T.corriendo || T.terminado) && !window.confirm("Se pierde esta toma. ¿Reiniciamos?")) return;
+  reiniciarToma(); renderToma();
+});
+$("m60").addEventListener("click", function(){ if(T.corriendo) return; S.modo = "60"; reiniciarToma(); guardar(); renderToma(); });
+$("mTot").addEventListener("click", function(){ if(T.corriendo) return; S.modo = "total"; reiniciarToma(); guardar(); renderToma(); });
+$("selAl").addEventListener("change", function(){ S.alSel = this.value; });
+$("bRes").addEventListener("click", function(){ irA("resultado"); renderResultado(); });
+
+function renderTomaEstado(){
+  renderTimer(); renderLectura();
+  var activo = T.corriendo || T.terminado;
+  $("bStart").hidden = activo;
+  $("bStop").hidden = !T.corriendo;
+  $("bUlt").hidden = !activo;
+  $("bUlt").setAttribute("aria-pressed", String(T.modoUlt));
+  $("bUlt").textContent = T.modoUlt ? "Cancelar" : "Marcar última palabra";
+  $("modoUlt").hidden = !T.modoUlt;
+  $("selAl").disabled = activo; $("m60").disabled = activo; $("mTot").disabled = activo;
+  var r = calc();
+  $("tomaVivo").textContent = T.terminado
+    ? (T.ult >= 0 ? (r.leidas + " leídas · " + r.errores + " errores · " + r.seg + " s") : "Falta marcar la última palabra.")
+    : (T.corriendo ? "Errores marcados: " + Object.keys(T.err).length : "");
+  $("bRes").disabled = !(T.terminado && T.ult >= 0 && r.seg > 0);
+}
+function renderToma(){
+  var sel = $("selAl"), prev = sel.value || S.alSel;
+  sel.innerHTML = "";
+  if(!S.alumnos.length) sel.appendChild(el("option", {value:"", text:"Primero agregá alumnos"}));
+  S.alumnos.forEach(function(a){
+    var n = S.tomas.filter(function(t){ return t.alumnoId === a.id; }).length;
+    var o = el("option", {value:a.id, text:a.nombre + (n ? " (" + n + ")" : "")});
+    if(a.id === prev) o.selected = true; sel.appendChild(o);
+  });
+  var t = textoPorId(S.textoSel);
+  $("tomaTxt").textContent = t ? ("Texto: " + t.titulo + " · " + contar(t.texto) + " palabras. Lo cambiás en la pestaña Texto.") : "";
+  $("m60").setAttribute("aria-pressed", String(S.modo === "60"));
+  $("mTot").setAttribute("aria-pressed", String(S.modo !== "60"));
+  $("modoHint").textContent = S.modo === "60" ? "A los 60 segundos el cronómetro se detiene y te pide la última palabra leída." : "Lee el texto completo. Tocá Terminar cuando lea la última palabra.";
+  renderTomaEstado();
+}
+
+/* ---------- resultado ---------- */
+var R = {pros:0};
+function renderResultado(){
+  var r = calc(), a = alumnoPorId($("selAl").value), t = textoPorId(S.textoSel);
+  $("resQuien").textContent = (a ? a.nombre : "") + (t ? " · " + t.titulo : "");
+  $("rPcpm").textContent = r.pcpm; $("rLeidas").textContent = r.leidas; $("rErr").textContent = r.errores;
+  $("rPrec").textContent = r.prec + "%"; $("rSeg").textContent = r.seg;
+  $("rCuenta").textContent = "(" + r.leidas + " − " + r.errores + ") × 60 ÷ " + r.seg + " = " + r.pcpm + " PCPM";
+  var nv = $("rNivel"); nv.innerHTML = "";
+  var n = nivelDe(r.pcpm);
+  if(cortesValidos().length) nv.appendChild(el("div", {"class":"okb", text: n ? ("Nivel según tus cortes: " + n) : "Por debajo del primer corte que cargaste."}));
+  else nv.appendChild(el("p", {"class":"hint", text:"Sin cortes cargados: si querés ver un nivel, cargá los de tu provincia en Niveles."}));
+  $("rFecha").value = hoy(); $("rNota").value = ""; $("rNotaN").textContent = "0"; R.pros = 0; renderPros();
+}
+function renderPros(){
+  var box = $("pros"); box.innerHTML = "";
+  [1,2,3,4].forEach(function(v){
+    box.appendChild(el("button", {"class":"chip", type:"button", "aria-pressed": String(R.pros === v), text:String(v), on:{click:function(){ R.pros = R.pros === v ? 0 : v; renderPros(); }}}));
+  });
+}
+$("rNota").addEventListener("input", function(){ $("rNotaN").textContent = this.value.length; });
+$("bVolver").addEventListener("click", function(){ irA("toma"); });
+$("bGuardar").addEventListener("click", function(){
+  var r = calc(), a = alumnoPorId($("selAl").value), t = textoPorId(S.textoSel);
+  if(!a || !t || !(T.terminado && T.ult >= 0)){ toast("No hay una toma terminada para guardar."); return; }
+  S.tomas.push({id:nid("t"), alumnoId:a.id, fecha:$("rFecha").value || hoy(), textoId:t.id, texto:t.titulo, palabrasTexto:r.total,
+    leidas:r.leidas, errores:r.errores, segundos:r.seg, pcpm:r.pcpm, precision:r.prec, prosodia:R.pros || "", nota:$("rNota").value.slice(0,140), modo:S.modo});
+  S.alSel = a.id;
+  /* siguiente alumno sin toma hoy */
+  var hoyD = $("rFecha").value || hoy();
+  var sig = S.alumnos.filter(function(x){ return !S.tomas.some(function(tt){ return tt.alumnoId === x.id && tt.fecha === hoyD; }); })[0];
+  if(sig) S.alSel = sig.id;
+  reiniciarToma(); guardar();
+  irA("toma"); var s = $("selAl"); if(S.alSel) s.value = S.alSel;
+  toast("Toma de " + a.nombre + " guardada." + (sig ? " Sigue: " + sig.nombre + "." : ""));
+});
+
+/* ---------- evolución ---------- */
+function tomasDe(id){ return S.tomas.filter(function(t){ return t.alumnoId === id; }).sort(function(a,b){ return a.fecha < b.fecha ? -1 : a.fecha > b.fecha ? 1 : 0; }); }
+function svgEl(tag, attrs, txt){ var n = document.createElementNS("http://www.w3.org/2000/svg", tag); for(var a in attrs) n.setAttribute(a, attrs[a]); if(txt !== undefined) n.textContent = txt; return n; }
+function grafico(ts){
+  var W = 320, H = 190, L = 36, Rr = 14, Tp = 16, B = 30;
+  var max = 10; ts.forEach(function(t){ if(t.pcpm > max) max = t.pcpm; });
+  cortesValidos().forEach(function(c){ if(c.desde > max) max = c.desde; });
+  var paso = max <= 40 ? 10 : max <= 100 ? 20 : max <= 200 ? 40 : 50;
+  max = Math.ceil(max / paso) * paso;
+  var svg = svgEl("svg", {viewBox:"0 0 " + W + " " + H, "class":"chart", role:"img", "aria-label":"PCPM por fecha"});
+  var y = function(v){ return Tp + (H - Tp - B) * (1 - v / max); };
+  var x = function(i){ return ts.length === 1 ? (L + (W - L - Rr) / 2) : L + (W - L - Rr) * i / (ts.length - 1); };
+  for(var v = 0; v <= max; v += paso){
+    svg.appendChild(svgEl("line", {x1:L, x2:W - Rr, y1:y(v), y2:y(v), stroke:"#EEDFD2", "stroke-width":1}));
+    svg.appendChild(svgEl("text", {x:L - 6, y:y(v) + 4, "text-anchor":"end", "font-size":10, fill:"#6B605A"}, String(v)));
+  }
+  cortesValidos().forEach(function(c){
+    svg.appendChild(svgEl("line", {x1:L, x2:W - Rr, y1:y(c.desde), y2:y(c.desde), stroke:"#6B605A", "stroke-width":1, "stroke-dasharray":"4 3"}));
+    svg.appendChild(svgEl("text", {x:W - Rr, y:y(c.desde) - 3, "text-anchor":"end", "font-size":9, fill:"#6B605A"}, c.nombre));
+  });
+  if(ts.length > 1){
+    var d = ts.map(function(t, i){ return (i ? "L" : "M") + x(i).toFixed(1) + " " + y(t.pcpm).toFixed(1); }).join(" ");
+    svg.appendChild(svgEl("path", {d:d, fill:"none", stroke:"#E8735A", "stroke-width":2, "stroke-linejoin":"round", "stroke-linecap":"round"}));
+  }
+  var cada = Math.ceil(ts.length / 6);
+  ts.forEach(function(t, i){
+    var g = svgEl("g", {});
+    g.appendChild(svgEl("title", {}, fechaCorta(t.fecha) + ": " + t.pcpm + " PCPM, " + t.precision + "% de precisión"));
+    g.appendChild(svgEl("circle", {cx:x(i), cy:y(t.pcpm), r:12, fill:"transparent"}));
+    g.appendChild(svgEl("circle", {cx:x(i), cy:y(t.pcpm), r:4.5, fill:"#E8735A", stroke:"#FFFFFF", "stroke-width":2}));
+    svg.appendChild(g);
+    if(i % cada === 0 || i === ts.length - 1) svg.appendChild(svgEl("text", {x:x(i), y:H - 10, "text-anchor":"middle", "font-size":10, fill:"#6B605A"}, fechaCorta(t.fecha)));
+    if(i === ts.length - 1 || i === 0) svg.appendChild(svgEl("text", {x:x(i), y:y(t.pcpm) - 9, "text-anchor":"middle", "font-size":11, "font-weight":700, fill:"#2B2522"}, String(t.pcpm)));
+  });
+  return svg;
+}
+function renderEvolucion(){
+  var sel = $("evAl"), prev = sel.value || S.alSel; sel.innerHTML = "";
+  if(!S.alumnos.length) sel.appendChild(el("option", {value:"", text:"Sin alumnos"}));
+  S.alumnos.forEach(function(a){ var o = el("option", {value:a.id, text:a.nombre}); if(a.id === prev) o.selected = true; sel.appendChild(o); });
+  var ts = tomasDe(sel.value), ch = $("evChart"); ch.innerHTML = "";
+  var lt = $("evTomas"); lt.innerHTML = "";
+  if(!ts.length) ch.appendChild(el("p", {"class":"hint", text:"Este alumno todavía no tiene tomas guardadas."}));
+  else {
+    ch.appendChild(grafico(ts));
+    var tb = el("table", null, [el("thead", null, [el("tr", null, [el("th",{text:"Fecha"}), el("th",{text:"Texto"}), el("th",{"class":"n", text:"PCPM"}), el("th",{"class":"n", text:"Prec."}), el("th",{text:""})])])]);
+    var bd = el("tbody");
+    ts.slice().reverse().forEach(function(t){
+      bd.appendChild(el("tr", null, [el("td",{text:fechaCorta(t.fecha)}), el("td",{text:t.texto + (t.nota ? " · " + t.nota : "")}), el("td",{"class":"n", text:String(t.pcpm)}), el("td",{"class":"n", text:t.precision + "%"}),
+        el("td", null, [el("button", {"class":"x", type:"button", "aria-label":"Borrar esta toma", text:"×", on:{click:function(){
+          if(!window.confirm("¿Borrar la toma del " + fechaCorta(t.fecha) + "?")) return;
+          S.tomas = S.tomas.filter(function(z){ return z.id !== t.id; }); guardar(); renderEvolucion();
+        }}})])]));
+    });
+    tb.appendChild(bd); lt.appendChild(el("div", {"class":"tblw", style:"margin-top:8px"}, [tb]));
+  }
+  var g = $("evGrupo"); g.innerHTML = "";
+  if(!S.alumnos.length){ g.appendChild(el("p", {"class":"hint", text:"Agregá alumnos para ver la tabla."})); return; }
+  var hayC = cortesValidos().length;
+  var head = [el("th",{text:"Alumno"}), el("th",{text:"Última"}), el("th",{"class":"n", text:"PCPM"}), el("th",{"class":"n", text:"Prec."}), el("th",{"class":"n", text:"Cambio"})];
+  if(hayC) head.push(el("th",{text:"Nivel"}));
+  var t2 = el("table", null, [el("thead", null, [el("tr", null, head)])]), b2 = el("tbody");
+  S.alumnos.forEach(function(a){
+    var x = tomasDe(a.id), u = x[x.length - 1], p = x[x.length - 2];
+    var cambio = (u && p) ? (u.pcpm - p.pcpm) : null;
+    var cells = [el("td",{text:a.nombre}), el("td",{text: u ? fechaCorta(u.fecha) : "—"}), el("td",{"class":"n", text: u ? String(u.pcpm) : "—"}), el("td",{"class":"n", text: u ? u.precision + "%" : "—"}),
+      el("td",{"class":"n", text: cambio === null ? "—" : (cambio > 0 ? "+" : "") + cambio})];
+    if(hayC) cells.push(el("td",{text: u ? (nivelDe(u.pcpm) || "bajo el 1.er corte") : "—"}));
+    b2.appendChild(el("tr", null, cells));
+  });
+  t2.appendChild(b2); g.appendChild(t2);
+}
+$("evAl").addEventListener("change", function(){ S.alSel = this.value; renderEvolucion(); });
+
+/* ---------- niveles ---------- */
+function renderCortes(){
+  var box = $("cortes"); box.innerHTML = "";
+  box.appendChild(el("label", {style:"margin:0", text:"Nombre del nivel"}));
+  box.appendChild(el("label", {style:"margin:0", text:"Desde (PCPM)"}));
+  for(var i = 0; i < N_CORTES; i++){
+    var c = (S.cortes||[])[i] || {nombre:"", desde:""};
+    box.appendChild(el("input", {type:"text", id:"cN" + i, maxlength:"30", placeholder:"Nivel " + (i + 1), "aria-label":"Nombre del nivel " + (i + 1)}));
+    box.appendChild(el("input", {type:"number", id:"cD" + i, min:"0", max:"400", step:"1", inputmode:"numeric", "aria-label":"PCPM desde, nivel " + (i + 1)}));
+    $("cN" + i).value = c.nombre || ""; $("cD" + i).value = (c.desde === undefined || c.desde === null) ? "" : c.desde;
+  }
+}
+$("bCortes").addEventListener("click", function(){
+  var l = [];
+  for(var i = 0; i < N_CORTES; i++) l.push({nombre:$("cN" + i).value.trim(), desde:$("cD" + i).value === "" ? "" : parseFloat($("cD" + i).value)});
+  S.cortes = l; guardar();
+  var n = cortesValidos().length;
+  toast(n ? ("Guardados " + n + (n === 1 ? " corte." : " cortes.")) : "No hay cortes completos (falta nombre o número).");
+});
+$("bCortesVaciar").addEventListener("click", function(){ S.cortes = []; guardar(); renderCortes(); toast("Cortes vacíos."); });
+
+/* ---------- CSV ---------- */
+function celda(v){
+  var s = String(v === undefined || v === null ? "" : v);
+  if(/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+  return '"' + s.replace(/"/g, '""') + '"';
+}
+function csv(){
+  var filas = [["alumno","fecha","texto","PCPM","precisión","nota","palabras leídas","errores","segundos","prosodia","nivel"]];
+  var orden = S.tomas.slice().sort(function(a,b){ var na = (alumnoPorId(a.alumnoId)||{}).nombre || "", nb = (alumnoPorId(b.alumnoId)||{}).nombre || ""; return na === nb ? (a.fecha < b.fecha ? -1 : 1) : (na < nb ? -1 : 1); });
+  orden.forEach(function(t){
+    var a = alumnoPorId(t.alumnoId);
+    filas.push([a ? a.nombre : "", t.fecha, t.texto, t.pcpm, t.precision + "%", t.nota || "", t.leidas, t.errores, String(t.segundos).replace(".", ","), t.prosodia, nivelDe(t.pcpm)]);
+  });
+  return "﻿" + filas.map(function(f){ return f.map(celda).join(";"); }).join("\r\n") + "\r\n";
+}
+$("bCsv").addEventListener("click", function(){
+  if(!S.tomas.length){ toast("Todavía no hay tomas guardadas."); return; }
+  try{
+    var blob = new Blob([csv()], {type:"text/csv;charset=utf-8"});
+    var url = URL.createObjectURL(blob), a = document.createElement("a");
+    a.href = url; a.download = "fluidez-" + hoy() + ".csv"; document.body.appendChild(a); a.click();
+    setTimeout(function(){ document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000);
+    $("csvInfo").textContent = S.tomas.length + " tomas exportadas.";
+  }catch(e){ toast("Este navegador no dejó descargar el archivo."); }
+});
+
+/* ---------- borrar todo ---------- */
+$("bBorrar").addEventListener("click", function(){
+  if(!window.confirm("Se borran alumnos, textos propios, tomas y cortes de este dispositivo. ¿Borramos todo?")) return;
+  try{ window.localStorage.removeItem(KEY); }catch(e){}
+  S = nuevo(); reiniciarToma(); renderTodo(); irA("alumnos");
+  try{ window.localStorage.removeItem(KEY); }catch(e){}
+  window.scrollTo(0, 0); toast("Listo, no quedó nada guardado.");
+});
+function renderSave(){
+  var n = $("saveInfo"); if(!n) return;
+  n.textContent = guardarOk ? (S.alumnos.length + " alumnos y " + S.tomas.length + " tomas guardados en este dispositivo.") : "Este navegador no deja guardar: si cerrás la página se pierde lo cargado.";
+}
+
+function renderTodo(){
+  $("demoBanner").hidden = !DEMO;
+  renderTabs(); renderAlumnos(); renderTextos(); renderCortes(); renderSave();
+}
+window.addEventListener("beforeunload", function(ev){ if(T.corriendo){ ev.preventDefault(); ev.returnValue = ""; } });
+
+cargar();
+renderTodo();
+irA(S.tab === "resultado" ? "toma" : (S.tab || "alumnos"));
+})();
+</script>
+</body>
+</html>
