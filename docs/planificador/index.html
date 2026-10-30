@@ -68,6 +68,7 @@ details[open] summary::after{transform:rotate(45deg)}details p{color:var(--mu);p
 footer{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:48px 0 120px;font-size:14px;color:var(--mu)}
 .sticky{position:fixed;left:16px;right:16px;bottom:16px;z-index:9;display:none;transform:translateY(140%);transition:transform .3s}
 .sticky.on{transform:none}.sticky .btn{width:100%;box-shadow:0 10px 30px rgba(43,42,51,.25)}
+html,body{overflow-x:clip}.bar{position:fixed;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#E8735A,#F2A541,#5BA88F,#4A90A4,#8E7CC3,#D96C9C);transform-origin:0 50%;transform:scaleX(0);z-index:60}.stack{isolation:isolate}.orbs{position:absolute;inset:-12%;z-index:-1;pointer-events:none}.orbs i{position:absolute;width:22%;aspect-ratio:1;border-radius:50%;filter:blur(28px);opacity:.45}.wd{display:inline-block;overflow:hidden;vertical-align:top;padding-bottom:.08em;margin-bottom:-.08em}.wd>span{display:inline-block;will-change:transform}.squig{display:block;width:min(260px,60%);height:18px;margin:6px 0 0;overflow:visible}.squig path{fill:none;stroke:#E8735A;stroke-width:5;stroke-linecap:round}.btn{position:relative;overflow:hidden}.btn:after{content:'';position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.35),transparent);transform:skewX(-20deg);pointer-events:none}.gs .btn:after{animation:shine 4.5s ease-in-out 2s infinite}@keyframes shine{0%,70%{left:-60%}100%{left:130%}}.gs .rv{opacity:1;transform:none;transition:none}@media(prefers-reduced-motion:reduce){.gs .btn:after{animation:none}.orbs{display:none}}
 .rv{opacity:0;transform:translateY(16px);transition:opacity .7s ease,transform .7s ease}.rv.in{opacity:1;transform:none}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}.rv{opacity:1;transform:none}}
 @media(max-width:820px){
@@ -79,6 +80,7 @@ footer{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;paddin
  .sticky{display:block}.dig img{max-width:280px}header .langs a:not([aria-current]){display:none}
 }
 </style></head><body>
+<div class="bar" id="bar"></div>
 <div class="w">
 <header><b>Planificador Docente 2027</b><nav class="langs" aria-label="Idioma"><a href="./" aria-current=page>Español</a><a href="./pt/">Português</a><a href="./en/">English</a></nav></header>
 <main>
@@ -86,7 +88,7 @@ footer{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;paddin
 <h1>Tu 2027 ordenado.<br>Los informes de diciembre, en una tarde.</h1><p class="lead">Planificador docente para imprimir o usar en la tablet, con planilla que calcula sola y 42 prompts de IA para planificar en minutos.</p><p class="precio"><small>desde</small><b>$4.900</b></p>
 <div class="acciones" id="hero-cta"><a class="btn" href="#final-cta" data-cta>Lo quiero · desde $4.900</a><a class="link" href="./muestra/es.pdf" target="_blank" data-muestra>Ver 5 páginas gratis →</a></div>
 <p class="micro">Pago único · Garantía de 7 días · Archivos digitales</p></div>
-<div class="stack"><img class="b" src="./p/es/mes-960.webp" srcset="./p/es/mes-480.webp 480w, ./p/es/mes-960.webp 960w" sizes="(max-width:820px) 60vw, 330px" alt="Cada mes" width="960" height="1358" fetchpriority="high"><img class="a" src="./p/es/portada-960.webp" srcset="./p/es/portada-480.webp 480w, ./p/es/portada-960.webp 960w" sizes="(max-width:820px) 70vw, 380px" alt="Portada" width="960" height="1358" fetchpriority="high"></div></div>
+<div class="stack"><div class="orbs" aria-hidden="true"><i style="background:#E8735A;left:2%;top:8%"></i><i style="background:#F2A541;right:4%;top:2%"></i><i style="background:#5BA88F;left:10%;bottom:6%"></i><i style="background:#4A90A4;right:10%;bottom:14%"></i><i style="background:#8E7CC3;left:46%;top:40%"></i><i style="background:#D96C9C;right:-2%;top:46%"></i></div><img class="b" src="./p/es/mes-960.webp" srcset="./p/es/mes-480.webp 480w, ./p/es/mes-960.webp 960w" sizes="(max-width:820px) 60vw, 330px" alt="Cada mes" width="960" height="1358" fetchpriority="high"><img class="a" src="./p/es/portada-960.webp" srcset="./p/es/portada-480.webp 480w, ./p/es/portada-960.webp 960w" sizes="(max-width:820px) 70vw, 380px" alt="Portada" width="960" height="1358" fetchpriority="high"></div></div>
 
 <section class="dolor rv"><h2>Si sos docente, esto te suena</h2><div><ul><li>Domingos enteros planificando la semana.</li><li>La asistencia y las notas desparramadas en tres cuadernos.</li><li>Diciembre y los informes de fin de año todos juntos.</li><li>Saber que la IA te podría ayudar, pero no saber qué pedirle.</li></ul><p>El planificador te ordena el año. Los prompts te ahorran la hoja en blanco.</p></div></section>
 
@@ -122,5 +124,55 @@ if('IntersectionObserver' in window){
  so.observe(document.getElementById('hero-cta'));so.observe(document.getElementById('final-cta'));
  addEventListener('scroll',()=>{const past=document.getElementById('hero-cta').getBoundingClientRect().bottom<0;st.classList.toggle('on',past&&!vis['final-cta'])},{passive:true});
 }else document.querySelectorAll('.rv').forEach(el=>el.classList.add('in'));
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script>
+(function(){
+ if(!window.gsap||!window.ScrollTrigger)return;
+ const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+ document.documentElement.classList.add('gs');
+ gsap.registerPlugin(ScrollTrigger);
+ const q=(s,r)=>[...(r||document).querySelectorAll(s)];
+ gsap.to('#bar',{scaleX:1,ease:'none',scrollTrigger:{start:0,end:'max',scrub:.3}});
+ if(reduce)return;
+ // titular palabra por palabra
+ const h1=document.querySelector('.hero h1');
+ (function split(n){[...n.childNodes].forEach(c=>{if(c.nodeType===3){const f=document.createDocumentFragment();c.textContent.split(/(\s+)/).forEach(w=>{if(!w)return;if(/^\s+$/.test(w)){f.appendChild(document.createTextNode(w));return}const o=document.createElement('span');o.className='wd';const i=document.createElement('span');i.textContent=w;o.appendChild(i);f.appendChild(o)});c.replaceWith(f)}else if(c.nodeType===1&&c.tagName!=='BR')split(c)})})(h1);
+ const sq=document.createElementNS('http://www.w3.org/2000/svg','svg');sq.setAttribute('class','squig');sq.setAttribute('viewBox','0 0 260 18');sq.setAttribute('aria-hidden','true');
+ sq.innerHTML='<path d="M3 12 C 40 2, 70 18, 105 9 S 170 3, 200 11 S 245 14, 257 6"/>';h1.after(sq);
+ const path=sq.querySelector('path'),L=path.getTotalLength();gsap.set(path,{strokeDasharray:L,strokeDashoffset:L});
+ const tl=gsap.timeline({defaults:{ease:'power3.out'}});
+ tl.from('.hero h1 .wd>span',{yPercent:110,duration:.9,stagger:.045})
+   .to(path,{strokeDashoffset:0,duration:.8,ease:'power2.inOut'},'-=.45')
+   .from(['.hero .lead','.hero .precio','#hero-cta','.hero .micro'],{y:22,opacity:0,duration:.7,stagger:.09},'-=.6')
+   .from('.stack .b',{x:80,y:30,rotate:18,opacity:0,duration:1.1,ease:'expo.out'},.25)
+   .from('.stack .a',{x:-60,y:60,rotate:-16,opacity:0,duration:1.1,ease:'expo.out'},.4)
+   .from('.orbs i',{scale:0,opacity:0,duration:1.2,stagger:.08,ease:'back.out(2)'},.3);
+ // contador del precio
+ q('.precio b, .plan b').forEach(b=>{const m=b.textContent.match(/^(\D*)([\d.,]+)(.*)$/);if(!m)return;const dec=m[2].includes(',')?',':null;const n=parseFloat(m[2].replace(/\./g,'').replace(',','.'));const fmt=v=>m[1]+(dec?v.toFixed(2).replace('.',','):Math.round(v).toLocaleString('es-AR'))+m[3];const o={v:0};
+   gsap.to(o,{v:n,duration:1.4,ease:'power2.out',onUpdate:()=>b.textContent=fmt(o.v),onComplete:()=>b.textContent=m[1]+m[2]+m[3],scrollTrigger:{trigger:b,start:'top 92%',once:true}})});
+ // flotado continuo de las hojas y los círculos
+ gsap.to('.stack .a',{y:'-=10',rotate:'-=1.2',duration:3.2,yoyo:true,repeat:-1,ease:'sine.inOut',delay:1.4});
+ gsap.to('.stack .b',{y:'+=12',rotate:'+=1.5',duration:3.8,yoyo:true,repeat:-1,ease:'sine.inOut',delay:1.6});
+ q('.orbs i').forEach(o=>gsap.to(o,{x:()=>gsap.utils.random(-30,30),y:()=>gsap.utils.random(-30,30),duration:()=>gsap.utils.random(4,7),repeat:-1,yoyo:true,repeatRefresh:true,ease:'sine.inOut'}));
+ // parallax del hero al scrollear
+ gsap.to('.stack',{yPercent:-12,ease:'none',scrollTrigger:{trigger:'.hero',start:'top top',end:'bottom top',scrub:true}});
+ gsap.to('.stack .b',{xPercent:8,ease:'none',scrollTrigger:{trigger:'.hero',start:'top top',end:'bottom top',scrub:true}});
+ // secciones: título y luego sus piezas en cascada
+ q('main>section').forEach(sec=>{
+   const kids=q('h2, .k, .lead, .dolor li, .dolor p, .gal figure, .dig img, .inc li, .bonus, .pasos li, .gar p, .yo p, .yo .link, .faq details, .plan, .final .micro',sec);
+   if(!kids.length)return;
+   gsap.from(kids,{y:36,opacity:0,duration:.8,ease:'power3.out',stagger:.07,scrollTrigger:{trigger:sec,start:'top 82%',once:true}});
+ });
+ // galería: las hojas entran con máscara
+ q('.gal img, .dig img').forEach(img=>gsap.fromTo(img,{clipPath:'inset(100% 0% 0% 0% round 14px)',scale:1.08},{clipPath:'inset(0% 0% 0% 0% round 14px)',scale:1,duration:1.1,ease:'expo.out',scrollTrigger:{trigger:img,start:'top 88%',once:true}}));
+ // pasos: números que giran
+ gsap.from('.pasos span',{rotate:-90,scale:.4,duration:.8,ease:'back.out(2.2)',stagger:.12,scrollTrigger:{trigger:'.pasos',start:'top 85%',once:true}});
+ // botones magnéticos en compu
+ if(matchMedia('(hover:hover)').matches)q('.btn').forEach(b=>{const xt=gsap.quickTo(b,'x',{duration:.4,ease:'power3'}),yt=gsap.quickTo(b,'y',{duration:.4,ease:'power3'});
+   b.addEventListener('mousemove',e=>{const r=b.getBoundingClientRect();xt((e.clientX-r.left-r.width/2)*.18);yt((e.clientY-r.top-r.height/2)*.3)});b.addEventListener('mouseleave',()=>{xt(0);yt(0)})});
+ addEventListener('load',()=>ScrollTrigger.refresh());
+})();
 </script>
 </body></html>
