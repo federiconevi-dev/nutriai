@@ -1,0 +1,4 @@
+# La app se despliega en Vercel. Netlify no tiene la base de datos
+# (el build corre "prisma db push"), así que se saltean sus builds.
+[build]
+  ignore = "exit 0"
