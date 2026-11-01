@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Respondo por vos · Panel</title>
+<style>
+:root{--v:#25d366;--o:#075e54;--f:#f0f2f5;--t:#111b21;--g:#667781}
+*{box-sizing:border-box}body{margin:0;font:15px system-ui,sans-serif;background:var(--f);color:var(--t)}
+header{background:var(--o);color:#fff;padding:12px 16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+header b{font-size:18px}.pill{font-size:12px;padding:3px 8px;border-radius:99px;background:#ffffff22}
+nav{display:flex;gap:4px;padding:8px 16px;background:#fff;border-bottom:1px solid #ddd;overflow-x:auto}
+nav button{border:0;background:none;padding:8px 12px;border-radius:8px;cursor:pointer;font:inherit}
+nav button.on{background:var(--f);font-weight:600}
+main{padding:16px;max-width:1100px;margin:auto}.oculto{display:none!important}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:16px}
+.card{background:#fff;border-radius:12px;padding:12px}.card small{color:var(--g)}.card div{font-size:24px;font-weight:700}
+.chats{display:grid;grid-template-columns:280px 1fr;gap:12px;height:70vh}
+@media(max-width:700px){.chats{grid-template-columns:1fr;height:auto}}
+.lista,.conv{background:#fff;border-radius:12px;overflow:auto}
+.item{padding:10px 12px;border-bottom:1px solid #eee;cursor:pointer}.item:hover,.item.on{background:var(--f)}
+.item small{color:var(--g);display:block}.conv{display:flex;flex-direction:column}
+.msgs{flex:1;overflow:auto;padding:12px;background:#efeae2;min-height:300px}
+.m{max-width:75%;padding:6px 10px;border-radius:8px;margin:4px 0;white-space:pre-wrap}
+.m.cliente{background:#fff}.m.bot,.m.humano{background:#d9fdd3;margin-left:auto}.m small{display:block;color:var(--g);font-size:11px}
+.barra{display:flex;gap:6px;padding:8px;border-top:1px solid #eee;flex-wrap:wrap}
+input,textarea,select{font:inherit;padding:8px;border:1px solid #ccc;border-radius:8px}input{flex:1;min-width:0}
+button.p{background:var(--v);color:#fff;border:0;border-radius:8px;padding:8px 14px;cursor:pointer;font:inherit}
+.aviso{background:#fff3cd;padding:8px 12px;border-radius:8px;margin:8px;font-size:13px}
+textarea{width:100%;height:60vh;font-family:monospace;font-size:13px}
+</style></head><body>
+<header><b>Respondo por vos</b><span class="pill" id="wa"></span><span class="pill" id="ia"></span></header>
+<nav><button data-t="resumen" class="on">Resumen</button><button data-t="chats">Chats</button><button data-t="probar">Probar el bot</button><button data-t="negocio">Datos del negocio</button></nav>
+<main>
+<section id="resumen">
+  <div class="cards" id="cards"></div>
+  <div class="card"><small>Cómo ahorra plata</small>
+  <p>Meta no cobra las respuestas dentro de las 24 h desde el último mensaje del cliente. El bot solo contesta ahí, en un único mensaje por pregunta. Fuera de esa ventana bloquea los envíos y solo deja mandar una plantilla, que se cobra y queda anotada acá.</p>
+  <p>Las preguntas frecuentes se contestan sin IA (costo cero). La IA se usa solo cuando hace falta.</p></div>
+</section>
+<section id="chats" class="oculto"><div class="chats"><div class="lista" id="lista"></div>
+  <div class="conv"><div id="cab" class="barra"></div><div class="msgs" id="msgs"></div><div id="pie"></div></div></div></section>
+<section id="probar" class="oculto"><div class="conv card"><div class="msgs" id="pmsgs"></div>
+  <div class="barra"><input id="ptxt" placeholder="Escribí como si fueras un cliente…"><button class="p" id="penv">Enviar</button></div></div></section>
+<section id="negocio" class="oculto"><p>Editá los datos y tocá Guardar. Las preguntas frecuentes (faq) se contestan sin gastar IA.</p>
+  <textarea id="neg"></textarea><p><button class="p" id="gneg">Guardar</button> <span id="gok"></span></p></section>
+</main>
+<script>
+const $=s=>document.querySelector(s);let E={},sel=null;
+const api=(u,b)=>fetch(u,b?{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(b)}:{}).then(r=>r.json());
+const hora=t=>new Date(t).toLocaleString('es-AR',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'});
+const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on',x==b));document.querySelectorAll('main>section').forEach(s=>s.classList.toggle('oculto',s.id!=b.dataset.t))});
+async function cargar(){E=await api('/api/estado');const s=E.stats;
+ $('#wa').textContent=E.conectado?'WhatsApp conectado':'WhatsApp sin conectar (modo prueba)';$('#ia').textContent=E.ia?'IA activa':'IA sin clave';
+ const sinIA=s.respGratis?Math.round(s.respFaq/s.respGratis*100):0;
+ $('#cards').innerHTML=[['Mensajes recibidos',s.recibidos],['Respuestas gratis (24 h)',s.respGratis],['Contestadas sin IA',sinIA+'%'],['Plantillas pagas',s.plantillas],['Gasto en Meta (USD aprox.)',s.costoUSD.toFixed(2)],['Envíos bloqueados (ahorro)',s.bloqueados]].map(([a,b])=>`<div class="card"><small>${a}</small><div>${b}</div></div>`).join('');
+ $('#lista').innerHTML=E.chats.filter(c=>c.tel!='prueba').map(c=>`<div class="item ${c.tel==sel?'on':''}" data-t="${c.tel}"><b>${esc(c.nombre||c.tel)}</b>${c.humano?' 🙋':''}<small>${esc(c.msgs.at(-1)?.texto||'').slice(0,40)}</small><small>${c.enVentana?'🟢 gratis '+Math.floor(c.venceEn/36e5)+' h más':'🔴 fuera de ventana'}</small></div>`).join('')||'<p style="padding:12px">Todavía no hay chats.</p>';
+ document.querySelectorAll('.item').forEach(i=>i.onclick=()=>{sel=i.dataset.t;cargar()});
+ if(!$('#neg').value)$('#neg').value=JSON.stringify(E.negocio,null,2);
+ const p=E.chats.find(c=>c.tel=='prueba');$('#pmsgs').innerHTML=burbujas(p);verChat();}
+const burbujas=c=>(c?.msgs||[]).map(m=>`<div class="m ${m.de}">${esc(m.texto)}<small>${m.de} · ${hora(m.t)}${m.costoUSD?' · USD '+m.costoUSD:''}</small></div>`).join('');
+function verChat(){const c=E.chats.find(x=>x.tel==sel);if(!c){$('#cab').innerHTML='';$('#msgs').innerHTML='';$('#pie').innerHTML='';return}
+ $('#cab').innerHTML=`<b>${esc(c.nombre||c.tel)}</b> <label><input type="checkbox" id="hum" ${c.humano?'checked':''} style="flex:none"> Lo atiendo yo (pausa el bot)</label>`;
+ $('#hum').onchange=e=>api('/api/humano',{tel:c.tel,humano:e.target.checked}).then(cargar);
+ const m=$('#msgs');const abajo=m.scrollTop+m.clientHeight>=m.scrollHeight-20;m.innerHTML=burbujas(c);if(abajo)m.scrollTop=m.scrollHeight;
+ if(document.activeElement?.id=='txt'||document.activeElement?.id=='tpl')return;
+ $('#pie').innerHTML=c.enVentana?`<div class="barra"><input id="txt" placeholder="Responder (gratis)"><button class="p" id="env">Enviar</button></div>`
+ :`<div class="aviso">Pasaron más de 24 h desde el último mensaje del cliente. Meta solo deja mandar una plantilla aprobada, y se cobra (marketing USD ${E.precios.marketing}, utilidad USD ${E.precios.utility}).</div><div class="barra"><input id="tpl" placeholder="Nombre de la plantilla aprobada"><select id="cat"><option value="utility">Utilidad</option><option value="marketing">Marketing</option></select><button class="p" id="envt">Mandar plantilla (paga)</button></div>`;
+ if($('#env'))$('#env').onclick=async()=>{const r=await api('/api/enviar',{tel:c.tel,texto:$('#txt').value});if(r.error)alert(r.error);$('#txt').value='';cargar()};
+ if($('#envt'))$('#envt').onclick=async()=>{if(!confirm('Esta plantilla se cobra. ¿Mandarla?'))return;await api('/api/plantilla',{tel:c.tel,nombre:$('#tpl').value,categoria:$('#cat').value});cargar()};}
+$('#penv').onclick=async()=>{const t=$('#ptxt').value.trim();if(!t)return;$('#ptxt').value='';await api('/api/probar',{texto:t});cargar()};
+$('#ptxt').onkeydown=e=>e.key=='Enter'&&$('#penv').click();
+$('#gneg').onclick=async()=>{try{await api('/api/negocio',JSON.parse($('#neg').value));$('#gok').textContent='Guardado ✓'}catch{$('#gok').textContent='Hay un error en el formato'}};
+cargar();setInterval(cargar,5000);
+</script></body></html>

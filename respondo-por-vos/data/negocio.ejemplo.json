@@ -1,0 +1,23 @@
+{
+  "nombre": "Lola Indumentaria",
+  "rubro": "ropa de mujer",
+  "zona": "Caballito, CABA",
+  "tono": "canchero, con algún emoji",
+  "horario": "lunes a sábado de 10 a 19",
+  "envios": "CABA $3.500 en 24/48 h. Resto del país por Correo Argentino, $6.900, 3 a 6 días.",
+  "pagos": "Transferencia, efectivo en retiro y Mercado Pago (hasta 3 cuotas sin interés).",
+  "linkPago": "https://link.mercadopago.com.ar/lola",
+  "cambios": "Cambios dentro de los 15 días con etiqueta.",
+  "prohibido": "no prometer fechas exactas, no dar descuentos",
+  "catalogo": [
+    { "producto": "Jean mom", "precio": 32000, "variantes": "talles 36 al 46" },
+    { "producto": "Remera básica", "precio": 12500, "variantes": "blanco, negro, gris" }
+  ],
+  "faq": [
+    { "claves": ["envio", "envían", "envian", "mandan"], "respuesta": "¡Sí! CABA $3.500 en 24/48 h y al resto del país $6.900 (3 a 6 días) 📦" },
+    { "claves": ["mercado pago", "cuotas", "tarjeta"], "respuesta": "Aceptamos Mercado Pago, hasta 3 cuotas sin interés 🙌 Te paso el link cuando elijas." },
+    { "claves": ["horario", "abren", "atienden"], "respuesta": "Atendemos lunes a sábado de 10 a 19 🕙" }
+  ],
+  "bienvenida": "¡Hola! 👋 Gracias por escribir a Lola Indumentaria. Contame qué buscás y te paso precio al toque.",
+  "derivacion": "Te paso con una persona del equipo, en un ratito te escribe 🙌"
+}
