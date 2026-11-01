@@ -42,6 +42,10 @@ function respuestaFaq(texto) {
     if (palabras.length && palabras.every((w) => t.includes(w)) && /precio|cuanto|sale|vale/.test(t))
       return `${p.producto}: $${p.precio.toLocaleString('es-AR')}${p.variantes ? ` (${p.variantes})` : ''}. ¿Te lo separo?`;
   }
+  const lista = () => (negocio.catalogo || []).map((p) => `• ${p.producto}: $${Number(p.precio).toLocaleString('es-AR')}`).join('\n');
+  if (/^(hola|buen[oa]s|holis|hey)\b/.test(t) && t.length < 25) return `${negocio.bienvenida}\n\n${lista()}`;
+  if (/comprar|lo quiero|me lo llevo|pagar|link/.test(t)) return `¡Genial! 🙌 Pagás acá: ${negocio.linkPago}\nDespués pasame tu nombre y qué producto elegiste.`;
+  if (/precio|precios|cuanto|catalogo|que tenes|que venden|productos/.test(t)) return `Esto es lo que tenemos:\n${lista()}\n¿Cuál te interesa?`;
   return null;
 }
 
@@ -64,7 +68,7 @@ Reglas:
 }
 
 async function respuestaIA(c) {
-  if (!E.ANTHROPIC_API_KEY) return '[HUMANO]';
+  if (!E.ANTHROPIC_API_KEY) return /reclamo|roto|enojad|estafa|devolu|queja/.test(norm(c.msgs.at(-1)?.texto || '')) ? '[HUMANO]' : `No estoy seguro de eso 🤔 Te paso lo que tenemos:\n${(negocio.catalogo || []).map((p) => `• ${p.producto}: $${Number(p.precio).toLocaleString('es-AR')}`).join('\n')}\nSi preferís, escribí "persona" y te atiende alguien.`;
   const historial = c.msgs.slice(-8).map((m) => ({ role: m.de === 'cliente' ? 'user' : 'assistant', content: m.texto }));
   while (historial.length && historial[0].role !== 'user') historial.shift();
   const r = await fetch('https://api.anthropic.com/v1/messages', {
@@ -120,11 +124,11 @@ async function procesarEntrante(tel, nombre, texto, id) {
   anotar(c, 'cliente', texto);
   if (c.humano) return null; // lo atiende una persona desde el panel
 
-  let resp = respuestaFaq(texto);
+  let resp = /\bpersona\b|humano|asesor/.test(norm(texto)) ? '[HUMANO]' : respuestaFaq(texto);
   if (resp) db.stats.respFaq++;
   else { resp = await respuestaIA(c); db.stats.respIA++; }
   if (resp.includes('[HUMANO]')) { c.humano = true; resp = negocio.derivacion; }
-  if (nuevo && negocio.bienvenida && !resp.startsWith('¡Hola')) resp = `${negocio.bienvenida}\n\n${resp}`; // todo en un solo mensaje
+  if (nuevo && negocio.bienvenida && !resp.includes(negocio.bienvenida)) resp = `${negocio.bienvenida}\n\n${resp}`; // todo en un solo mensaje
   await responder(c, resp);
   return resp;
 }
@@ -178,6 +182,7 @@ http.createServer(async (req, res) => {
     if (req.method !== 'POST') { res.writeHead(404); return res.end(); }
     const b = JSON.parse((await cuerpo(req)) || '{}');
     if (url.pathname === '/api/negocio') { negocio = b; fs.writeFileSync(NEG_PATH, JSON.stringify(b, null, 2)); return json(res, 200, { ok: true }); }
+    if (url.pathname === '/api/reiniciar') { delete db.chats.prueba; guardar(); return json(res, 200, { ok: true }); }
     if (url.pathname === '/api/probar') { if (db.chats.prueba) db.chats.prueba.humano = false; } if (url.pathname === '/api/probar') return json(res, 200, { respuesta: await procesarEntrante(b.tel || 'prueba', 'Prueba', b.texto) });
     const c = db.chats[b.tel];
     if (!c) return json(res, 404, { error: 'No existe el chat' });

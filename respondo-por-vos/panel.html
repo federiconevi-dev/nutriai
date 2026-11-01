@@ -1,73 +1,170 @@
 <!doctype html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Respondo por vos · Panel</title>
+<title>Respondo por vos</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-:root{--v:#25d366;--o:#075e54;--f:#f0f2f5;--t:#111b21;--g:#667781}
-*{box-sizing:border-box}body{margin:0;font:15px system-ui,sans-serif;background:var(--f);color:var(--t)}
-header{background:var(--o);color:#fff;padding:12px 16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-header b{font-size:18px}.pill{font-size:12px;padding:3px 8px;border-radius:99px;background:#ffffff22}
-nav{display:flex;gap:4px;padding:8px 16px;background:#fff;border-bottom:1px solid #ddd;overflow-x:auto}
-nav button{border:0;background:none;padding:8px 12px;border-radius:8px;cursor:pointer;font:inherit}
-nav button.on{background:var(--f);font-weight:600}
-main{padding:16px;max-width:1100px;margin:auto}.oculto{display:none!important}
-.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:16px}
-.card{background:#fff;border-radius:12px;padding:12px}.card small{color:var(--g)}.card div{font-size:24px;font-weight:700}
-.chats{display:grid;grid-template-columns:280px 1fr;gap:12px;height:70vh}
-@media(max-width:700px){.chats{grid-template-columns:1fr;height:auto}}
-.lista,.conv{background:#fff;border-radius:12px;overflow:auto}
-.item{padding:10px 12px;border-bottom:1px solid #eee;cursor:pointer}.item:hover,.item.on{background:var(--f)}
-.item small{color:var(--g);display:block}.conv{display:flex;flex-direction:column}
-.msgs{flex:1;overflow:auto;padding:12px;background:#efeae2;min-height:300px}
-.m{max-width:75%;padding:6px 10px;border-radius:8px;margin:4px 0;white-space:pre-wrap}
-.m.cliente{background:#fff}.m.bot,.m.humano{background:#d9fdd3;margin-left:auto}.m small{display:block;color:var(--g);font-size:11px}
-.barra{display:flex;gap:6px;padding:8px;border-top:1px solid #eee;flex-wrap:wrap}
-input,textarea,select{font:inherit;padding:8px;border:1px solid #ccc;border-radius:8px}input{flex:1;min-width:0}
-button.p{background:var(--v);color:#fff;border:0;border-radius:8px;padding:8px 14px;cursor:pointer;font:inherit}
-.aviso{background:#fff3cd;padding:8px 12px;border-radius:8px;margin:8px;font-size:13px}
-textarea{width:100%;height:60vh;font-family:monospace;font-size:13px}
+:root{--bg:#0b1411;--pan:#111d19;--pan2:#17261f;--linea:#223a31;--txt:#e9f5ef;--sub:#8fb1a3;--v:#25d366;--v2:#1fae55;--am:#ffcc4d;--ro:#ff6b6b;--r:18px}
+*{box-sizing:border-box}html,body{height:100%}html{background:var(--bg)}
+body{margin:0;font:15px/1.45 'Plus Jakarta Sans',system-ui,sans-serif;background:radial-gradient(1200px 600px at 80% -10%,#1d4a36 0,transparent 60%),var(--bg);color:var(--txt)}
+.app{display:grid;grid-template-columns:240px 1fr;min-height:100%}
+aside{padding:22px 14px;border-right:1px solid var(--linea);display:flex;flex-direction:column;gap:6px;position:sticky;top:0;height:100vh}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:17px;margin:0 8px 18px}
+.logo i{width:36px;height:36px;border-radius:12px;background:linear-gradient(135deg,var(--v),#0e8f6e);display:grid;place-items:center;font-style:normal;font-size:19px;box-shadow:0 6px 20px #25d36655}
+.nav{all:unset;cursor:pointer;padding:11px 14px;border-radius:12px;color:var(--sub);font-weight:600;display:flex;gap:10px;align-items:center}
+.nav:hover{background:var(--pan2);color:var(--txt)}.nav.on{background:var(--pan2);color:var(--txt);box-shadow:inset 3px 0 0 var(--v)}
+.estado{margin-top:auto;display:flex;flex-direction:column;gap:6px}
+.chip{font-size:12px;padding:6px 10px;border-radius:99px;background:var(--pan2);color:var(--sub);display:flex;gap:6px;align-items:center}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--am)}.dot.ok{background:var(--v)}
+main{padding:28px clamp(16px,4vw,40px);max-width:1200px;width:100%}
+h1{font-size:26px;margin:0 0 4px;font-weight:800;letter-spacing:-.02em}.lead{color:var(--sub);margin:0 0 22px}
+.oculto{display:none!important}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px}
+.kpi{background:var(--pan);border:1px solid var(--linea);border-radius:var(--r);padding:18px}
+.kpi small{color:var(--sub);font-weight:600}.kpi b{display:block;font-size:30px;font-weight:800;margin-top:6px;letter-spacing:-.02em}
+.kpi.dest{background:linear-gradient(135deg,#1b5e3f,#0f3a2a);border-color:#2b7a55}
+.box{background:var(--pan);border:1px solid var(--linea);border-radius:var(--r);padding:20px;margin-top:16px}
+.box h3{margin:0 0 10px;font-size:16px}.box ul{margin:0;padding-left:18px;color:var(--sub)}.box li{margin:6px 0}
+/* chats */
+.chats{display:grid;grid-template-columns:300px 1fr;gap:14px;height:calc(100vh - 150px)}
+.lista{background:var(--pan);border:1px solid var(--linea);border-radius:var(--r);overflow:auto}
+.it{padding:14px 16px;border-bottom:1px solid var(--linea);cursor:pointer}.it:hover,.it.on{background:var(--pan2)}
+.it b{display:flex;justify-content:space-between;gap:8px}.it span{color:var(--sub);font-size:13px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tag{font-size:11px;padding:2px 8px;border-radius:99px;background:#25d36622;color:var(--v);font-weight:700;white-space:nowrap}.tag.off{background:#ff6b6b22;color:var(--ro)}
+.conv{background:var(--pan);border:1px solid var(--linea);border-radius:var(--r);display:flex;flex-direction:column;overflow:hidden;min-height:0}
+.cab{padding:12px 16px;border-bottom:1px solid var(--linea);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.msgs{flex:1;overflow:auto;padding:18px;display:flex;flex-direction:column;gap:6px;background:#0d1815}
+.m{max-width:78%;padding:9px 13px;border-radius:16px;white-space:pre-wrap;word-wrap:break-word;animation:in .2s ease}
+.m.cliente{background:var(--pan2);align-self:flex-start;border-bottom-left-radius:4px}
+.m.bot,.m.humano{background:#1f6b46;align-self:flex-end;border-bottom-right-radius:4px}
+.m small{display:block;font-size:11px;opacity:.6;margin-top:3px}
+@keyframes in{from{opacity:0;transform:translateY(6px)}}
+.pie{padding:12px;border-top:1px solid var(--linea);display:flex;gap:8px;flex-wrap:wrap}
+.vacio{margin:auto;color:var(--sub);text-align:center;padding:30px}
+input,select,textarea{font:inherit;color:var(--txt);background:var(--pan2);border:1px solid var(--linea);border-radius:12px;padding:11px 14px;outline:none;width:100%}
+input:focus,select:focus,textarea:focus{border-color:var(--v)}textarea{resize:vertical;min-height:70px}
+.pie input{flex:1;width:auto;min-width:0}
+.btn{all:unset;cursor:pointer;background:var(--v);color:#04220f;font-weight:700;padding:11px 18px;border-radius:12px;text-align:center;transition:.15s}
+.btn:hover{background:#3ee07c}.btn.sec{background:var(--pan2);color:var(--txt);border:1px solid var(--linea)}.btn.sec:hover{border-color:var(--v)}
+.btn.chico{padding:7px 12px;font-size:13px}
+.aviso{background:#ffcc4d18;border:1px solid #ffcc4d55;color:#ffe199;padding:12px 14px;border-radius:12px;font-size:13px;width:100%}
+.sw{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--sub);cursor:pointer}
+.sw input{display:none}.sw i{width:38px;height:22px;border-radius:99px;background:var(--linea);position:relative;transition:.2s}
+.sw i:after{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:.2s}
+.sw input:checked+i{background:var(--am)}.sw input:checked+i:after{left:19px}
+/* probar */
+.probar{display:grid;grid-template-columns:minmax(300px,400px) 1fr;gap:24px;align-items:start}
+.cel{background:#000;border-radius:38px;padding:12px;box-shadow:0 30px 80px #0008,0 0 0 2px #2a3a34}
+.cel .conv{height:600px;border-radius:28px;border:0}
+.cel .cab{background:#1f2c33}.av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--v),#0e8f6e);display:grid;place-items:center;font-weight:800}
+.cel .msgs{background:#0b141a}.cel .m.bot{background:#005c4b}.cel .m.cliente{background:#202c33}
+.sug{display:flex;flex-wrap:wrap;gap:8px}.sug button{all:unset;cursor:pointer;background:var(--pan2);border:1px solid var(--linea);padding:8px 12px;border-radius:99px;font-size:13px}.sug button:hover{border-color:var(--v)}
+/* datos */
+.form{display:grid;grid-template-columns:1fr 1fr;gap:14px}.form label{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--sub);font-weight:600}.full{grid-column:1/-1}
+.fila{display:grid;grid-template-columns:2fr 1fr 2fr auto;gap:8px;margin-bottom:8px}.fila.faq{grid-template-columns:1fr 2fr auto}
+.x{all:unset;cursor:pointer;color:var(--ro);padding:0 10px;font-size:20px}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--v);color:#04220f;font-weight:700;padding:12px 20px;border-radius:12px;opacity:0;transition:.3s;pointer-events:none}.toast.on{opacity:1}
+@media(max-width:860px){.app{grid-template-columns:1fr}aside{position:static;height:auto;flex-direction:row;flex-wrap:wrap;padding:12px;border-right:0;border-bottom:1px solid var(--linea)}
+.logo{width:100%;margin:0 0 6px}.estado{display:none}.nav{padding:8px 12px}.chats,.probar,.form{grid-template-columns:1fr}.chats{height:auto}.lista{max-height:260px}.conv{min-height:480px}.fila,.fila.faq{grid-template-columns:1fr 1fr}}
 </style></head><body>
-<header><b>Respondo por vos</b><span class="pill" id="wa"></span><span class="pill" id="ia"></span></header>
-<nav><button data-t="resumen" class="on">Resumen</button><button data-t="chats">Chats</button><button data-t="probar">Probar el bot</button><button data-t="negocio">Datos del negocio</button></nav>
+<div class="app">
+<aside>
+  <div class="logo"><i>💬</i>Respondo por vos</div>
+  <button class="nav on" data-t="resumen">📊 Resumen</button>
+  <button class="nav" data-t="chats">💬 Chats</button>
+  <button class="nav" data-t="probar">🧪 Probar el bot</button>
+  <button class="nav" data-t="datos">🏪 Mi negocio</button>
+  <div class="estado"><div class="chip"><span class="dot" id="dwa"></span><span id="twa"></span></div><div class="chip"><span class="dot" id="dia"></span><span id="tia"></span></div></div>
+</aside>
 <main>
 <section id="resumen">
-  <div class="cards" id="cards"></div>
-  <div class="card"><small>Cómo ahorra plata</small>
-  <p>Meta no cobra las respuestas dentro de las 24 h desde el último mensaje del cliente. El bot solo contesta ahí, en un único mensaje por pregunta. Fuera de esa ventana bloquea los envíos y solo deja mandar una plantilla, que se cobra y queda anotada acá.</p>
-  <p>Las preguntas frecuentes se contestan sin IA (costo cero). La IA se usa solo cuando hace falta.</p></div>
+  <h1>Resumen</h1><p class="lead">Cuánto trabaja el bot y cuánto te ahorra.</p>
+  <div class="grid" id="kpis"></div>
+  <div class="box"><h3>Cómo te ahorra plata</h3><ul>
+    <li>Meta <b>no cobra</b> las respuestas dentro de las 24 h desde el último mensaje del cliente. El bot contesta solo ahí, en un único mensaje.</li>
+    <li>Pasadas las 24 h bloquea los envíos libres. Solo deja mandar una plantilla (lo único que se paga), te pide confirmar y anota el gasto.</li>
+    <li>Preguntas frecuentes, precios y link de pago se contestan <b>sin IA</b>: costo cero.</li></ul></div>
 </section>
-<section id="chats" class="oculto"><div class="chats"><div class="lista" id="lista"></div>
-  <div class="conv"><div id="cab" class="barra"></div><div class="msgs" id="msgs"></div><div id="pie"></div></div></div></section>
-<section id="probar" class="oculto"><div class="conv card"><div class="msgs" id="pmsgs"></div>
-  <div class="barra"><input id="ptxt" placeholder="Escribí como si fueras un cliente…"><button class="p" id="penv">Enviar</button></div></div></section>
-<section id="negocio" class="oculto"><p>Editá los datos y tocá Guardar. Las preguntas frecuentes (faq) se contestan sin gastar IA.</p>
-  <textarea id="neg"></textarea><p><button class="p" id="gneg">Guardar</button> <span id="gok"></span></p></section>
-</main>
+
+<section id="chats" class="oculto">
+  <h1>Chats</h1><p class="lead">Tus clientes en vivo. 🟢 = responder es gratis.</p>
+  <div class="chats"><div class="lista" id="lista"></div>
+    <div class="conv"><div class="cab" id="ccab"></div><div class="msgs" id="cmsgs"><div class="vacio">Elegí un chat de la izquierda</div></div>
+      <div class="pie" id="cpie"></div></div></div>
+</section>
+
+<section id="probar" class="oculto">
+  <h1>Probar el bot</h1><p class="lead">Escribile como si fueras un cliente. No gasta nada.</p>
+  <div class="probar">
+    <div class="cel"><div class="conv"><div class="cab"><div style="display:flex;gap:10px;align-items:center"><div class="av" id="pav">L</div><div><b id="pnom"></b><div style="font-size:12px;color:var(--sub)">en línea</div></div></div><button class="btn sec chico" id="preset">Reiniciar</button></div>
+      <div class="msgs" id="pmsgs"></div>
+      <form class="pie" id="pform"><input id="ptxt" placeholder="Escribí un mensaje" autocomplete="off"><button class="btn">➤</button></form></div></div>
+    <div><div class="box" style="margin-top:0"><h3>Probá con estas</h3><div class="sug" id="sug"></div></div></div>
+  </div>
+</section>
+
+<section id="datos" class="oculto">
+  <h1>Mi negocio</h1><p class="lead">Lo que el bot sabe. Cambiá lo que quieras y tocá Guardar.</p>
+  <div class="box" style="margin-top:0"><div class="form" id="form"></div></div>
+  <div class="box"><h3>Productos y precios</h3><div id="cat"></div><button class="btn sec chico" id="addcat">+ Agregar producto</button></div>
+  <div class="box"><h3>Preguntas frecuentes (se contestan sin IA)</h3><p style="color:var(--sub);margin-top:0;font-size:13px">Palabras clave separadas por coma. Si el mensaje del cliente tiene alguna, sale esta respuesta.</p><div id="faq"></div><button class="btn sec chico" id="addfaq">+ Agregar pregunta</button></div>
+  <p><button class="btn" id="guardar">Guardar cambios</button></p>
+</section>
+</main></div>
+<div class="toast" id="toast"></div>
 <script>
-const $=s=>document.querySelector(s);let E={},sel=null;
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+let E={stats:{},chats:[]},sel=null,firma={};
 const api=(u,b)=>fetch(u,b?{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(b)}:{}).then(r=>r.json());
-const hora=t=>new Date(t).toLocaleString('es-AR',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'});
-const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
-document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on',x==b));document.querySelectorAll('main>section').forEach(s=>s.classList.toggle('oculto',s.id!=b.dataset.t))});
-async function cargar(){E=await api('/api/estado');const s=E.stats;
- $('#wa').textContent=E.conectado?'WhatsApp conectado':'WhatsApp sin conectar (modo prueba)';$('#ia').textContent=E.ia?'IA activa':'IA sin clave';
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const hora=t=>new Date(t).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
+const toast=t=>{$('#toast').textContent=t;$('#toast').classList.add('on');setTimeout(()=>$('#toast').classList.remove('on'),2200)};
+const burbujas=c=>(c?.msgs||[]).map(m=>`<div class="m ${m.de}">${esc(m.texto)}<small>${m.de=='cliente'?'':m.de=='bot'?'🤖 bot · ':'🙋 vos · '}${hora(m.t)}${m.costoUSD?' · USD '+m.costoUSD:''}</small></div>`).join('');
+// pinta solo si cambió (así no se corta lo que escribís)
+function pintar(el,html,key){if(firma[key]===html)return;firma[key]=html;const abajo=el.scrollTop+el.clientHeight>=el.scrollHeight-40;el.innerHTML=html;if(abajo||key.startsWith('m'))el.scrollTop=el.scrollHeight}
+
+$$('.nav').forEach(b=>b.onclick=()=>{$$('.nav').forEach(x=>x.classList.toggle('on',x==b));$$('main>section').forEach(s=>s.classList.toggle('oculto',s.id!=b.dataset.t));if(b.dataset.t=='probar')$('#ptxt').focus()});
+
+async function cargar(){try{E=await api('/api/estado')}catch{return}const s=E.stats;
+ $('#dwa').classList.toggle('ok',E.conectado);$('#twa').textContent=E.conectado?'WhatsApp conectado':'WhatsApp: modo prueba';
+ $('#dia').classList.toggle('ok',E.ia);$('#tia').textContent=E.ia?'IA activa':'IA sin clave (respuestas fijas)';
  const sinIA=s.respGratis?Math.round(s.respFaq/s.respGratis*100):0;
- $('#cards').innerHTML=[['Mensajes recibidos',s.recibidos],['Respuestas gratis (24 h)',s.respGratis],['Contestadas sin IA',sinIA+'%'],['Plantillas pagas',s.plantillas],['Gasto en Meta (USD aprox.)',s.costoUSD.toFixed(2)],['Envíos bloqueados (ahorro)',s.bloqueados]].map(([a,b])=>`<div class="card"><small>${a}</small><div>${b}</div></div>`).join('');
- $('#lista').innerHTML=E.chats.filter(c=>c.tel!='prueba').map(c=>`<div class="item ${c.tel==sel?'on':''}" data-t="${c.tel}"><b>${esc(c.nombre||c.tel)}</b>${c.humano?' 🙋':''}<small>${esc(c.msgs.at(-1)?.texto||'').slice(0,40)}</small><small>${c.enVentana?'🟢 gratis '+Math.floor(c.venceEn/36e5)+' h más':'🔴 fuera de ventana'}</small></div>`).join('')||'<p style="padding:12px">Todavía no hay chats.</p>';
- document.querySelectorAll('.item').forEach(i=>i.onclick=()=>{sel=i.dataset.t;cargar()});
- if(!$('#neg').value)$('#neg').value=JSON.stringify(E.negocio,null,2);
- const p=E.chats.find(c=>c.tel=='prueba');$('#pmsgs').innerHTML=burbujas(p);verChat();}
-const burbujas=c=>(c?.msgs||[]).map(m=>`<div class="m ${m.de}">${esc(m.texto)}<small>${m.de} · ${hora(m.t)}${m.costoUSD?' · USD '+m.costoUSD:''}</small></div>`).join('');
-function verChat(){const c=E.chats.find(x=>x.tel==sel);if(!c){$('#cab').innerHTML='';$('#msgs').innerHTML='';$('#pie').innerHTML='';return}
- $('#cab').innerHTML=`<b>${esc(c.nombre||c.tel)}</b> <label><input type="checkbox" id="hum" ${c.humano?'checked':''} style="flex:none"> Lo atiendo yo (pausa el bot)</label>`;
- $('#hum').onchange=e=>api('/api/humano',{tel:c.tel,humano:e.target.checked}).then(cargar);
- const m=$('#msgs');const abajo=m.scrollTop+m.clientHeight>=m.scrollHeight-20;m.innerHTML=burbujas(c);if(abajo)m.scrollTop=m.scrollHeight;
- if(document.activeElement?.id=='txt'||document.activeElement?.id=='tpl')return;
- $('#pie').innerHTML=c.enVentana?`<div class="barra"><input id="txt" placeholder="Responder (gratis)"><button class="p" id="env">Enviar</button></div>`
- :`<div class="aviso">Pasaron más de 24 h desde el último mensaje del cliente. Meta solo deja mandar una plantilla aprobada, y se cobra (marketing USD ${E.precios.marketing}, utilidad USD ${E.precios.utility}).</div><div class="barra"><input id="tpl" placeholder="Nombre de la plantilla aprobada"><select id="cat"><option value="utility">Utilidad</option><option value="marketing">Marketing</option></select><button class="p" id="envt">Mandar plantilla (paga)</button></div>`;
- if($('#env'))$('#env').onclick=async()=>{const r=await api('/api/enviar',{tel:c.tel,texto:$('#txt').value});if(r.error)alert(r.error);$('#txt').value='';cargar()};
- if($('#envt'))$('#envt').onclick=async()=>{if(!confirm('Esta plantilla se cobra. ¿Mandarla?'))return;await api('/api/plantilla',{tel:c.tel,nombre:$('#tpl').value,categoria:$('#cat').value});cargar()};}
-$('#penv').onclick=async()=>{const t=$('#ptxt').value.trim();if(!t)return;$('#ptxt').value='';await api('/api/probar',{texto:t});cargar()};
-$('#ptxt').onkeydown=e=>e.key=='Enter'&&$('#penv').click();
-$('#gneg').onclick=async()=>{try{await api('/api/negocio',JSON.parse($('#neg').value));$('#gok').textContent='Guardado ✓'}catch{$('#gok').textContent='Hay un error en el formato'}};
-cargar();setInterval(cargar,5000);
+ pintar($('#kpis'),[['Respuestas gratis',s.respGratis,1],['Mensajes recibidos',s.recibidos],['Contestadas sin IA',sinIA+'%'],['Plantillas pagas',s.plantillas],['Gasto en Meta',`USD ${(s.costoUSD||0).toFixed(2)}`],['Envíos pagos evitados',s.bloqueados]].map(([a,b,d])=>`<div class="kpi ${d?'dest':''}"><small>${a}</small><b>${b}</b></div>`).join(''),'k');
+ const reales=E.chats.filter(c=>c.tel!='prueba');
+ pintar($('#lista'),reales.map(c=>`<div class="it ${c.tel==sel?'on':''}" data-t="${esc(c.tel)}"><b>${esc(c.nombre||c.tel)}${c.humano?' 🙋':''}<span class="tag ${c.enVentana?'':'off'}">${c.enVentana?'🟢 '+Math.ceil(c.venceEn/36e5)+' h':'🔴 pago'}</span></b><span>${esc(c.msgs.at(-1)?.texto)}</span></div>`).join('')||'<div class="vacio">Todavía no te escribió nadie.<br>Probá el bot en 🧪</div>','l');
+ $$('.it').forEach(i=>i.onclick=()=>{sel=i.dataset.t;firma.l=firma.cab=firma.pie=null;cargar()});
+ verChat();
+ const p=E.chats.find(c=>c.tel=='prueba');
+ pintar($('#pmsgs'),burbujas(p)||'<div class="vacio">Mandá un mensaje para empezar 👇</div>','mp');
+ $('#pnom').textContent=E.negocio.nombre||'Tu negocio';$('#pav').textContent=(E.negocio.nombre||'T')[0];
+ if(!$('#form').dataset.ok)llenarForm();}
+
+function verChat(){const c=E.chats.find(x=>x.tel==sel);if(!c)return;
+ pintar($('#ccab'),`<b>${esc(c.nombre||c.tel)}</b><label class="sw"><input type="checkbox" id="hum" ${c.humano?'checked':''}><i></i>Lo atiendo yo (pausa el bot)</label>`,'cab');
+ $('#hum').onchange=e=>api('/api/humano',{tel:c.tel,humano:e.target.checked}).then(()=>{toast(e.target.checked?'Bot pausado en este chat':'Bot activo');cargar()});
+ pintar($('#cmsgs'),burbujas(c),'mc'+sel);
+ pintar($('#cpie'),c.enVentana?`<form class="pie" id="fenv" style="padding:0;border:0;width:100%"><input id="txt" placeholder="Responder (gratis)" autocomplete="off"><button class="btn">Enviar</button></form>`
+ :`<div class="aviso">Pasaron más de 24 h desde el último mensaje del cliente. Meta solo deja mandar una plantilla aprobada, y se cobra (marketing USD ${E.precios.marketing} · utilidad USD ${E.precios.utility}).</div><input id="tpl" placeholder="Nombre de la plantilla aprobada" style="flex:2"><select id="tcat" style="flex:1"><option value="utility">Utilidad</option><option value="marketing">Marketing</option></select><button class="btn" id="envt">Mandar (paga)</button>`,'pie');
+ if($('#fenv'))$('#fenv').onsubmit=async e=>{e.preventDefault();const t=$('#txt').value.trim();if(!t)return;$('#txt').value='';const r=await api('/api/enviar',{tel:c.tel,texto:t});if(r.error)toast(r.error);cargar()};
+ if($('#envt'))$('#envt').onclick=async()=>{if(!$('#tpl').value)return toast('Poné el nombre de la plantilla');if(!confirm('Esta plantilla se cobra. ¿La mandás?'))return;await api('/api/plantilla',{tel:c.tel,nombre:$('#tpl').value,categoria:$('#tcat').value});cargar()};}
+
+// probar
+$('#pform').onsubmit=async e=>{e.preventDefault();const t=$('#ptxt').value.trim();if(!t)return;$('#ptxt').value='';
+ const p=E.chats.find(c=>c.tel=='prueba')||{msgs:[]};p.msgs.push({de:'cliente',texto:t,t:Date.now()});if(!E.chats.includes(p)){p.tel='prueba';E.chats.push(p)}
+ pintar($('#pmsgs'),burbujas(p),'mp');await api('/api/probar',{texto:t});cargar();$('#ptxt').focus()};
+$('#preset').onclick=async()=>{await api('/api/reiniciar',{});cargar()};
+['Hola!','¿Cuánto sale el jean mom?','¿Hacen envíos?','¿Aceptan Mercado Pago?','Quiero comprar','Me llegó roto','Quiero hablar con una persona'].forEach(t=>{const b=document.createElement('button');b.textContent=t;b.onclick=()=>{$('#ptxt').value=t;$('#pform').requestSubmit()};$('#sug').append(b)});
+
+// datos
+const CAMPOS=[['nombre','Nombre del negocio'],['rubro','Rubro'],['zona','Zona'],['horario','Horario de atención'],['tono','Cómo habla (tono)'],['linkPago','Link de pago'],['envios','Envíos','t'],['pagos','Formas de pago','t'],['cambios','Cambios y devoluciones','t'],['prohibido','Lo que nunca tiene que decir','t'],['bienvenida','Mensaje de bienvenida','t'],['derivacion','Mensaje al pasar con una persona','t']];
+function filaCat(p={}){const d=document.createElement('div');d.className='fila';d.innerHTML=`<input placeholder="Producto" value="${esc(p.producto)}"><input placeholder="Precio" type="number" value="${esc(p.precio)}"><input placeholder="Talles, colores…" value="${esc(p.variantes)}"><button class="x" title="Borrar">×</button>`;d.querySelector('.x').onclick=()=>d.remove();$('#cat').append(d)}
+function filaFaq(f={}){const d=document.createElement('div');d.className='fila faq';d.innerHTML=`<input placeholder="envío, envían, mandan" value="${esc((f.claves||[]).join(', '))}"><input placeholder="Respuesta" value="${esc(f.respuesta)}"><button class="x" title="Borrar">×</button>`;d.querySelector('.x').onclick=()=>d.remove();$('#faq').append(d)}
+function llenarForm(){const n=E.negocio;$('#form').dataset.ok=1;
+ $('#form').innerHTML=CAMPOS.map(([k,l,t])=>`<label class="${t?'full':''}">${l}${t?`<textarea data-k="${k}">${esc(n[k])}</textarea>`:`<input data-k="${k}" value="${esc(n[k])}">`}</label>`).join('');
+ $('#cat').innerHTML='';(n.catalogo||[]).forEach(filaCat);$('#faq').innerHTML='';(n.faq||[]).forEach(filaFaq)}
+$('#addcat').onclick=()=>filaCat();$('#addfaq').onclick=()=>filaFaq();
+$('#guardar').onclick=async()=>{const n={};$$('#form [data-k]').forEach(i=>n[i.dataset.k]=i.value.trim());
+ n.catalogo=$$('#cat .fila').map(f=>{const i=f.querySelectorAll('input');return{producto:i[0].value.trim(),precio:Number(i[1].value)||0,variantes:i[2].value.trim()}}).filter(p=>p.producto);
+ n.faq=$$('#faq .fila').map(f=>{const i=f.querySelectorAll('input');return{claves:i[0].value.split(',').map(x=>x.trim()).filter(Boolean),respuesta:i[1].value.trim()}}).filter(f=>f.claves.length&&f.respuesta);
+ await api('/api/negocio',n);toast('Guardado ✓');cargar()};
+cargar();setInterval(cargar,4000);
 </script></body></html>
