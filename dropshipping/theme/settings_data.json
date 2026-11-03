@@ -1,0 +1,86 @@
+{
+  "current": {
+    "logo_width": 110,
+    "type_header_font": "lora_n6",
+    "heading_scale": 110,
+    "type_body_font": "nunito_sans_n4",
+    "body_scale": 105,
+    "page_width": 1200,
+    "spacing_sections": 0,
+    "buttons_border_thickness": 1,
+    "buttons_radius": 40,
+    "inputs_radius": 12,
+    "variant_pills_radius": 40,
+    "card_style": "standard",
+    "card_corner_radius": 16,
+    "media_radius": 16,
+    "product_card_corner_radius": 16,
+    "color_schemes": {
+      "scheme-1": {
+        "settings": {
+          "background": "#FAF6F0",
+          "background_gradient": "",
+          "text": "#3A2E26",
+          "button": "#7A5235",
+          "button_label": "#FFFFFF",
+          "secondary_button_label": "#7A5235",
+          "shadow": "#3A2E26"
+        }
+      },
+      "scheme-2": {
+        "settings": {
+          "background": "#EFE6D8",
+          "background_gradient": "",
+          "text": "#3A2E26",
+          "button": "#7A5235",
+          "button_label": "#FFFFFF",
+          "secondary_button_label": "#7A5235",
+          "shadow": "#3A2E26"
+        }
+      },
+      "scheme-3": {
+        "settings": {
+          "background": "#3A2E26",
+          "background_gradient": "",
+          "text": "#FAF6F0",
+          "button": "#E8B9A0",
+          "button_label": "#3A2E26",
+          "secondary_button_label": "#FAF6F0",
+          "shadow": "#FAF6F0"
+        }
+      },
+      "scheme-4": {
+        "settings": {
+          "background": "#7A5235",
+          "background_gradient": "",
+          "text": "#FFFFFF",
+          "button": "#FAF6F0",
+          "button_label": "#5E3E27",
+          "secondary_button_label": "#FFFFFF",
+          "shadow": "#FFFFFF"
+        }
+      },
+      "scheme-5": {
+        "settings": {
+          "background": "#E8B9A0",
+          "background_gradient": "",
+          "text": "#3A2E26",
+          "button": "#3A2E26",
+          "button_label": "#FAF6F0",
+          "secondary_button_label": "#3A2E26",
+          "shadow": "#3A2E26"
+        }
+      }
+    },
+    "cart_type": "drawer",
+    "show_vendor": false,
+    "show_cart_note": false,
+    "predictive_search_enabled": true,
+    "social_instagram_link": "",
+    "social_tiktok_link": "",
+    "currency_code_enabled": false,
+    "sections": {},
+    "content_for_index": [],
+    "blocks": {}
+  }
+}
