@@ -1,0 +1,330 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-product",
+      "blocks": {
+        "title": {
+          "type": "title",
+          "settings": {}
+        },
+        "price": {
+          "type": "price",
+          "settings": {}
+        },
+        "bundle": {
+          "type": "text",
+          "settings": {
+            "text": "Buy 2 pairs, save $5.99. Applied automatically at checkout.",
+            "text_style": "subtitle"
+          }
+        },
+        "variant": {
+          "type": "variant_picker",
+          "settings": {
+            "picker_type": "button",
+            "swatch_shape": "circle"
+          }
+        },
+        "qty": {
+          "type": "quantity_selector",
+          "settings": {}
+        },
+        "buy": {
+          "type": "buy_buttons",
+          "settings": {
+            "show_dynamic_checkout": true,
+            "show_gift_card_recipient": false
+          }
+        },
+        "icons": {
+          "type": "icon-with-text",
+          "settings": {
+            "layout": "vertical",
+            "icon_1": "truck",
+            "image_1": "",
+            "heading_1": "Free US shipping",
+            "icon_2": "return",
+            "image_2": "",
+            "heading_2": "30-day returns",
+            "icon_3": "heart",
+            "image_3": "",
+            "heading_3": "Unisex fit"
+          }
+        },
+        "desc": {
+          "type": "description",
+          "settings": {}
+        },
+        "t1": {
+          "type": "collapsible_tab",
+          "settings": {
+            "heading": "Size guide",
+            "icon": "ruler",
+            "content": "<p>EU 36-37 = US Women 5.5-6.5<br>EU 38-39 = US Women 7-8 / US Men 6-7<br>EU 40-41 = US Women 8.5-9.5 / US Men 7.5-8.5<br>EU 42-43 = US Women 10-11 / US Men 9-10<br>EU 44-45 = US Men 10.5-11.5</p><p>Between sizes or wider feet? Size up.</p>",
+            "page": ""
+          }
+        },
+        "t2": {
+          "type": "collapsible_tab",
+          "settings": {
+            "heading": "Shipping",
+            "icon": "truck",
+            "content": "<p>Free shipping on all US orders. Orders ship in 1-3 business days and usually arrive in 5-11 business days. Tracking is emailed as soon as your order ships.</p>",
+            "page": ""
+          }
+        },
+        "t3": {
+          "type": "collapsible_tab",
+          "settings": {
+            "heading": "30-day Cozy Promise",
+            "icon": "return",
+            "content": "<p>Not cozy enough? Email us within 30 days of delivery for a refund or a size exchange. Slides should be clean and worn indoors only.</p>",
+            "page": ""
+          }
+        },
+        "t4": {
+          "type": "collapsible_tab",
+          "settings": {
+            "heading": "Care",
+            "icon": "washing",
+            "content": "<p>Spot clean or gently hand wash in cool water. Air dry away from heat. Don't tumble dry.</p>",
+            "page": ""
+          }
+        },
+        "share": {
+          "type": "share",
+          "settings": {
+            "share_label": "Share"
+          }
+        }
+      },
+      "block_order": [
+        "title",
+        "price",
+        "bundle",
+        "variant",
+        "qty",
+        "buy",
+        "icons",
+        "desc",
+        "t1",
+        "t2",
+        "t3",
+        "t4",
+        "share"
+      ],
+      "settings": {
+        "enable_sticky_info": true,
+        "color_scheme": "scheme-1",
+        "media_size": "large",
+        "constrain_to_viewport": true,
+        "media_fit": "cover",
+        "gallery_layout": "thumbnail_slider",
+        "media_position": "left",
+        "image_zoom": "lightbox",
+        "mobile_thumbnails": "hide",
+        "hide_variants": false,
+        "enable_video_looping": false,
+        "padding_top": 24,
+        "padding_bottom": 24
+      }
+    },
+    "benefits": {
+      "type": "multicolumn",
+      "blocks": {
+        "b1": {
+          "type": "column",
+          "settings": {
+            "title": "Pillowy thick sole",
+            "text": "<p>A 3-4 cm cushioned EVA sole with a gentle squish under every step.</p>",
+            "link_label": "",
+            "link": ""
+          }
+        },
+        "b2": {
+          "type": "column",
+          "settings": {
+            "title": "Curly teddy fleece",
+            "text": "<p>Soft faux-fur upper with a raised bubble pattern you'll want to touch.</p>",
+            "link_label": "",
+            "link": ""
+          }
+        },
+        "b3": {
+          "type": "column",
+          "settings": {
+            "title": "Anti-skid bottom",
+            "text": "<p>Textured sole for confident steps on wood, tile and laminate.</p>",
+            "link_label": "",
+            "link": ""
+          }
+        },
+        "b4": {
+          "type": "column",
+          "settings": {
+            "title": "Slip on, slip off",
+            "text": "<p>Open-back design. Step in with no hands, kick them off at the couch.</p>",
+            "link_label": "",
+            "link": ""
+          }
+        }
+      },
+      "block_order": [
+        "b1",
+        "b2",
+        "b3",
+        "b4"
+      ],
+      "settings": {
+        "title": "Why you'll love them",
+        "heading_size": "h1",
+        "image_width": "full",
+        "image_ratio": "adapt",
+        "columns_desktop": 4,
+        "column_alignment": "center",
+        "background_style": "primary",
+        "button_label": "",
+        "button_link": "",
+        "swipe_on_mobile": false,
+        "color_scheme": "scheme-2",
+        "columns_mobile": "2",
+        "padding_top": 56,
+        "padding_bottom": 56
+      }
+    },
+    "feel": {
+      "type": "image-with-text",
+      "blocks": {
+        "h": {
+          "type": "heading",
+          "settings": {
+            "heading": "Out of bed, straight into these",
+            "heading_size": "h1"
+          }
+        },
+        "t": {
+          "type": "text",
+          "settings": {
+            "text": "<p>Cold floors at 6 am? Not anymore. Step into warm, curly fleece and a soft, springy sole, then wear them all evening on the couch, by the fire, or out on the porch for your morning coffee.</p>",
+            "text_style": "body"
+          }
+        },
+        "b": {
+          "type": "button",
+          "settings": {
+            "button_label": "Get my pair",
+            "button_link": "shopify://products/cloud-teddy-slide",
+            "button_style_secondary": false
+          }
+        }
+      },
+      "block_order": [
+        "h",
+        "t",
+        "b"
+      ],
+      "settings": {
+        "image": "shopify://shop_images/teddle_cama.jpg",
+        "height": "adapt",
+        "desktop_image_width": "medium",
+        "layout": "image_first",
+        "desktop_content_position": "middle",
+        "desktop_content_alignment": "left",
+        "content_layout": "no-overlap",
+        "section_color_scheme": "scheme-1",
+        "color_scheme": "scheme-1",
+        "image_behavior": "none",
+        "mobile_content_alignment": "left",
+        "padding_top": 48,
+        "padding_bottom": 48
+      }
+    },
+    "faq": {
+      "type": "collapsible-content",
+      "blocks": {
+        "q1": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "How do I pick my size?",
+            "icon": "ruler",
+            "row_content": "<p>They come in paired EU sizes (36-37 up to 44-45). Check the size guide in the product photos. Between sizes or wider feet? Size up.</p>",
+            "page": ""
+          }
+        },
+        "q2": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "Are they unisex?",
+            "icon": "heart",
+            "row_content": "<p>Yes. The same slide fits all feet. Use the US Women / US Men columns in the size guide.</p>",
+            "page": ""
+          }
+        },
+        "q3": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "Can I wear them outside?",
+            "icon": "leaf",
+            "row_content": "<p>They're made for home and patio: bedroom, couch, fireplace and a quick step out to the porch. Not for walks, mud, wet ground or snow.</p>",
+            "page": ""
+          }
+        },
+        "q4": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "How long does shipping take?",
+            "icon": "truck",
+            "row_content": "<p>Orders ship in 1-3 business days and usually arrive in 5-11 business days in the US. Shipping is free and you get tracking by email.</p>",
+            "page": ""
+          }
+        },
+        "q5": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "Can I wash them?",
+            "icon": "washing",
+            "row_content": "<p>Spot clean or gently hand wash in cool water, then air dry away from heat. Don't tumble dry.</p>",
+            "page": ""
+          }
+        },
+        "q6": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "What if they don't fit?",
+            "icon": "return",
+            "row_content": "<p>You have 30 days from delivery to ask for a return or a size exchange. Just email us.</p>",
+            "page": ""
+          }
+        }
+      },
+      "block_order": [
+        "q1",
+        "q2",
+        "q3",
+        "q4",
+        "q5",
+        "q6"
+      ],
+      "settings": {
+        "caption": "",
+        "heading": "Questions? We've got you",
+        "heading_size": "h1",
+        "heading_alignment": "center",
+        "layout": "none",
+        "container_color_scheme": "scheme-2",
+        "color_scheme": "scheme-1",
+        "open_first_collapsible_row": false,
+        "image_ratio": "adapt",
+        "desktop_layout": "image_second",
+        "padding_top": 40,
+        "padding_bottom": 56
+      }
+    }
+  },
+  "order": [
+    "main",
+    "benefits",
+    "feel",
+    "faq"
+  ]
+}
